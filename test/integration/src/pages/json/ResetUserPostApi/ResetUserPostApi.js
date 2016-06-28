@@ -26,5 +26,5 @@ class ResetUserPostApi extends Page {
   }
 }
 
-register(ResetUserPostApi);
+register(ResetUserPostApi, __filename);
 export default ResetUserPostApi;

@@ -24,5 +24,5 @@ class SetHttpHeader extends Page {
   }
 }
 
-register(SetHttpHeader);
+register(SetHttpHeader, __filename);
 export default SetHttpHeader;

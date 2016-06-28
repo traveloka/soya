@@ -35,5 +35,5 @@ class ValidateApi extends Page {
   }
 }
 
-register(ValidateApi);
+register(ValidateApi, __filename);
 export default ValidateApi;

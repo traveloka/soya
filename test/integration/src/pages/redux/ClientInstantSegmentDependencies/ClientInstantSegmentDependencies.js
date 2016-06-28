@@ -82,5 +82,5 @@ class ClientInstantSegmentDependencies extends Page {
   }
 }
 
-register(ClientInstantSegmentDependencies);
+register(ClientInstantSegmentDependencies, __filename);
 export default ClientInstantSegmentDependencies;

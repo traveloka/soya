@@ -36,5 +36,5 @@ class CookieRemove extends Page {
   }
 }
 
-register(CookieRemove);
+register(CookieRemove, __filename);
 export default CookieRemove;

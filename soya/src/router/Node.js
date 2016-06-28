@@ -1,5 +1,3 @@
-import RoutingData from './RoutingData';
-
 /**
  * Extend this class or create a custom class that owns the same methods as
  * this one to modify routing behavior.

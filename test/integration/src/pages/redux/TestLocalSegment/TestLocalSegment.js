@@ -122,5 +122,5 @@ class TestLocalSegment extends Page {
   }
 }
 
-register(TestLocalSegment);
+register(TestLocalSegment, __filename);
 export default TestLocalSegment;

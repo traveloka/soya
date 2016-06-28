@@ -6,10 +6,14 @@ if (module.hot && !window.__hotReload) {
 }
 
 /**
+ * dirname argument is only needed in server-side, so it's ignored.
+ *
  * @CLIENT
  * @param {Page} pageClass
+ * @param {string} filename
  */
-export default function register(pageClass) {
+export default function register(pageClass, filename) {
+  console.log('DIRNAME ------> ', filename);
   // TODO: This won't work on older IEs? Logger for client? Log only when debug framework config is set to true?
   console.log('[REGISTER] Page register', pageClass);
   if (!window.__soyaClient) {

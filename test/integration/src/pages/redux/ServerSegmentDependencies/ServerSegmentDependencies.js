@@ -82,5 +82,5 @@ class ServerSegmentDependencies extends Page {
   }
 }
 
-register(ServerSegmentDependencies);
+register(ServerSegmentDependencies, __filename);
 export default ServerSegmentDependencies;

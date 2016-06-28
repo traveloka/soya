@@ -94,5 +94,5 @@ class Hydration extends Page {
   }
 }
 
-register(Hydration);
+register(Hydration, __filename);
 export default Hydration;

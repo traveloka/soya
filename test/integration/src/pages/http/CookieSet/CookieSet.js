@@ -87,5 +87,5 @@ class CookieSet extends Page {
   }
 }
 
-register(CookieSet);
+register(CookieSet, __filename);
 export default CookieSet;

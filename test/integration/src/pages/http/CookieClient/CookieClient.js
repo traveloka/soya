@@ -21,5 +21,5 @@ class CookieClient extends Page {
   }
 }
 
-register(CookieClient);
+register(CookieClient, __filename);
 export default CookieClient;

@@ -33,5 +33,5 @@ class MixedStateComponent extends Page {
   }
 }
 
-register(MixedStateComponent);
+register(MixedStateComponent, __filename);
 export default MixedStateComponent;

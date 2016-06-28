@@ -20,5 +20,5 @@ class BadgeJson extends Page {
   }
 }
 
-register(BadgeJson);
+register(BadgeJson, __filename);
 export default BadgeJson;

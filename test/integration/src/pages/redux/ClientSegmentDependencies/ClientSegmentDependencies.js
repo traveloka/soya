@@ -173,5 +173,5 @@ class ClientSegmentDependencies extends Page {
   }
 }
 
-register(ClientSegmentDependencies);
+register(ClientSegmentDependencies, __filename);
 export default ClientSegmentDependencies;

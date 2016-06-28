@@ -76,5 +76,5 @@ class SegmentCookieClient extends Page {
   }
 }
 
-register(SegmentCookieClient);
+register(SegmentCookieClient, __filename);
 export default SegmentCookieClient;

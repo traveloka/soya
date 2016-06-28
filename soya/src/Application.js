@@ -1,4 +1,3 @@
-import CompileResult from './compiler/CompileResult';
 import Compiler from './compiler/Compiler';
 import Router from './router/Router';
 import EntryPoint from './EntryPoint';
@@ -15,7 +14,7 @@ var domain = require('domain');
 /**
  * Orchestrates all the things that makes the application server run:
  *
- * 1. Gets the list of entry points from ComponentRegister.
+ * 1. Gets the list of entry points from Routes.
  * 2. Compiles the code with the given Compiler implementation.
  * 3. Create and run the server.
  * 4. Handles the requests.
@@ -73,11 +72,6 @@ export default class Application {
   _compileResult;
 
   /**
-   * @type {ComponentRegister}
-   */
-  _componentRegister;
-
-  /**
    * @type {Array<EntryPoint>}
    */
   _entryPoints;
@@ -119,8 +113,7 @@ export default class Application {
 
   /**
    * @param {Logger} logger
-   * @param {ComponentRegister} componentRegister
-   * @param {Object} routes
+   * @param {Routes} routes
    * @param {Router} router
    * @param {Compiler} compiler
    * @param {ErrorHandler} errorHandler
@@ -129,7 +122,7 @@ export default class Application {
    * @param {Object} serverConfig
    * @param {Object} clientConfig
    */
-  constructor(logger, componentRegister, routes, router, reverseRouter, errorHandler,
+  constructor(logger, routes, router, reverseRouter, errorHandler,
               compiler, frameworkConfig, serverConfig, clientConfig) {
     // Change register to real client registration function.
     this._addReplace(frameworkConfig, 'soya/lib/client/Register', 'soya/lib/client/RegisterClient');
@@ -150,7 +143,6 @@ export default class Application {
 
     this._logger = logger;
     this._serverCreated = false;
-    this._componentRegister = componentRegister;
     this._compiler = compiler;
     this._frameworkConfig = frameworkConfig;
     this._serverConfig = serverConfig;
@@ -164,36 +156,41 @@ export default class Application {
     this._provider = new Provider(serverConfig, reverseRouter, true);
 
     var cookieJar = new CookieJar();
-    var i, pageCmpt, page, pageComponents = componentRegister.getPages();
+    var i, pageClass, pageInstance, pageMap = routes.getPages();
     var routeRequirements, j, routeId;
-    for (i in pageComponents) {
-      if (!pageComponents.hasOwnProperty(i)) continue;
-      pageCmpt = pageComponents[i];
+    for (i in pageMap) {
+      if (!pageMap.hasOwnProperty(i)) continue;
+      pageClass = pageMap[i];
+      if (pageClass.__filename == null || pageClass.__filename == '') {
+        throw new Error(`Page ${pageClass.pageName} doesn't have its file path defined!`);
+      }
+
+      console.log(pageClass.__filename);
+      throw new Error('dd');
 
       // Create entry point.
-      this._entryPoints.push(new EntryPoint(
-        pageCmpt.name, pageCmpt.absDir, pageCmpt.clazz));
-      this._pageClasses[pageCmpt.name] = pageCmpt.clazz;
+      this._entryPoints.push(new EntryPoint(pageClass.pageName, pageClass.__filename));
+      this._pageClasses[pageClass.pageName] = pageClass;
 
       try {
         // Instantiate page. We try to instantiate page at startup to find
         // potential problems with each page. This allows us to detect factory
         // naming clash early on while also allowing the start-up process to
         // populate Provider with ready to use dependencies.
-        page = new pageCmpt.clazz(this._provider, cookieJar, true);
+        pageInstance = new pageClass(this._provider, cookieJar, true);
       } catch (e) {
         throw e;
       }
 
-      this._routeForPages[pageCmpt.name] = {};
-      if (typeof pageCmpt.clazz.getRouteRequirements == 'function') {
-        routeRequirements = pageCmpt.clazz.getRouteRequirements();
+      this._routeForPages[pageClass.pageName] = {};
+      if (typeof pageClass.getRouteRequirements == 'function') {
+        routeRequirements = pageClass.getRouteRequirements();
         for (j = 0; j < routeRequirements.length; j++) {
           routeId = routeRequirements[j];
-          if (!routes.hasOwnProperty(routeId)) {
-            throw new Error('Page ' + pageCmpt.name + ' has dependencies to unknown route: ' + routeId + '.');
+          if (!routes.hasRoute(routeId)) {
+            throw new Error('Page ' + pageClass.pageName + ' has dependencies to unknown route: ' + routeId + '.');
           }
-          this._routeForPages[pageCmpt.name][routeId] = routes[routeId];
+          this._routeForPages[pageClass.pageName][routeId] = routes.getRoute(routeId);
         }
       }
     }

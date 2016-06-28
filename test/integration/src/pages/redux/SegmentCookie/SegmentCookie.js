@@ -77,5 +77,5 @@ class SegmentCookie extends Page {
   }
 }
 
-register(SegmentCookie);
+register(SegmentCookie, __filename);
 export default SegmentCookie;

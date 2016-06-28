@@ -103,5 +103,5 @@ class RuntimeComponent extends Page {
   }
 }
 
-register(RuntimeComponent);
+register(RuntimeComponent, __filename);
 export default RuntimeComponent;

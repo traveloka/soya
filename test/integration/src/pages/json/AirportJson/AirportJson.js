@@ -17,5 +17,5 @@ class AirportJson extends Page {
   }
 }
 
-register(AirportJson);
+register(AirportJson, __filename);
 export default AirportJson;

@@ -23,5 +23,5 @@ class RandomTimeEchoJson extends Page {
   }
 }
 
-register(RandomTimeEchoJson);
+register(RandomTimeEchoJson, __filename);
 export default RandomTimeEchoJson;

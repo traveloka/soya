@@ -65,7 +65,7 @@ export default class ReverseRouter {
   reverseRoute(routeId, routeArgs, fragment) {
     var routeNodes = this._routeNodes;
     if (!routeNodes.hasOwnProperty(routeId)) {
-      throw new Error(`Reverse routing called for uknown route: '${routeId}'.`);
+      throw new Error(`Reverse routing called for unknown route: '${routeId}'.`);
     }
     var i, nodes = routeNodes[routeId];
     var reverseRoutingData = new ReverseRoutingData(routeArgs);

@@ -25,5 +25,5 @@ class NotFound extends Page {
   }
 }
 
-register(NotFound);
+register(NotFound, __filename);
 export default NotFound;

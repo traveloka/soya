@@ -1,10 +1,12 @@
 /**
  * No-operation, since we don't need to register pages in Server.
  *
+ * TODO: Update documentation.
+ *
  * @SERVER
- * @param {string} name
+ * @param {string} filename
  * @param {Page} pageClass
  */
-export default function register(name, pageClass) {
-  // no-op.
+export default function register(pageClass, filename) {
+  pageClass.__filename = filename;
 }

@@ -44,5 +44,5 @@ class BookingJson extends Page {
   }
 }
 
-register(BookingJson);
+register(BookingJson, __filename);
 export default BookingJson;

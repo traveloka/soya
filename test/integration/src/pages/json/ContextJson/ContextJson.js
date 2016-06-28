@@ -32,5 +32,5 @@ class ContextJson extends Page {
   }
 }
 
-register(ContextJson);
+register(ContextJson, __filename);
 export default ContextJson;

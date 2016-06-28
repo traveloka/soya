@@ -82,5 +82,5 @@ class MutationTest extends Page {
   }
 }
 
-register(MutationTest);
+register(MutationTest, __filename);
 export default MutationTest;

@@ -40,5 +40,5 @@ class UserJson extends Page {
   }
 }
 
-register(UserJson);
+register(UserJson, __filename);
 export default UserJson;

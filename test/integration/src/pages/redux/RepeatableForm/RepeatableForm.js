@@ -88,5 +88,5 @@ class RepeatableForm extends Page {
   }
 }
 
-register(RepeatableForm);
+register(RepeatableForm, __filename);
 export default RepeatableForm;

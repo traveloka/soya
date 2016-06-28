@@ -6,10 +6,13 @@
  * @SERVER
  */
 
-import path from 'path';
-
 import server from 'soya/lib/server';
 import config from './config.js';
+import routes from './routes.js';
+
+server(config, routes);
+
+/**
 
 // Haven't found a better way to do this yet. So for now, consider page and
 // component directory as non configurable for now.
@@ -49,4 +52,6 @@ if (foundArray.indexOf('./nodes.js') > -1) {
 }
 
 // Run server.
-server(config);
+// server(config);
+
+ */

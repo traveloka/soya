@@ -28,5 +28,5 @@ class IncUserPostApi extends Page {
   }
 }
 
-register(IncUserPostApi);
+register(IncUserPostApi, __filename);
 export default IncUserPostApi;

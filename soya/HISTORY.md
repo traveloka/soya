@@ -2,7 +2,7 @@
 
 ## 0.0.30
 
--
+- Remove cyclic dependency in router Node class.
 
 ## 0.0.29
 

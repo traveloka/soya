@@ -46,5 +46,5 @@ class LoadComponent extends Page {
   }
 }
 
-register(LoadComponent);
+register(LoadComponent, __filename);
 export default LoadComponent;

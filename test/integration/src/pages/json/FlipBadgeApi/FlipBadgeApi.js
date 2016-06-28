@@ -29,5 +29,5 @@ class FlipBadgeApi extends Page {
   }
 }
 
-register(FlipBadgeApi);
+register(FlipBadgeApi, __filename);
 export default FlipBadgeApi;

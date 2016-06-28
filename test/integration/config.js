@@ -31,7 +31,6 @@ var frameworkConfig = {
   absoluteServerBuildDir: path.join(dirname, 'build/server'),
   absoluteClientBuildDir: path.join(dirname, 'build/client'),
   hotReload: true,
-  routesFilePath: path.join(dirname, 'routes.yml'),
   clientResolve: [],
   clientReplace: {},
   debug: true,

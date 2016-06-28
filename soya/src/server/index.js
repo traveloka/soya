@@ -11,8 +11,6 @@ import DomainNode from '../router/DomainNode.js';
 import MethodNode from '../router/MethodNode.js';
 import PathNode from '../router/PathNode.js';
 import NodeFactory from '../router/NodeFactory.js';
-import ComponentRegister from '../ComponentRegister.js';
-import ComponentFinder from '../ComponentFinder.js';
 import WebpackCompiler from '../compiler/webpack/WebpackCompiler.js';
 import { DEFAULT_FRAMEWORK_CONFIG } from '../defaultFrameworkConfig.js';
 import Application from '../Application.js';
@@ -24,19 +22,23 @@ import defaultCreateErrorHandler from './createErrorHandler.js';
 
 /**
  * @param {Object} config
+ * @param {Routes} routes
  * @SERVER
  */
-export default function server(config) {
+export default function server(config, routes) {
   var frameworkConfig = config.frameworkConfig;
   var serverConfig = config.serverConfig;
   var clientConfig = config.clientConfig;
   frameworkConfig = Object.assign({}, DEFAULT_FRAMEWORK_CONFIG, frameworkConfig);
+  frameworkConfig.absolutePageRequirePath = path.join(frameworkConfig.absoluteProjectDir, 'src/pages');
+  frameworkConfig.absoluteComponentRequirePath = path.join(frameworkConfig.absoluteProjectDir, 'src/components');
 
   var createLogger = defaultCreateLogger;
   var createErrorHandler = defaultCreateErrorHandler;
   var registerRouterNodes = defaultRegisterRouterNodes;
 
   // Load custom logger and error handler factory.
+  // TODO: Fix the way we get customized logger, error handler, and router node registration.
   if (typeof frameworkConfig.loggerFactoryFunction == 'function') {
     createLogger = frameworkConfig.loggerFactoryFunction;
   }
@@ -54,22 +56,6 @@ export default function server(config) {
   var errorHandler = createErrorHandler(serverConfig, logger);
   var nodeFactory = new NodeFactory();
 
-  // Do component registration.
-  var register = new ComponentRegister(logger);
-  var finder = new ComponentFinder(logger);
-  var pageRequireContext = frameworkConfig.pageRequireContext;
-  var componentRequireContext = frameworkConfig.componentRequireContext;
-  var pageRequirePath = frameworkConfig.absolutePageRequirePath;
-  var componentRequirePath = frameworkConfig.absoluteComponentRequirePath;
-
-  finder.find(pageRequirePath, function(vendor, name, absDir, relativeDir) {
-    register.regPage(name, absDir, pageRequireContext('./' + path.join(relativeDir, name + '.js')));
-  });
-
-  finder.find(componentRequirePath, function(vendor, name, absDir, relativeDir) {
-    register.regComponent(vendor, name, absDir, componentRequireContext('./' + path.join('./', relativeDir, name + '.js')))
-  });
-
   // Register default nodes for router.
   nodeFactory.registerNodeType(DomainNode);
   nodeFactory.registerNodeType(MethodNode);
@@ -77,17 +63,11 @@ export default function server(config) {
 
   // Load custom router nodes and create router.
   registerRouterNodes(nodeFactory);
-  var router = new Router(logger, nodeFactory, register);
+  var router = new Router(logger, nodeFactory);
   var reverseRouter = new ReverseRouter(nodeFactory);
 
   // Load routes.
-  var routes = yaml.safeLoad(fs.readFileSync(frameworkConfig.routesFilePath, 'utf8'));
-  var routeId;
-  for (routeId in routes) {
-    if (!routes.hasOwnProperty(routeId)) continue;
-    router.reg(routeId, routes[routeId]);
-    reverseRouter.reg(routeId, routes[routeId]);
-  }
+  routes.register(router, reverseRouter);
 
   // If not found page is not set up.
   if (!router.getNotFoundRouteResult()) {
@@ -107,7 +87,7 @@ export default function server(config) {
     webpackDevMiddleware, webpackHotMiddleware);
 
   var application = new Application(
-    logger, register, routes, router, reverseRouter, errorHandler, compiler,
+    logger, routes, router, reverseRouter, errorHandler, compiler,
     frameworkConfig, serverConfig, clientConfig
   );
   application.start();

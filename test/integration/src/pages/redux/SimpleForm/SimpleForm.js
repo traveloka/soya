@@ -120,5 +120,5 @@ class SimpleForm extends Page {
   }
 }
 
-register(SimpleForm);
+register(SimpleForm, __filename);
 export default SimpleForm;

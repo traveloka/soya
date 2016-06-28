@@ -24,5 +24,5 @@ class SetHttpStatus extends Page {
   }
 }
 
-register(SetHttpStatus);
+register(SetHttpStatus, __filename);
 export default SetHttpStatus;

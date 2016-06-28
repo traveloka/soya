@@ -23,5 +23,5 @@ class AdditionJson extends Page {
   }
 }
 
-register(AdditionJson);
+register(AdditionJson, __filename);
 export default AdditionJson;

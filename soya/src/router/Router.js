@@ -1,8 +1,6 @@
-import Page from '../page/Page.js';
 import RouteResult from './RouteResult.js';
 import ServerHttpRequest from '../http/ServerHttpRequest';
 import RoutingData from './RoutingData';
-import PathNode from './PathNode';
 import FinalPathNode from './FinalPathNode';
 
 /*
@@ -43,19 +41,9 @@ export default class Router {
   _logger;
 
   /**
-   * @type {Array<string>}
-   */
-  _pageNames;
-
-  /**
    * @type {NodeFactory}
    */
   _nodeFactory;
-
-  /**
-   * @type {ComponentRegister}
-   */
-  _componentRegister;
 
   /**
    * @type {Array<Node>}
@@ -69,16 +57,13 @@ export default class Router {
 
   /**
    * @param {NodeFactory} nodeFactory
-   * @param {ComponentRegister} componentRegister
    * @param {Logger} logger
    */
-  constructor(logger, nodeFactory, componentRegister) {
+  constructor(logger, nodeFactory) {
     this._logger = logger;
     this._nodeFactory = nodeFactory;
-    this._componentRegister = componentRegister;
     this._routeNodes = {};
     this._graph = [];
-    this._pageNames = [];
     this._preProcessNodes = [];
     this._postProcessNodes = [];
   }
@@ -112,18 +97,12 @@ export default class Router {
       throw new Error('Duplicate route ID: ' + routeId);
     }
 
-    // Validate page.
+    // Pages should have already been validated by Routes.
     var pageName = configObj.page;
-    if (!this._componentRegister.hasPage(pageName)) {
-      throw new Error('Route registered for non-existent page: \'' + pageName + '\'.');
-    }
-    this._pageNames.push(pageName);
-
     var configNodes = configObj.nodes;
     if (!configNodes) {
-      // If no nodes specified, then this is the default 404 page.
-      this.set404NotFoundPage(configObj.page);
-      return;
+      // If no nodes specified, then it's an error!
+      throw new Error('Error in adding route, no nodes configured: \'' + routeId + '\'.');
     }
 
     // Create an array of nodes.

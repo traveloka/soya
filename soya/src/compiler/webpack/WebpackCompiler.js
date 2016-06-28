@@ -330,7 +330,7 @@ export default class WebpackCompiler extends Compiler {
     var pageToRequire, entryPointAbsolutePathMap = {};
     for (i = 0; i < entryPoints.length; i++) {
       entryPoint = entryPoints[i];
-      pageToRequire = path.join(entryPoint.rootAbsolutePath, entryPoint.name + '.js');
+      pageToRequire = entryPoint.absolutePathToFile;
       entryPointAbsolutePathMap[pageToRequire] = true;
       configuration.entry[entryPoint.name] = pageToRequire;
       entryPointList.push(entryPoint.name);
@@ -469,7 +469,12 @@ export default class WebpackCompiler extends Compiler {
     throw error;
   }
 
-
+  /**
+   * Creates plugin that changes the value of require() call. This allows us to
+   * replace implementations for client side.
+   *
+   * @returns {Function}
+   */
   _createResolvePlugin() {
     var self = this;
     return function({ Plugin, types: t }) {
@@ -497,6 +502,17 @@ export default class WebpackCompiler extends Compiler {
   }
 
   /**
+   * Append the following code:
+   *
+   * <pre>
+   *   if (module.hot) {
+   *     module.hot.accept();
+   *   }
+   * </pre>
+   *
+   * to all pages. This allows us to hot reload the complete page without
+   * resorting to plugins like react-hot-loader.
+   *
    * @param {Object} frameworkConfig
    * @param {Object<string, boolean>} entryPointAbsolutePathMap
    */

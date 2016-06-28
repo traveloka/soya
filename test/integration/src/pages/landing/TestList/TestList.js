@@ -79,5 +79,5 @@ class TestList extends Page {
   }
 }
 
-register(TestList);
+register(TestList, __filename);
 export default TestList;

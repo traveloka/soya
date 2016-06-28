@@ -13,11 +13,16 @@ export default class EntryPoint {
   rootAbsolutePath;
 
   /**
-   * @param {string} name
-   * @param {string} rootAbsolutePath
+   * @type {string}
    */
-  constructor(name, rootAbsolutePath) {
-    this.rootAbsolutePath = rootAbsolutePath;
+  absolutePathToFile;
+
+  /**
+   * @param {string} name
+   * @param {string} absolutePathToFile
+   */
+  constructor(name, absolutePathToFile) {
+    this.absolutePathToFile = absolutePathToFile;
     this.name = name;
   }
 }

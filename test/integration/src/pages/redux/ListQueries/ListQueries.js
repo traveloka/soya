@@ -24,5 +24,5 @@ class ListQueries extends Page {
   }
 }
 
-register(ListQueries);
+register(ListQueries, __filename);
 export default ListQueries;
