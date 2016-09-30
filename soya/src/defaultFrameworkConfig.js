@@ -6,5 +6,6 @@ export const DEFAULT_FRAMEWORK_CONFIG = {
   commonFileThreshold: 3,
   clientReplace: {},
   clientResolve: [],
-  absoluteComponentsDir: []
+  absoluteComponentsDir: [],
+  serverRendering: true
 };

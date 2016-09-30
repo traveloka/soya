@@ -272,6 +272,10 @@ export default class Application {
       throw new Error('Unable to route request, page ' + routeResult.pageName + ' doesn\'t exist');
     }
 
+    if () {
+
+    }
+
     // Because we tried to instantiate all pages at start-up we can be sure
     // that pageClass exists.
     var cookieJar = new ServerCookieJar(request);
