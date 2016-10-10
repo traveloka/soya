@@ -261,7 +261,7 @@ export default class Application {
    * @param {httpServerResponse} response
    */
   handle(request, response) {
-    var httpRequest = new ServerHttpRequest(request);
+    var httpRequest = new ServerHttpRequest(request, this._frameworkConfig.maxRequestBodyLength);
     var routeResult = this._router.route(httpRequest);
     if (routeResult == null) {
       throw new Error('Unable to route request, router returned null');
