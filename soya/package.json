@@ -21,9 +21,7 @@
     "watch": "./node_modules/.bin/babel src/ --out-dir lib --source-maps --watch",
     "watch-starter": "./node_modules/.bin/babel src/ --out-dir \"../soya-starter/node_modules/soya/lib\" --source-maps --watch",
     "watch-starter-redux": "./node_modules/.bin/babel src/ --out-dir \"../soya-starter-redux/node_modules/soya/lib\" --source-maps --watch",
-    "watch-test-integration": "./node_modules/.bin/babel src/ --out-dir \"../test/integration/node_modules/soya/lib\" --source-maps --watch",
-    "deploy-contentfe": "./node_modules/.bin/babel src/ --out-dir \"../contentfe/node_modules/soya/lib\"",
-    "watch-contentfe": "./node_modules/.bin/babel src/ --out-dir \"../contentfe/node_modules/soya/lib\" --source-maps --watch"
+    "watch-test-integration": "./node_modules/.bin/babel src/ --out-dir \"../test/integration/node_modules/soya/lib\" --source-maps --watch"
   },
   "peerDependencies": {
     "babel": "^5.8.23",
