@@ -129,7 +129,8 @@ export default class WebpackCompiler extends Compiler {
       });
 
     var definePlugin = new webpack.DefinePlugin({
-      __PROJECT_DIRNAME__: JSON.stringify(absProjectDir)
+      __PROJECT_DIRNAME__: JSON.stringify(absProjectDir),
+      'process.env.NODE_ENV': frameworkConfig.NODE_ENV || '"development"'
     });
 
     return {
@@ -348,6 +349,12 @@ export default class WebpackCompiler extends Compiler {
     if (this._frameworkConfig.minifyJs) {
       configuration.plugins.push(new this._webpack.optimize.UglifyJsPlugin({}));
     }
+
+    // Accept env var
+    const definePlugin = new this._webpack.DefinePlugin({
+      'process.env.NODE_ENV': this._frameworkConfig.NODE_ENV || '"development"'
+    });
+    configuration.plugins.push(definePlugin);
 
     var pageToRequire, entryPointAbsolutePathMap = {};
     for (i = 0; i < entryPoints.length; i++) {

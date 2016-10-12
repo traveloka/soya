@@ -37,6 +37,16 @@ export default class ReverseRoutingData {
   query;
 
   /**
+   * @type {?string}
+   */
+  routeId;
+
+  /**
+   * @type {?string}
+   */
+  pageName;
+
+  /**
    * @param {Object} routeArgs
    */
   constructor(routeArgs) {

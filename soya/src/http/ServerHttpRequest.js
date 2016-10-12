@@ -16,11 +16,18 @@ export default class ServerHttpRequest {
   _parsedUrl;
 
   /**
-   * @param {http.incomingMessage} httpRequest
+   * @type {number}
    */
-  constructor(httpRequest) {
+  _maxRequestBodyLength;
+
+  /**
+   * @param {http.incomingMessage} httpRequest
+   * @param {number} maxRequestBodyLength
+   */
+  constructor(httpRequest, maxRequestBodyLength) {
     this._httpRequest = httpRequest;
     this._parsedUrl = url.parse(httpRequest.url);
+    this._maxRequestBodyLength = maxRequestBodyLength;
   }
 
   /**
@@ -74,7 +81,7 @@ export default class ServerHttpRequest {
    * @returns {string}
    */
   getPath() {
-    return this._parsedUrl.path;
+    return this._parsedUrl.pathname;
   }
 
   /**
@@ -82,5 +89,37 @@ export default class ServerHttpRequest {
    */
   getUrl() {
     return (this.isSecure() ? 'https' : 'http') + '://' + this.getDomain() + this.getPath();
+  }
+
+  /**
+   * @return {string}
+   */
+  getQuery() {
+    return this._parsedUrl.query;
+  }
+
+  /**
+   * @return {Promise}
+   */
+  getBody() {
+    return new Promise((resolve, reject) => {
+      if (this._httpRequest.method === 'POST') {
+        var requestBody = '';
+
+        this._httpRequest.on('data', function(chunk) {
+          requestBody += chunk;
+
+          if (requestBody.length > this._maxRequestBodyLength) {
+            this._httpRequest.connection.destroy();
+            requestBody = new Error('Request data exceed maximum length');
+          }
+        }).on('end', function () {
+          if (requestBody instanceof Error)
+            reject(requestBody);
+          else
+            resolve(requestBody);
+        });
+      }
+    });
   }
 }

@@ -43,7 +43,8 @@ export default class FinalPathNode extends Node {
    * @param {ReverseRoutingData} reverseRoutingData
    */
   reverseEvaluate(reverseRoutingData) {
-    // No-op.
+    reverseRoutingData.routeId = this._routeId;
+    reverseRoutingData.pageName = this._pageName;
   }
 
   /**

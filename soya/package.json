@@ -1,6 +1,6 @@
 {
   "name": "soya",
-  "version": "0.0.31",
+  "version": "0.0.33",
   "description": "Hopefully hassle-free web front-end framework",
   "repository": {
     "type": "git",
@@ -17,6 +17,7 @@
   "main": "lib/index.js",
   "license": "MIT",
   "scripts": {
+    "build": "./node_modules/.bin/babel src/ --out-dir lib --source-maps",
     "watch": "./node_modules/.bin/babel src/ --out-dir lib --source-maps --watch",
     "watch-starter": "./node_modules/.bin/babel src/ --out-dir \"../soya-starter/node_modules/soya/lib\" --source-maps --watch",
     "watch-starter-redux": "./node_modules/.bin/babel src/ --out-dir \"../soya-starter-redux/node_modules/soya/lib\" --source-maps --watch",
@@ -32,7 +33,7 @@
     "babel-plugin-flow-comments": "^1.0.9",
     "babel-plugin-remove-nonjs": "0.0.2",
     "babel-runtime": "^5.8.20",
-    "css-loader": "^0.18.0",
+    "css-loader": "^0.19.0",
     "extract-text-webpack-plugin": "^1.0.1",
     "mime": "^1.3.4",
     "node-sass": "^3.10.0",
@@ -41,6 +42,7 @@
     "react-dom": "^0.14.6",
     "react-addons-update": "^0.14.6",
     "sass-loader": "^4.0.2",
+    "socket.io": "^1.4.8",
     "source-map-support": "^0.3.2",
     "style-loader": "^0.12.4",
     "webpack": "^1.12.2"

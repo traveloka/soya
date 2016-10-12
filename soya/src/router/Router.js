@@ -4,6 +4,7 @@ import ServerHttpRequest from '../http/ServerHttpRequest';
 import RoutingData from './RoutingData';
 import PathNode from './PathNode';
 import FinalPathNode from './FinalPathNode';
+import ReverseRoutingData from './ReverseRoutingData.js';
 
 /*
 type RouteConfig = {
@@ -204,6 +205,49 @@ export default class Router {
       routeResult = this._notFoundRouteResult;
     }
     return routeResult;
+  }
+
+  /**
+   * @return {Array}
+   */
+  getAllRoutes() {
+    var i, route, routes = [];
+    for (i in this._graph) {
+      this._getRouteRecursively(this._graph[i], '', routes);
+    }
+    return routes;
+  }
+
+  /**
+   * @param {Node} node
+   * @param {string} prePath
+   * @param {Array.<Object>} result
+   * @private
+   */
+  _getRouteRecursively(node, prePath, result) {
+    var i, childNode;
+    var reverseRoutingData = new ReverseRoutingData(null);
+    node.reverseEvaluate(reverseRoutingData);
+
+    var path = typeof prePath == 'string' ? prePath : '';
+    var nodeSegment = reverseRoutingData.toUrlString(null);
+
+    if (nodeSegment.length > 0 && nodeSegment[0] != '/')
+      nodeSegment = '/' + nodeSegment;
+
+    var currentPath = `${path}${nodeSegment}`;
+    if (node instanceof FinalPathNode) {
+      result.push({
+        routeId: reverseRoutingData.routeId,
+        pageName: reverseRoutingData.pageName,
+        path: currentPath
+      });
+    } else {
+      var children = node.getChildren();
+      for (i = 0; i < children.length; i++) {
+        this._getRouteRecursively(children[i], currentPath, result);
+      }
+    }
   }
 
   /**

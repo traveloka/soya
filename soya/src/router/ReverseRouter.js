@@ -80,4 +80,12 @@ export default class ReverseRouter {
 
     return reverseRoutingData.toUrlString(fragment);
   }
+
+  getAllRoutes() {
+    var routes = [];
+    for (var routeId in this._routeNodes) {
+      routes.push(this.reverseRoute(routeId));
+    }
+    return routes;
+  }
 }
