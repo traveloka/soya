@@ -13,6 +13,7 @@ import PathNode from '../router/PathNode.js';
 import NodeFactory from '../router/NodeFactory.js';
 import ComponentRegister from '../ComponentRegister.js';
 import ComponentFinder from '../ComponentFinder.js';
+import PageFinder from '../PageFinder.js';
 import WebpackCompiler from '../compiler/webpack/WebpackCompiler.js';
 import { DEFAULT_FRAMEWORK_CONFIG } from '../defaultFrameworkConfig.js';
 import Application from '../Application.js';
@@ -56,18 +57,19 @@ export default function server(config) {
 
   // Do component registration.
   var register = new ComponentRegister(logger);
-  var finder = new ComponentFinder(logger);
+  var componentFinder = new ComponentFinder(logger);
+  var pageFinder = new PageFinder(logger);
   var pageRequireContext = frameworkConfig.pageRequireContext;
   var componentRequireContext = frameworkConfig.componentRequireContext;
   var pageRequirePath = frameworkConfig.absolutePageRequirePath;
   var componentRequirePath = frameworkConfig.absoluteComponentRequirePath;
 
-  finder.find(pageRequirePath, function(vendor, name, absDir, relativeDir) {
-    register.regPage(name, absDir, pageRequireContext('./' + path.join(relativeDir, name + '.js')));
+  componentFinder.find(componentRequirePath, function(vendor, name, absDir, relativeDir) {
+    register.regComponent(vendor, name, absDir, componentRequireContext('./' + path.join('./', relativeDir, name + '.js')))
   });
 
-  finder.find(componentRequirePath, function(vendor, name, absDir, relativeDir) {
-    register.regComponent(vendor, name, absDir, componentRequireContext('./' + path.join('./', relativeDir, name + '.js')))
+  pageFinder.find(pageRequirePath, function(vendor, name, absDir, relativeDir) {
+    register.regPage(name, absDir, pageRequireContext('./' + path.join(relativeDir, name + '.js')));
   });
 
   // Register default nodes for router.

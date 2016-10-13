@@ -1,6 +1,8 @@
 {
   "scripts": {
     "start": "SOYA_PROJECT_DIR=$PWD webpack && SOYA_PROJECT_DIR=$PWD node build/server",
+    "build": "webpack",
+    "run": "node build/server",
     "nodemon": "nodemon ./build/server"
   },
   "dependencies": {

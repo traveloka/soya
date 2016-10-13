@@ -1,0 +1,5 @@
+{
+  "name": "Photo Caption",
+  "author": "ricky@traveloka.com",
+  "thumbView": "./PhotoCaptionThumbView.js"
+}
