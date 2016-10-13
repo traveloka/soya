@@ -1,5 +1,10 @@
 # Version 0.0.x
 
+## 0.0.36
+
+- Built result doesn't contain absolute path anymore. However when running we
+  need to specify SOYA_PROJECT_DIR environment variable.
+
 ## 0.0.31
 
 - Enable SCSS support.

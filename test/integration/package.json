@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "webpack && node build/server",
+    "start": "SOYA_PROJECT_DIR=$PWD webpack && SOYA_PROJECT_DIR=$PWD node build/server",
     "nodemon": "nodemon ./build/server"
   },
   "dependencies": {
@@ -25,8 +25,9 @@
     "redux": "^3.0.0",
     "redux-thunk": "^1.0.0",
     "sass-loader": "^4.0.2",
+    "socket.io": "^1.5.0",
     "source-map-support": "^0.3.2",
-    "soya": "0.0.35",
+    "soya": "0.0.36",
     "style-loader": "^0.12.4",
     "superagent": "^1.4.0",
     "webpack": "^1.12.2"

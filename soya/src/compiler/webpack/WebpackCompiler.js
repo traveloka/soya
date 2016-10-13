@@ -128,11 +128,6 @@ export default class WebpackCompiler extends Compiler {
         nodeModules[mod] = 'commonjs ' + mod;
       });
 
-    var definePlugin = new webpack.DefinePlugin({
-      __PROJECT_DIRNAME__: JSON.stringify(absProjectDir),
-      'process.env.NODE_ENV': frameworkConfig.NODE_ENV || '"development"'
-    });
-
     return {
       entry: absEntryPointFile,
       target: 'node',
@@ -157,7 +152,6 @@ export default class WebpackCompiler extends Compiler {
         ]
       },
       plugins: [
-        definePlugin,
         new webpack.BannerPlugin('require("source-map-support").install();',
           { raw: true, entryOnly: false }),
         new webpack.optimize.OccurenceOrderPlugin(),

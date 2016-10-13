@@ -11,13 +11,7 @@
  */
 
 var path = require('path');
-
-var dirname;
-if (typeof __PROJECT_DIRNAME__ == 'string') {
-  dirname = __PROJECT_DIRNAME__;
-} else {
-  dirname = __dirname;
-}
+var dirname = process.env.SOYA_PROJECT_DIR;
 
 /**
  * Framework configuration.
