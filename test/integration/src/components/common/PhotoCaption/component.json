@@ -1,0 +1,6 @@
+{
+  "vendor": "Test",
+  "name": "PhotoCaption",
+  "author": "ricky@traveloka.com",
+  "thumbnail": "./PhotoCaptionThumbView.js"
+}

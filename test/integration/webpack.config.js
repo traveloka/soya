@@ -8,9 +8,12 @@
  */
 
 var webpack = require('webpack');
-var path = require('path');
+var Precompiler = require('soya/lib/precompile/Precompiler');
 var WebpackCompiler = require('soya/lib/compiler/webpack/WebpackCompiler');
-
 var config = require('./config');
+
+var precompiler = new Precompiler(config.frameworkConfig);
+precompiler.precompile();
+
 var webpackConfig = WebpackCompiler.createServerBuildConfig(webpack, config.frameworkConfig);
 module.exports = webpackConfig;

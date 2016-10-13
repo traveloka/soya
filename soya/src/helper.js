@@ -1,4 +1,12 @@
 import path from 'path';
+import fs from 'fs';
+
+export default class Helper {
+  static join() {
+    
+  }
+};
+
 
 export default {
   join: function(arg1, arg2) {

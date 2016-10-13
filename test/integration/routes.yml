@@ -1,158 +1,158 @@
 TEST_LIST:
-  page: TestList
+  page: src/pages/landing/TestList/TestList.js
   nodes:
     - [method, GET]
     - [path, /]
 
 LOAD_COMPONENT:
-  page: LoadComponent
+  page: src/pages/compile/LoadComponent/LoadComponent.js
   nodes:
     - [method, GET]
     - [path, /load-component]
 
 RUNTIME_COMPONENT:
-  page: RuntimeComponent
+  page: src/pages/redux/RuntimeComponent/RuntimeComponent.js
   nodes:
     - [method, GET]
     - [path, /data/redux/runtime-component]
 
 HYDRATION:
-  page: Hydration
+  page: src/pages/redux/Hydration/Hydration.js
   nodes:
     - [method, GET]
     - [path, /data/redux/hydration]
 
 SERVER_SEGMENT_DEPENDENCIES:
-  page: ServerSegmentDependencies
+  page: src/pages/redux/ServerSegmentDependencies/ServerSegmentDependencies.js
   nodes:
     - [method, GET]
     - [path, /data/redux/dependencies/server]
 
 CLIENT_SEGMENT_DEPENDENCIES:
-  page: ClientSegmentDependencies
+  page: src/pages/redux/ClientSegmentDependencies/ClientSegmentDependencies.js
   nodes:
     - [method, GET]
     - [path, /data/redux/dependencies/client]
 
 CLIENT_INSTANT_SEGMENT_DEPENDENCIES:
-  page: ClientInstantSegmentDependencies
+  page: src/pages/redux/ClientInstantSegmentDependencies/ClientInstantSegmentDependencies.js
   nodes:
     - [method, GET]
     - [path, /data/redux/dependencies/client-instant]
 
 SEGMENT_COOKIE:
-  page: SegmentCookie
+  page: src/pages/redux/SegmentCookie/SegmentCookie.js
   nodes:
     - [method, GET]
     - [path, /data/redux/segment-cookie]
 
 SEGMENT_COOKIE_CLIENT:
-  page: SegmentCookieClient
+  page: src/pages/redux/SegmentCookieClient/SegmentCookieClient.js
   nodes:
     - [method, GET]
     - [path, /data/redux/segment-cookie-client]
 
 TEST_LOCAL_SEGMENT:
-  page: TestLocalSegment
+  page: src/pages/redux/TestLocalSegment/TestLocalSegment.js
   nodes:
     - [method, GET]
     - [path, /data/redux/local]
 
 MUTATION_TEST:
-  page: MutationTest
+  page: src/pages/redux/MutationTest/MutationTest.js
   nodes:
     - [method, GET]
     - [path, /data/redux/mutation]
 
 SIMPLE_FORM:
-  page: SimpleForm
+  page: src/pages/redux/SimpleForm/SimpleForm.js
   nodes:
     - [method, GET]
     - [path, /data/redux/simple-form]
 
 REPEATABLE_FORM:
-  page: RepeatableForm
+  page: src/pages/redux/RepeatableForm/RepeatableForm.js
   nodes:
     - [method, GET]
     - [path, /data/redux/repeatable-form]
 
 COOKIE_SET:
-  page: CookieSet
+  page: src/pages/http/CookieSet/CookieSet.js
   nodes:
     - [method, GET]
     - [path, /http/cookie/set]
 
 COOKIE_REMOVE:
-  page: CookieRemove
+  page: src/pages/http/CookieRemove/CookieRemove.js
   nodes:
     - [method, GET]
     - [path, /http/cookie/remove]
 
 USER_JSON:
-  page: UserJson
+  page: src/pages/json/UserJson/UserJson.js
   nodes:
     - [method, GET]
     - [path, /api/user/:username]
 
 CONTEXT_JSON:
-  page: ContextJson
+  page: src/pages/json/ContextJson/ContextJson.js
   nodes:
     - [method, GET]
     - [path, /api/context]
 
 BOOKING_JSON:
-  page: BookingJson
+  page: src/pages/json/BookingJson/BookingJson.js
   nodes:
     - [method, GET]
     - [path, /api/booking/:id]
 
 AIRPORT_JSON:
-  page: AirportJson
+  page: src/pages/json/AirportJson/AirportJson.js
   nodes:
     - [method, GET]
     - [path, /api/airport/list]
 
 VALIDATE_API:
-  page: ValidateApi
+  page: src/pages/json/ValidateApi/ValidateApi.js
   nodes:
     - [method, GET]
     - [path, /api/validate/:type/:value]
 
 INC_USER_POST_API:
-  page: IncUserPostApi
+  page: src/pages/json/IncUserPostApi/IncUserPostApi.js
   nodes:
     - [method, GET]
     - [path, /api/user/inc-post/:username]
 
 RESET_USER_POST_API:
-  page: ResetUserPostApi
+  page: src/pages/json/ResetUserPostApi/ResetUserPostApi.js
   nodes:
     - [method, GET]
     - [path, /api/user/reset-post/:number]
 
 BADGE_JSON:
-  page: BadgeJson
+  page: src/pages/json/BadgeJson/BadgeJson.js
   nodes:
     - [method, GET]
     - [path, /api/user/badge/list]
 
 FLIP_BADGE_API:
-  page: FlipBadgeApi
+  page: src/pages/json/FlipBadgeApi/FlipBadgeApi.js
   nodes:
     - [method, GET]
     - [path, /api/user/badge/flip]
 
 ADDITION_JSON:
-  page: AdditionJson
+  page: src/pages/json/AdditionJson/AdditionJson.js
   nodes:
     - [method, GET]
     - [path, /api/addition/:a/:b]
 
 RANDOM_TIME_ECHO:
-  page: RandomTimeEchoJson
+  page: src/pages/json/RandomTimeEchoJson/RandomTimeEchoJson.js
   nodes:
     - [method, GET]
     - [path, /api/random-time-echo/:value]
 
 NOT_FOUND:
-  page: NotFound
+  page: src/pages/system/NotFound/NotFound.js

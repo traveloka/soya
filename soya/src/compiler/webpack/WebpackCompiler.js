@@ -97,7 +97,7 @@ export default class WebpackCompiler extends Compiler {
     this._frameworkConfig = frameworkConfig;
     this._clientReplace = frameworkConfig.clientReplace;
     this._clientResolve = frameworkConfig.clientResolve;
-    this._absoluteClientBuildDir = frameworkConfig.absoluteClientBuildDir;
+    this._absoluteClientBuildDir = path.join(frameworkConfig.absoluteProjectDir, 'build/client');
     this._assetHostPath = frameworkConfig.assetHostPath;
     this._assetServer = new WebpackAssetServer(this._assetHostPath, this._absoluteClientBuildDir, logger);
     this._firstCompileDone = false;
@@ -118,8 +118,8 @@ export default class WebpackCompiler extends Compiler {
     frameworkConfig = Object.assign({}, DEFAULT_FRAMEWORK_CONFIG, frameworkConfig);
     var nodeModules = {};
     var absProjectDir = frameworkConfig.absoluteProjectDir;
-    var absEntryPointFile = path.join(frameworkConfig.absoluteProjectDir, 'server.js');
-    var absBuildTargetDir = frameworkConfig.absoluteServerBuildDir;
+    var absEntryPointFile = path.join(frameworkConfig.absoluteProjectDir, 'build/precompile/server.js');
+    var absBuildTargetDir = path.join(frameworkConfig.absoluteProjectDir, 'build/server');
     fs.readdirSync(path.join(absProjectDir, 'node_modules'))
       .filter(function(x) {
         return ['.bin'].indexOf(x) === -1;
@@ -233,7 +233,7 @@ export default class WebpackCompiler extends Compiler {
     }
     return {
       test: test,
-      loader: "file-loader?name=[path][name]-[hash].[ext]"
+      loader: "file-loader?name=[name]-[hash].[ext]"
     };
   }
 
@@ -353,7 +353,7 @@ export default class WebpackCompiler extends Compiler {
     var pageToRequire, entryPointAbsolutePathMap = {};
     for (i = 0; i < entryPoints.length; i++) {
       entryPoint = entryPoints[i];
-      pageToRequire = path.join(entryPoint.rootAbsolutePath, entryPoint.name + '.js');
+      pageToRequire = path.join(entryPoint.absolutePath);
       entryPointAbsolutePathMap[pageToRequire] = true;
       configuration.entry[entryPoint.name] = pageToRequire;
       entryPointList.push(entryPoint.name);

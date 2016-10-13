@@ -10,14 +10,14 @@ export default class EntryPoint {
   /**
    * @type {string}
    */
-  rootAbsolutePath;
+  absolutePath;
 
   /**
    * @param {string} name
-   * @param {string} rootAbsolutePath
+   * @param {string} absolutePath
    */
-  constructor(name, rootAbsolutePath) {
-    this.rootAbsolutePath = rootAbsolutePath;
+  constructor(name, absolutePath) {
+    this.absolutePath = absolutePath;
     this.name = name;
   }
 }

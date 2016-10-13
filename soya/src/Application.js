@@ -194,8 +194,7 @@ export default class Application {
       pageCmpt = pageComponents[i];
 
       // Create entry point.
-      this._entryPoints.push(new EntryPoint(
-        pageCmpt.name, pageCmpt.absDir, pageCmpt.clazz));
+      this._entryPoints.push(new EntryPoint(pageCmpt.name, pageCmpt.absDir));
       this._pageClasses[pageCmpt.name] = pageCmpt.clazz;
 
       try {

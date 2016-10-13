@@ -56,9 +56,9 @@ export default class ComponentRegister {
     if (!clazz.pageName) {
       throw new Error('Page class doesn\'t have static name property: \'' + absDir + '\'.');
     }
-    if (clazz.pageName != name) {
-      throw new Error('Page class static name property and actual directory name differs: ' + clazz.pageName + ' and ' + name + '.');
-    }
+    // if (clazz.pageName != name) {
+    //   throw new Error('Page class static name property and actual directory name differs: ' + clazz.pageName + ' and ' + name + '.');
+    // }
     this._regComponent(PAGE_VENDOR, name, absDir, clazz);
   }
 

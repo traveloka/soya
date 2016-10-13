@@ -1,9 +1,9 @@
 {
   "scripts": {
     "start": "SOYA_PROJECT_DIR=$PWD webpack && SOYA_PROJECT_DIR=$PWD node build/server",
-    "build": "webpack",
-    "run": "node build/server",
-    "nodemon": "nodemon ./build/server"
+    "build": "SOYA_PROJECT_DIR=$PWD webpack",
+    "run": "SOYA_PROJECT_DIR=$PWD node build/server",
+    "nodemon": "SOYA_PROJECT_DIR=$PWD nodemon ./build/server"
   },
   "dependencies": {
     "babel": "^5.8.23",

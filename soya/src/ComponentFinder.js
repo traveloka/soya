@@ -1,24 +1,11 @@
-var fs = require('fs');
-var path = require('path');
-
-/**
- * @type {RegExp}
- */
-var UNDERSCORE_REGEX = /^_/;
+import fs from 'fs';
+import path from 'path';
+import { isStringDuckType } from './data/redux/helper';
 
 /**
  * @SERVER
  */
 export default class ComponentFinder {
-  _logger;
-
-  /**
-   * @param {Logger} logger
-   */
-  constructor(logger) {
-    this._logger = logger;
-  }
-
   /**
    * 1) Find recursively every component in the directory.
    * 2) Validate the component.
@@ -27,33 +14,52 @@ export default class ComponentFinder {
    * @param {Function} callback
    */
   find(absoluteRootDir, callback) {
-    var i, vendorNames;
     this._check(absoluteRootDir, true, false);
-    vendorNames = fs.readdirSync(absoluteRootDir);
-    for (i = 0; i < vendorNames.length; i++) {
-      this._checkComponentDir(absoluteRootDir, vendorNames[i], callback);
+    var i, candidates, candidate, stat, candidatePath;
+    candidates = fs.readdirSync(absoluteRootDir);
+    for (i = 0; i < candidates.length; i++) {
+      candidate = candidates[i];
+      candidatePath = path.join(absoluteRootDir, candidate);
+      stat = fs.statSync(candidatePath);
+      if (stat.isDirectory()) {
+        this.find(candidatePath, callback);
+      }
+      if (stat.isFile() && candidate == 'component.json') {
+        this._reg(absoluteRootDir, candidatePath, callback);
+      }
     }
   }
 
-  _checkComponentDir(absoluteRootDir, vendorName, callback) {
-    var i, filenames, vendorRootDir, compName, compRootDir, compMain;
-    vendorRootDir = path.join(absoluteRootDir, vendorName);
-    this._check(vendorRootDir, true, false);
-    filenames = fs.readdirSync(vendorRootDir);
-    for (i = 0; i < filenames.length; i++) {
-      compName = filenames[i];
-      compRootDir = path.join(vendorRootDir, compName);
-      compMain = path.join(vendorRootDir, compName, compName + '.js');
-
-      if (!this._check(compRootDir, true, true)) continue;
-      if (!this._check(compMain, false, true)) continue;
-
-      if (UNDERSCORE_REGEX.test(compName)) {
-        throw new Error('Component name starting with underscore is not allowed: ' + compName);
-      }
-
-      callback(vendorName, compName, compRootDir, path.join(vendorName, compName));
+  _reg(absoluteRootDir, jsonAbsolutePath, callback) {
+    var componentJson;
+    try {
+      componentJson = JSON.parse(fs.readFileSync(jsonAbsolutePath, 'utf8'));
+    } catch (error) {
+      console.log('IGNORED: Failed to read this component file: ' + jsonAbsolutePath);
     }
+
+    var result = this._validateComponentJson(componentJson);
+    if (!result) {
+      console.log('IGNORED: Invalid component.json file: ' + jsonAbsolutePath);
+      return;
+    }
+    callback(absoluteRootDir, componentJson);
+  }
+
+  /**
+   * @param {Object} componentJson
+   * @return {boolean}
+   */
+  _validateComponentJson(componentJson) {
+    var vendor = componentJson.vendor;
+    var name = componentJson.name;
+    var thumbnail = componentJson.thumbnail;
+
+    return (
+      vendor != null && isStringDuckType(vendor) && vendor != '' &&
+      name != null && isStringDuckType(name) && name != '' &&
+      thumbnail != null && isStringDuckType(thumbnail) && thumbnail != ''
+    );
   }
 
   /**
@@ -68,7 +74,7 @@ export default class ComponentFinder {
       stat = fs.statSync(absPath);
     } catch(error) {
       if (shouldIgnore) {
-        this._logger.notice('Ignored: Component file/dir does no exist: \'' + absPath + '\'.');
+        console.log('Ignored: Component file/dir does no exist: \'' + absPath + '\'.');
         return false;
       } else {
         throw error;
@@ -81,7 +87,7 @@ export default class ComponentFinder {
     );
     if (isMismatchType) {
       if (shouldIgnore) {
-        this._logger.notice(this._mismatchTypeMessage(absPath, shouldBeDir, 'Ignored: '));
+        console.log(this._mismatchTypeMessage(absPath, shouldBeDir, 'Ignored: '));
         return false;
       } else {
         throw new Error(this._mismatchTypeMessage(absPath, shouldBeDir, ''));

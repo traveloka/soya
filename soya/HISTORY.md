@@ -1,5 +1,12 @@
 # Version 0.0.x
 
+## 0.0.37
+
+- server.js becomes automatically generated on server-side compilation.
+- Removed the ability to set directory for pages and components. Everything by
+  convention must be stored inside $SOYA_PROJECT_DIR/src. However, we also
+  remove the double directory convention for pages.
+
 ## 0.0.36
 
 - Built result doesn't contain absolute path anymore. However when running we
