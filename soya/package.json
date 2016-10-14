@@ -17,11 +17,11 @@
   "main": "lib/index.js",
   "license": "MIT",
   "scripts": {
-    "build": "./node_modules/.bin/babel src/ --out-dir lib --source-maps",
-    "watch": "./node_modules/.bin/babel src/ --out-dir lib --source-maps --watch",
-    "watch-starter": "./node_modules/.bin/babel src/ --out-dir \"../soya-starter/node_modules/soya/lib\" --source-maps --watch",
-    "watch-starter-redux": "./node_modules/.bin/babel src/ --out-dir \"../soya-starter-redux/node_modules/soya/lib\" --source-maps --watch",
-    "watch-test-integration": "./node_modules/.bin/babel src/ --out-dir \"../test/integration/node_modules/soya/lib\" --source-maps --watch"
+    "build": "./node_modules/.bin/babel src/ --out-dir lib --source-maps --copy-files",
+    "watch": "./node_modules/.bin/babel src/ --out-dir lib --source-maps --copy-files --watch",
+    "watch-starter": "./node_modules/.bin/babel src/ --out-dir \"../soya-starter/node_modules/soya/lib\" --source-maps --copy-files --watch",
+    "watch-starter-redux": "./node_modules/.bin/babel src/ --out-dir \"../soya-starter-redux/node_modules/soya/lib\" --source-maps --copy-files --watch",
+    "watch-test-integration": "./node_modules/.bin/babel src/ --out-dir \"../test/integration/node_modules/soya/lib\" --source-maps --copy-files --watch"
   },
   "peerDependencies": {
     "babel": "^5.8.23",

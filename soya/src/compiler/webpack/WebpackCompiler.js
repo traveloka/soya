@@ -158,8 +158,18 @@ export default class WebpackCompiler extends Compiler {
         new webpack.NoErrorsPlugin(),
         new ExtractTextPlugin('css/[name]-[contenthash].css')
       ],
+      resolve: WebpackCompiler.generateResolveConfig(frameworkConfig),
       externals: nodeModules
     };
+  }
+
+  static generateResolveConfig(frameworkConfig) {
+    return {
+      alias: {},
+      root: [
+        frameworkConfig.absoluteProjectDir
+      ]
+    }
   }
 
   /**
@@ -268,7 +278,7 @@ export default class WebpackCompiler extends Compiler {
         noParse: /node_modules\/quill\/dist/
       },
       devtool: "source-map",
-      resolve: { alias: {} },
+      resolve: WebpackCompiler.generateResolveConfig(this._frameworkConfig),
       plugins: [
         new this._webpack.optimize.OccurenceOrderPlugin()
       ]

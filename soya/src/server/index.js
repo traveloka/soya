@@ -5,7 +5,6 @@ import fs from 'fs';
 import webpack from 'webpack';
 import React from 'react';
 
-import helper from '../helper.js';
 import Router from '../router/Router.js';
 import ReverseRouter from '../router/ReverseRouter.js';
 import DomainNode from '../router/DomainNode.js';
@@ -13,13 +12,10 @@ import MethodNode from '../router/MethodNode.js';
 import PathNode from '../router/PathNode.js';
 import NodeFactory from '../router/NodeFactory.js';
 import ComponentRegister from '../ComponentRegister.js';
-import ComponentBrowserRegister from '../ComponentBrowserRegister.js';
-import ComponentFinder from '../ComponentFinder.js';
-import PageFinder from '../PageFinder.js';
 import WebpackCompiler from '../compiler/webpack/WebpackCompiler.js';
-import generateSearchPage from './generateSearchPage.js';
 import { DEFAULT_FRAMEWORK_CONFIG } from '../defaultFrameworkConfig.js';
 import Application from '../Application.js';
+import Precompiler from '../precompile/Precompiler.js';
 
 // These dependencies can all be overwritten by user.
 import defaultRegisterRouterNodes from './registerRouterNodes.js';
@@ -32,7 +28,7 @@ import defaultCreateErrorHandler from './createErrorHandler.js';
  * @param {Object} components
  * @SERVER
  */
-export default function server(config, pages, components) {
+export default function server(config, pages) {
   var frameworkConfig = config.frameworkConfig;
   var serverConfig = config.serverConfig;
   var clientConfig = config.clientConfig;
@@ -60,7 +56,6 @@ export default function server(config, pages, components) {
   var errorHandler = createErrorHandler(serverConfig, logger);
   var nodeFactory = new NodeFactory();
   var pageName, handlerRegister = new ComponentRegister(logger);
-  var componentBrowserRegister = new ComponentBrowserRegister(logger);
 
   // Register all pages to handler register.
   for (pageName in pages) {
@@ -69,42 +64,6 @@ export default function server(config, pages, components) {
       pages[pageName]
     );
   }
-
-  // Register all components to component browser register.
-  var vendorName, componentName;
-  for (vendorName in components) {
-    for (componentName in components[vendorName]) {
-      componentBrowserRegister.reg(vendorName, componentName, components[vendorName][componentName]);
-    }
-  }
-
-  var componentFinder = new ComponentFinder(logger);
-  var pageFinder = new PageFinder(logger);
-  var pageRequireContext = frameworkConfig.pageRequireContext;
-  var pageRequirePath = frameworkConfig.absolutePageRequirePath;
-  var componentRequirePath = frameworkConfig.absoluteComponentRequirePath;
-
-  // if (frameworkConfig.componentBrowser) {
-  //   // Loads all component information.
-  //   componentFinder.find(componentRequirePath, function(absoluteRootDir, componentJson) {
-  //     componentBrowserRegister.register(absoluteRootDir, componentJson);
-  //   });
-  //
-  //   // Generate component browser page files.
-  //   helper.createDir(frameworkConfig.absoluteGeneratedFileDir);
-  //   var componentSearchPagePath = path.join(frameworkConfig.absoluteGeneratedFileDir, 'CmptBrowserSearchPage.js');
-  //   var componentDetailPagePath = path.join(frameworkConfig.absoluteGeneratedFileDir, 'CmptBrowserDetailPage.js');
-  //   fs.writeFileSync(componentSearchPagePath, generateSearchPage(componentBrowserRegister));
-  //
-  //   // Register page for component browser pages.
-  //   register.regPage(
-  //     'CmptBrowserSearchPage', frameworkConfig.absoluteGeneratedFileDir, 
-  //   );
-  // }
-
-  // pageFinder.find(pageRequirePath, function(vendor, name, absDir, relativeDir) {
-  //   register.regPage(name, absDir, pageRequireContext('./' + path.join(relativeDir, name + '.js')));
-  // });
 
   // Register default nodes for router.
   nodeFactory.registerNodeType(DomainNode);
@@ -115,6 +74,17 @@ export default function server(config, pages, components) {
   registerRouterNodes(nodeFactory);
   var router = new Router(logger, nodeFactory, handlerRegister);
   var reverseRouter = new ReverseRouter(nodeFactory);
+
+  if (frameworkConfig.componentBrowser) {
+    // Register component browser routes.
+    router.reg('CMPT_BROWSER_LIST', {
+      page: Precompiler.getCmptBrowserListPageRelativePath(),
+      nodes: [
+        ['method', 'GET'],
+        ['path', '/component-browser']
+      ]
+    });
+  }
 
   // Load routes.
   var routes = yaml.safeLoad(fs.readFileSync(path.join(config.frameworkConfig.absoluteProjectDir, 'routes.yml'), 'utf8'));

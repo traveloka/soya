@@ -4,9 +4,8 @@ import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import Page from 'soya/lib/page/Page';
 import React from 'react';
 
-
 // Import the reusable component.
-import PhotoCaption from '../../../components/common/PhotoCaption/PhotoCaption.js';
+import PhotoCaption from 'src/components/common/PhotoCaption/PhotoCaption.js';
 
 // Load sitewide, shared resource.
 require('../../../shared/sitewide.css');

@@ -5,7 +5,11 @@
 - server.js becomes automatically generated on server-side compilation.
 - Removed the ability to set directory for pages and components. Everything by
   convention must be stored inside $SOYA_PROJECT_DIR/src. However, we also
-  remove the double directory convention for pages.
+  remove the double directory convention for pages (pages can be anywhere you
+  want).
+- Added root resolve configuration on webpack so that we can resolve components
+  from $SOYA_PROJECT_DIR.
+- Auto generation of component browser list page.
 
 ## 0.0.36
 

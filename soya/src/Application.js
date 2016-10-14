@@ -1,4 +1,3 @@
-import CompileResult from './compiler/CompileResult';
 import Compiler from './compiler/Compiler';
 import Router from './router/Router';
 import EntryPoint from './EntryPoint';

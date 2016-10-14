@@ -5,6 +5,12 @@ import rimraf from 'rimraf';
 
 import ComponentFinder from '../ComponentFinder.js';
 import generateServerFile from './generateServerFile.js';
+import generateListPage from './generateListPage.js';
+
+var BUILD_RELATIVE_DIR = 'build';
+var PRECOMPILE_RELATIVE_DIR = 'build/precompile';
+var SERVER_FILE = 'server.js';
+var CMPT_BROWSER_LIST_PAGE = 'CmptBrowserListPage.js';
 
 /**
  * Does pre-compilation routine:
@@ -29,13 +35,22 @@ export default class Precompiler {
   precompile() {
     var pages = this.generatePageList();
     var components = this.generateComponentList();
-    var buildDir = path.join(this._frameworkConfig.absoluteProjectDir, 'build');
-    var precompileDir = path.join(this._frameworkConfig.absoluteProjectDir, 'build/precompile');
+    var buildDir = Precompiler.getBuildDir(this._frameworkConfig);
+    var precompileDir = Precompiler.getPrecompileDir(this._frameworkConfig);
     Precompiler.cleanDir(buildDir);
     Precompiler.cleanDir(precompileDir);
 
-    // Generate server.js file.
-    var serverFilePath = path.join(precompileDir, 'server.js');
+    if (this._frameworkConfig.componentBrowser) {
+      var listFilePath = Precompiler.getCmptBrowserListPagePath(this._frameworkConfig);
+      fs.writeFileSync(listFilePath, generateListPage(components));
+    }
+
+    // Add component browser pages to list of pages to require.
+    pages.push(Precompiler.getCmptBrowserListPageRelativePath());
+
+    // Generate server.js file, containing references to all pages needed for
+    // server side routing, plus all component definition for component browser.
+    var serverFilePath = Precompiler.getServerFilePath(this._frameworkConfig);
     fs.writeFileSync(serverFilePath, generateServerFile(pages, components));
   }
 
@@ -81,7 +96,7 @@ export default class Precompiler {
     var componentFinder = new ComponentFinder();
     // TODO Multiple component source directory.
     var sourceDirectory = path.join(this._frameworkConfig.absoluteProjectDir, 'src');
-    componentFinder.find(sourceDirectory, function(absoluteRootDir, componentJson) {
+    componentFinder.find(sourceDirectory, function(thumbRelativePath, testRelativePath, componentJson) {
       if (!components.hasOwnProperty(componentJson.vendor)) {
         components[componentJson.vendor] = {};
       }
@@ -89,19 +104,35 @@ export default class Precompiler {
         console.log('Duplicate component, will be overwritten: ' + componentJson.vendor + '.' + componentJson.name);
       }
 
-      var thumbnailPath = path.join(absoluteRootDir, componentJson.thumbnail);
-      var testPath = null;
-      if (componentJson.test != null && isStringDuckType(componentJson.test) && componentJson.test != '') {
-        testPath = path.join(absoluteRootDir, componentJson.test);
-      }
-
+      thumbRelativePath = path.join('src', thumbRelativePath);
+      testRelativePath = testRelativePath == null ? null : path.join('src', testRelativePath);
       components[componentJson.vendor][componentJson.name] = {
-        thumbnail: thumbnailPath,
-        test: testPath,
+        thumbnail: thumbRelativePath,
+        test: testRelativePath,
         detail: componentJson
       };
     });
     return components;
+  }
+
+  static getServerFilePath(frameworkConfig) {
+    return path.join(frameworkConfig.absoluteProjectDir, PRECOMPILE_RELATIVE_DIR, SERVER_FILE);
+  }
+
+  static getBuildDir(frameworkConfig) {
+    return path.join(frameworkConfig.absoluteProjectDir, BUILD_RELATIVE_DIR);
+  }
+
+  static getPrecompileDir(frameworkConfig) {
+    return path.join(frameworkConfig.absoluteProjectDir, PRECOMPILE_RELATIVE_DIR);
+  }
+
+  static getCmptBrowserListPagePath(frameworkConfig) {
+    return path.join(frameworkConfig.absoluteProjectDir, PRECOMPILE_RELATIVE_DIR, CMPT_BROWSER_LIST_PAGE);
+  }
+
+  static getCmptBrowserListPageRelativePath() {
+    return path.join(PRECOMPILE_RELATIVE_DIR, CMPT_BROWSER_LIST_PAGE);
   }
 
   static cleanDir(directory) {
