@@ -1,6 +1,6 @@
 {
   "name": "soya",
-  "version": "0.0.37",
+  "version": "0.0.38",
   "description": "Hopefully hassle-free web front-end framework",
   "repository": {
     "type": "git",
@@ -54,6 +54,7 @@
     "express": "^4.13.3"
   },
   "dependencies": {
+    "html-entities": "^1.2.0",
     "js-yaml": "^3.4.3",
     "memory-fs": "^0.2.0",
     "rimraf": "^2.4.3"

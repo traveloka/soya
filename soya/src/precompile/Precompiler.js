@@ -96,7 +96,7 @@ export default class Precompiler {
     var componentFinder = new ComponentFinder();
     // TODO Multiple component source directory.
     var sourceDirectory = path.join(this._frameworkConfig.absoluteProjectDir, 'src');
-    componentFinder.find(sourceDirectory, function(thumbRelativePath, testRelativePath, componentJson) {
+    componentFinder.find(sourceDirectory, (thumbRelativePath, testRelativePath, docRelativePath, code, componentJson) => {
       if (!components.hasOwnProperty(componentJson.vendor)) {
         components[componentJson.vendor] = {};
       }
@@ -104,15 +104,22 @@ export default class Precompiler {
         console.log('Duplicate component, will be overwritten: ' + componentJson.vendor + '.' + componentJson.name);
       }
 
-      thumbRelativePath = path.join('src', thumbRelativePath);
-      testRelativePath = testRelativePath == null ? null : path.join('src', testRelativePath);
+      thumbRelativePath = this._prepWithSrc(thumbRelativePath);
+      testRelativePath = this._prepWithSrc(testRelativePath);
+      docRelativePath = this._prepWithSrc(docRelativePath);
       components[componentJson.vendor][componentJson.name] = {
         thumbnail: thumbRelativePath,
         test: testRelativePath,
-        detail: componentJson
+        doc: docRelativePath,
+        detail: componentJson,
+        code: code
       };
     });
     return components;
+  }
+
+  _prepWithSrc(relativePath) {
+    return relativePath == null ? null : path.join('src', relativePath);
   }
 
   static getServerFilePath(frameworkConfig) {

@@ -109,3 +109,11 @@ export function isStringDuckType(value) {
 export function isArrayDuckType(value) {
   return value.splice;
 }
+
+/**
+ * @param {?} value
+ * @returns {boolean}
+ */
+export function isStringAndNotEmpty(value) {
+  return value != null && isStringDuckType(value) && value != '';
+}

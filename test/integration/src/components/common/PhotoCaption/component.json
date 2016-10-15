@@ -1,6 +1,13 @@
 {
   "vendor": "Test",
   "name": "PhotoCaption",
-  "author": "ricky@traveloka.com",
-  "thumbnail": "./PhotoCaptionThumbnail.js"
+  "label": "Simple Photo Caption",
+  "author": {
+    "name": "Ricky Christie",
+    "email": "ricky@traveloka.com"
+  },
+  "category": "Cards",
+  "thumbnail": "./PhotoCaptionThumbnail.js",
+  "doc": "./PhotoCaptionDoc.js",
+  "isLargeThumbnail": false
 }

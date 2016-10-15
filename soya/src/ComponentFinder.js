@@ -1,6 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { isStringDuckType } from './data/redux/helper';
+import htmlEntities from 'html-entities';
+import { isStringAndNotEmpty } from './data/redux/helper';
+
+var entities = new htmlEntities.AllHtmlEntities();
 
 /**
  * @SERVER
@@ -60,19 +63,40 @@ export default class ComponentFinder {
       console.log('IGNORED: Thumbnail component does not exist: ' + thumbFilePath + ' in: ' + jsonAbsolutePath);
       return;
     }
+    var unescapedCode = fs.readFileSync(thumbFilePath).toString();
+    var code = entities.encode(unescapedCode);
 
-    var testRelativePath = null;
-    var testFilePath = null;
-    if (componentJson.test != null && isStringDuckType(componentJson.test)) {
-      testRelativePath = path.join(relativePath, componentJson.test);
-      testFilePath = path.join(absoluteRootDir, testRelativePath);
-      if (!this._fileExists(testFilePath)) {
-        console.log('IGNORED: Test component does not exist: ' + testFilePath + ' in: ' + jsonAbsolutePath);
-        return;
+    var testRelativePath = this._ensureComponentFileExists(componentJson,
+      absoluteRootDir, relativePath, jsonAbsolutePath, 'test');
+    var docRelativePath = this._ensureComponentFileExists(componentJson,
+      absoluteRootDir, relativePath, jsonAbsolutePath, 'doc');
+
+    callback(thumbRelativePath, testRelativePath, docRelativePath, code, componentJson);
+  }
+
+  /**
+   * Returns null if component file doesn't exist, otherwise returns the
+   * component's relative path.
+   *
+   * @param {Object} componentJson
+   * @param {string} absoluteRootDir
+   * @param {string} relativePath
+   * @param {string} jsonAbsolutePath
+   * @param {string} name
+   * @returns {?string}
+   */
+  _ensureComponentFileExists(componentJson, absoluteRootDir, relativePath, jsonAbsolutePath, name) {
+    var fileRelativePath, absolutePath;
+    if (isStringAndNotEmpty(componentJson[name])) {
+      fileRelativePath = path.join(relativePath, componentJson[name]);
+      absolutePath = path.join(absoluteRootDir, fileRelativePath);
+      if (!this._fileExists(absolutePath)) {
+        console.log(`IGNORED: ${name} component does not exist: ${absolutePath} in ${jsonAbsolutePath}`);
+        return null;
       }
+      return fileRelativePath;
     }
-
-    callback(thumbRelativePath, testRelativePath, componentJson);
+    return null;
   }
 
   _fileExists(filePath) {
@@ -94,19 +118,36 @@ export default class ComponentFinder {
     var vendor = componentJson.vendor;
     var name = componentJson.name;
     var thumbnail = componentJson.thumbnail;
+    var author = componentJson.author;
+    var category = componentJson.category;
 
-    if (vendor == null || !isStringDuckType(vendor) || vendor == '') {
+    if (!isStringAndNotEmpty(vendor)) {
       console.log('IGNORED: component.json does not contain vendor: ' + jsonAbsolutePath);
       return false;
     }
 
-    if (name == null || !isStringDuckType(name) || name == '') {
+    if (!isStringAndNotEmpty(name)) {
       console.log('IGNORED: component.json does not contain name: ' + jsonAbsolutePath);
       return false;
     }
 
-    if (thumbnail == null || !isStringDuckType(thumbnail) || thumbnail == '') {
+    if (!isStringAndNotEmpty(thumbnail)) {
       console.log('IGNORED: component.json does not contain thumbnail component: ' + jsonAbsolutePath);
+      return false;
+    }
+
+    if (author == null) {
+      console.log('IGNORED: component.json does not contain author information: ' + jsonAbsolutePath);
+      return false;
+    }
+
+    if (!isStringAndNotEmpty(author.name) || !isStringAndNotEmpty(author.email)) {
+      console.log('IGNORED: component.json does not contain author name and/or email: ' + jsonAbsolutePath);
+      return false;
+    }
+
+    if (!isStringAndNotEmpty(category)) {
+      console.log('IGNORED: component.json does not contain category: ' + jsonAbsolutePath);
       return false;
     }
 

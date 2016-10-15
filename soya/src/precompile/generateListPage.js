@@ -13,9 +13,7 @@ import register from 'soya/lib/client/Register';
 import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import ReduxStore from 'soya/lib/data/redux/ReduxStore.js';
 
-import style from 'soya/lib/precompile/cmpt.mod.css';
-import ComponentListItem from 'soya/lib/precompile/ComponentListItem.js';
-
+import ListPageComponent from 'soya/lib/browser/ListPageComponent.js';
 var componentMap = ${JSON.stringify(components)};
 `;
 
@@ -24,33 +22,18 @@ var componentMap = ${JSON.stringify(components)};
     for (componentName in components[vendor]) {
       result += `
 import Component${i} from '../../${components[vendor][componentName].thumbnail}';`;
+      if (components[vendor][componentName].doc) {
+        result += `
+import Doc${i} from '../../${components[vendor][componentName].doc}';
+componentMap[${JSON.stringify(vendor)}][${JSON.stringify(componentName)}].doc = Doc${i};`;
+      }
       result += `
-componentMap[${JSON.stringify(vendor)}][${JSON.stringify(componentName)}].component = Component${i};`;
+componentMap[${JSON.stringify(vendor)}][${JSON.stringify(componentName)}].thumbnail = Component${i};`;
       i++;
     }
   }
 
   result += `
-
-class Component extends React.Component {
-  render() {
-    var vendor, componentName, componentList = [];
-    for (vendor in componentMap) {
-      for (componentName in componentMap[vendor]) {
-        componentList.push(<ComponentListItem context={this.props.context} data={componentMap[vendor][componentName]} />);
-      }
-    }
-    return <div className={style.cbrowser}>
-      <nav>
-        <h1>Component Browser</h1>
-        <input type="text" />
-      </nav>
-      <div className={style.componentList}>
-        {componentList}
-      </div>
-    </div>;
-  }
-}
 
 class CmptBrowserSearchPage extends Page {
   static get pageName() {
@@ -66,12 +49,13 @@ class CmptBrowserSearchPage extends Page {
   render(httpRequest, routeArgs, store, callback) {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Component Browser</title>';
-    reactRenderer.body = React.createElement(Component, {
+    reactRenderer.body = React.createElement(ListPageComponent, {
       context: {
         reduxStore: store,
         config: this.config
       },
-      router: this.router
+      router: this.router,
+      componentMap: componentMap
     });
     var renderResult = new RenderResult(reactRenderer);
     callback(renderResult);

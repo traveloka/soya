@@ -4,12 +4,13 @@
   float: left;
   padding: 15px;
   border: 1px solid #ccc;
+  border-radius: 3px;
   background-color: $gray-lighter;
 }
 
 .image img {
   display: block;
-  border: 1px solid #ccc;
+  border: 1px solid #dedede;
   padding: 10px;
   margin-bottom: 10px;
   background-color: #fff;

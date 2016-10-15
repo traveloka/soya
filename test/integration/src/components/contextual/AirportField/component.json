@@ -1,6 +1,12 @@
 {
   "vendor": "Test",
   "name": "AirportAutocomplete",
-  "author": "ricky@traveloka.com",
-  "thumbnail": "./AirportFieldThumbnail.js"
+  "label": "Airport Code Autocomplete",
+  "author": {
+    "name": "Ricky Christie",
+    "email": "ricky@traveloka.com"
+  },
+  "category": "Form",
+  "thumbnail": "./AirportFieldThumbnail.js",
+  "isLargeThumbnail": false
 }

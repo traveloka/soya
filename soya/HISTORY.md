@@ -1,5 +1,9 @@
 # Version 0.0.x
 
+## 0.0.38
+
+- Updated component browser design, added category, author name, doc component.
+
 ## 0.0.37
 
 - server.js becomes automatically generated on server-side compilation.
