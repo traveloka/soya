@@ -125,7 +125,6 @@ body {
 
 .componentList {
   margin: 20px 20px 20px 320px;
-  font-family: "Segoe UI", "San Fransisco", "Lucida Sans", "Ubuntu", Arial, Helvetica, sans-serif;
 }
 
 .shrunk.componentListItem {
@@ -152,6 +151,7 @@ body {
   font-size: 13px;
   color: #333;
   cursor: pointer;
+  font-family: "Segoe UI", "San Fransisco", "Lucida Sans", "Ubuntu", Arial, Helvetica, sans-serif;
 }
 
 .componentListItemTitle h2 {
@@ -206,6 +206,7 @@ body {
   display: block;
   float: left;
   color: #666;
+  font-family: "Segoe UI", "San Fransisco", "Lucida Sans", "Ubuntu", Arial, Helvetica, sans-serif;
 }
 
 .shrunk .componentDescription {
