@@ -36,7 +36,6 @@ export default class ComponentListItem extends React.Component {
 
     return <div className={style.componentListItem + ' ' + (this.state.expand ? '' : style.shrunk)}>
       <div className={style.componentListItemTitle} onClick={this._boundExpandToggleFunction}>
-        <h4><a ref={(a) => this._contactLink = a} href={'mailto:' + this.props.data.detail.author.email}>{this.props.data.detail.author.name}</a></h4>
         <h2>{this.props.data.detail.label}</h2>
         <h3>{this.props.data.detail.vendor}.{this.props.data.detail.name}</h3>
       </div>
