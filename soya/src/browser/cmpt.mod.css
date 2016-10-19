@@ -131,7 +131,6 @@ body {
   margin-right: 20px;
   margin-bottom: 20px;
   width: auto;
-  transition: all 0.5s ease;
 }
 
 .componentListItem {
@@ -143,7 +142,6 @@ body {
   border-radius: 5px;
   overflow: auto;
   width: 100%;
-  transition: all 0.5s ease;
 }
 
 .componentListItemTitle {

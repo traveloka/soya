@@ -1,5 +1,10 @@
 # Version 0.0.x
 
+## 0.0.39
+
+- Remove author name (distraction, will have to think later on where to place it).
+- Remove transition as it's causing some rendering issues.
+
 ## 0.0.38
 
 - Updated component browser design, added category, author name, doc component.
