@@ -50,10 +50,7 @@ class CmptBrowserSearchPage extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Component Browser</title>';
     reactRenderer.body = React.createElement(ListPageComponent, {
-      context: {
-        reduxStore: store,
-        config: this.config
-      },
+      context: this.createContext(store),
       router: this.router,
       componentMap: componentMap
     });
