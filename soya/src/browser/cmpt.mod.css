@@ -190,7 +190,6 @@ body {
   padding: 20px;
   border-top: 1px dotted #dedede;
   border-bottom: 1px dotted #dedede;
-  overflow: auto;
 }
 
 .shrunk .componentThumbnail {
