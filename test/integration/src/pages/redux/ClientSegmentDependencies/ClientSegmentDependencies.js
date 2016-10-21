@@ -14,9 +14,9 @@ import style from '../../../shared/sitewide.css';
 
 class Component extends React.Component {
   componentWillMount() {
-    this.props.context.reduxStore.registerDataComponent(RandomTimeEchoString);
-    this.props.context.reduxStore.registerDataComponent(FibonacciSequence);
-    this.props.context.reduxStore.registerDataComponent(FibonacciTotal);
+    this.props.context.store.registerDataComponent(RandomTimeEchoString);
+    this.props.context.store.registerDataComponent(FibonacciSequence);
+    this.props.context.store.registerDataComponent(FibonacciTotal);
     this.setState({
       serialStr: 'Fetch Serial',
       parallelStr: 'Fetch Parallel',
@@ -74,7 +74,7 @@ class Component extends React.Component {
       </ul>
       {this.state.fibonacciTotalComponent}
       <DebugPanel top right bottom>
-        <DevTools store={this.props.context.reduxStore._store} monitor={LogMonitor} />
+        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
       </DebugPanel>
     </div>;
   }
@@ -163,10 +163,7 @@ class ClientSegmentDependencies extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Segment Dependencies Test</title>';
     reactRenderer.body = React.createElement(Component, {
-      context: {
-        reduxStore: store,
-        config: this.config
-      }
+      context: this.createContext(store)
     });
     var renderResult = new RenderResult(reactRenderer);
     callback(renderResult);

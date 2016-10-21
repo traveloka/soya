@@ -26,9 +26,7 @@ class CookieRemove extends Page {
   render(httpRequest, routeArgs, store, callback) {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Cookie Server Removal</title>';
-    reactRenderer.body = React.createElement(Component, {
-      config: this.config
-    });
+    reactRenderer.body = React.createElement(Component, {});
     this.cookieJar.remove('decade');
     this.cookieJar.remove('one-night-stand');
     var renderResult = new RenderResult(reactRenderer);

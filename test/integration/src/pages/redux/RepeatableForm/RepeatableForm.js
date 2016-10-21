@@ -19,8 +19,8 @@ const FORM_ID = 'wishlist';
 
 class Component extends React.Component {
   componentWillMount() {
-    this.actions = this.props.context.reduxStore.register(FormSegment);
-    this._form = new Form(this.props.context.reduxStore, FORM_ID);
+    this.actions = this.props.context.store.register(FormSegment);
+    this._form = new Form(this.props.context.store, FORM_ID);
   }
 
   render() {
@@ -41,13 +41,13 @@ class Component extends React.Component {
         <li>Forms are able to easily repeat a set of fields to create a <code>List&lt;T&gt;</code> structure.</li>
       </ul>
       <DebugPanel top right bottom>
-        <DevTools store={this.props.context.reduxStore._store} monitor={LogMonitor} />
+        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
       </DebugPanel>
     </div>
   }
 
   setValues() {
-    this.props.context.reduxStore.dispatch(this.actions.setValues(FORM_ID, [
+    this.props.context.store.dispatch(this.actions.setValues(FORM_ID, [
       { fieldName: ['goals', 'professional'], value: 'Entrepreneur' },
       { fieldName: ['goals', 'material', 'lodging'], value: 'Simple home' },
       { fieldName: ['goals', 'material', 'electronics'], value: '' },
@@ -78,10 +78,7 @@ class RepeatableForm extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Repeatable Form Test</title>';
     reactRenderer.body = React.createElement(Component, {
-      context: {
-        reduxStore: store,
-        config: this.config
-      }
+      context: this.createContext(store)
     });
     var renderResult = new RenderResult(reactRenderer);
     callback(renderResult);

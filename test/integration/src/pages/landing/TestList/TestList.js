@@ -14,31 +14,31 @@ class Component extends React.Component {
       <h2>Compilation</h2>
       <p>Web assets compilation and page generation. Enables user to code in terms of distinct components, without worrying about dependencies and performance optimizations.</p>
       <ul>
-        <li><a href={this.props.router.reverseRoute('LOAD_COMPONENT')}>Load Component</a></li>
+        <li><a href={this.props.context.router.reverseRoute('LOAD_COMPONENT')}>Load Component</a></li>
         <li>(TODO) <a href="">Client File Switching</a>.</li>
       </ul>
       <h2>HTTP</h2>
       <p>Support for HTTP features like cookies, headers, upload, request methods, etc.</p>
       <ul>
-        <li><a href={this.props.router.reverseRoute('COOKIE_SET')}>Cookies</a></li>
+        <li><a href={this.props.context.router.reverseRoute('COOKIE_SET')}>Cookies</a></li>
       </ul>
       <h2>Redux</h2>
       <p>Integration with Redux alongside data-fetching capabilities. Enables the <code>&lt;Context/&gt;</code> part of user interface components.</p>
       <ul>
-        <li><a href={this.props.router.reverseRoute('HYDRATION')}>Hydration Test</a> (~3 seconds)</li>
-        <li><a href={this.props.router.reverseRoute('RUNTIME_COMPONENT')}>Runtime Components</a></li>
-        <li><a href={this.props.router.reverseRoute('SERVER_SEGMENT_DEPENDENCIES')}>Segment Dependencies (Server-Side)</a> (~5 seconds).</li>
-        <li><a href={this.props.router.reverseRoute('CLIENT_SEGMENT_DEPENDENCIES')}>Segment Dependencies (Client-Side)</a>.</li>
-        <li><a href={this.props.router.reverseRoute('CLIENT_INSTANT_SEGMENT_DEPENDENCIES')}>Segment Dependencies (Client-Side, Instant Load)</a></li>
-        <li><a href={this.props.router.reverseRoute('SEGMENT_COOKIE')}>Segment Cookie</a></li>
-        <li><a href={this.props.router.reverseRoute('SEGMENT_COOKIE_CLIENT')}>Segment Cookie (Client Side)</a></li>
-        <li><a href={this.props.router.reverseRoute('TEST_LOCAL_SEGMENT')}>Local Segment</a></li>
-        <li><a href={this.props.router.reverseRoute('MUTATION_TEST')}>Mutation Test</a></li>
+        <li><a href={this.props.context.router.reverseRoute('HYDRATION')}>Hydration Test</a> (~3 seconds)</li>
+        <li><a href={this.props.context.router.reverseRoute('RUNTIME_COMPONENT')}>Runtime Components</a></li>
+        <li><a href={this.props.context.router.reverseRoute('SERVER_SEGMENT_DEPENDENCIES')}>Segment Dependencies (Server-Side)</a> (~5 seconds).</li>
+        <li><a href={this.props.context.router.reverseRoute('CLIENT_SEGMENT_DEPENDENCIES')}>Segment Dependencies (Client-Side)</a>.</li>
+        <li><a href={this.props.context.router.reverseRoute('CLIENT_INSTANT_SEGMENT_DEPENDENCIES')}>Segment Dependencies (Client-Side, Instant Load)</a></li>
+        <li><a href={this.props.context.router.reverseRoute('SEGMENT_COOKIE')}>Segment Cookie</a></li>
+        <li><a href={this.props.context.router.reverseRoute('SEGMENT_COOKIE_CLIENT')}>Segment Cookie (Client Side)</a></li>
+        <li><a href={this.props.context.router.reverseRoute('TEST_LOCAL_SEGMENT')}>Local Segment</a></li>
+        <li><a href={this.props.context.router.reverseRoute('MUTATION_TEST')}>Mutation Test</a></li>
       </ul>
       <h3>Form With Redux</h3>
       <ul>
-        <li><a href={this.props.router.reverseRoute('SIMPLE_FORM')}>Simple Form</a></li>
-        <li><a href={this.props.router.reverseRoute('REPEATABLE_FORM')}>Repeatable Form</a></li>
+        <li><a href={this.props.context.router.reverseRoute('SIMPLE_FORM')}>Simple Form</a></li>
+        <li><a href={this.props.context.router.reverseRoute('REPEATABLE_FORM')}>Repeatable Form</a></li>
       </ul>
     </div>;
   }
@@ -71,8 +71,7 @@ class TestList extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Integration Tests</title>';
     reactRenderer.body = React.createElement(Component, {
-      config: this.config,
-      router: this.router
+      context: this.createContext(store)
     });
     var renderResult = new RenderResult(reactRenderer);
     callback(renderResult);

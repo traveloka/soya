@@ -21,7 +21,7 @@ var MODAL_LAUNCHING_MODAL_ID = 'launch';
 
 class Component extends React.Component {
   componentWillMount() {
-    this.lyingActions = this.props.context.reduxStore.register(LyingSegment);
+    this.lyingActions = this.props.context.store.register(LyingSegment);
     this.modalEmitter = {};
     smokesignals.convert(this.modalEmitter);
 
@@ -30,21 +30,21 @@ class Component extends React.Component {
     });
 
     // Subscribe to lying segment.
-    this.props.context.reduxStore.subscribe(LyingSegment.id(), '', (newState) => {
+    this.props.context.store.subscribe(LyingSegment.id(), '', (newState) => {
       this.setState({
         number: newState
       });
     }, this);
 
-    this.modalActions = this.props.context.reduxStore.register(ModalSegment);
+    this.modalActions = this.props.context.store.register(ModalSegment);
     this.modalEmitter.on(ConfirmModal.getConfirmEvent(INCREMENT_MODAL_ID), () => {
-      this.props.context.reduxStore.dispatch(this.lyingActions.increment());
+      this.props.context.store.dispatch(this.lyingActions.increment());
     });
     this.modalEmitter.on(ConfirmModal.getConfirmEvent(MODAL_LAUNCHING_MODAL_ID), this.addConfirmModal.bind(this));
     var i, createRemovalFunc = (n) => {
       return () => {
         var removeAction = this.modalActions.remove(MULTIPLE_MODAL_ID + n);
-        this.props.context.reduxStore.dispatch(removeAction);
+        this.props.context.store.dispatch(removeAction);
       };
     };
     for (i = 1; i < 6; i++) {
@@ -68,7 +68,7 @@ class Component extends React.Component {
         <ConfirmModal emitter={this.modalEmitter} />
       </ModalLayer>
       <DebugPanel top right bottom>
-        <DevTools store={this.props.context.reduxStore._store} monitor={LogMonitor} />
+        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
       </DebugPanel>
     </div>
   }
@@ -77,7 +77,7 @@ class Component extends React.Component {
     var addModalAction = this.modalActions.add(ConfirmModal.modalType, INCREMENT_MODAL_ID, {
       text: 'Are you handsome?'
     });
-    this.props.context.reduxStore.dispatch(addModalAction);
+    this.props.context.store.dispatch(addModalAction);
   }
 
   addMultipleConfirmModal() {
@@ -86,7 +86,7 @@ class Component extends React.Component {
       addModalAction = this.modalActions.add(ConfirmModal.modalType, MULTIPLE_MODAL_ID + i, {
         text: 'Test multiple modal window ' + i + '.'
       });
-      this.props.context.reduxStore.dispatch(addModalAction);
+      this.props.context.store.dispatch(addModalAction);
     }
   }
 
@@ -94,7 +94,7 @@ class Component extends React.Component {
     var addModalAction = this.modalActions.add(ConfirmModal.modalType, MODAL_LAUNCHING_MODAL_ID, {
       text: 'Launch new modal window?'
     });
-    this.props.context.reduxStore.dispatch(addModalAction);
+    this.props.context.store.dispatch(addModalAction);
   }
 }
 
@@ -112,10 +112,7 @@ class TestLocalSegment extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Local Segment Test</title>';
     reactRenderer.body = React.createElement(Component, {
-      context: {
-        reduxStore: store,
-        config: this.config
-      }
+      context: this.createContext(store)
     });
     var renderResult = new RenderResult(reactRenderer);
     callback(renderResult);

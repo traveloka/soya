@@ -156,7 +156,11 @@ export default function connect(ReactComponent) {
      * @returns {ReduxStore}
      */
     getReduxStore() {
+      if (this.props.context && this.props.context.store) {
+        return this.props.context.store;
+      }
       if (this.props.context && this.props.context.reduxStore) {
+        console.warn('Please use Page.createContext() to create context instead of creating it by yourself!');
         return this.props.context.reduxStore;
       }
       throw new Error('Context not properly wired to: ' + connectId + '.');

@@ -38,7 +38,7 @@ class LoadComponent extends Page {
   render(httpRequest, routeArgs, store, callback) {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Load Component</title>';
-    reactRenderer.body = React.createElement(Component, {router: this.router});
+    reactRenderer.body = React.createElement(Component, {});
     var renderResult = new RenderResult(reactRenderer);
     renderResult.httpHeaders.set('X-Foo', 'soya-ftw');
     callback(renderResult);

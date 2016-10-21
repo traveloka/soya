@@ -1,5 +1,11 @@
 # Version 0.0.x
 
+## 0.0.40
+
+- Added Page.createContext() method to make passing down context objects like
+  cookieJar, store, router and config easier.
+- Minor update on component browser styling.
+
 ## 0.0.39
 
 - Remove author name (distraction, will have to think later on where to place it).

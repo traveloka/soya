@@ -6,15 +6,15 @@ import ReduxStore from 'soya/lib/data/redux/ReduxStore.js';
 import register from 'soya/lib/client/Register';
 import UserProfile from '../../../components/contextual/UserProfile/UserProfile.js';
 import UserSegment from '../../../segments/UserSegment.js';
-import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';
+import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';  
 
 // TODO: Figure out how to do promise polyfill.
 import style from '../../../shared/sitewide.css';
 
 class Component extends React.Component {
   componentWillMount() {
-    this.props.context.reduxStore.registerDataComponent(UserProfile);
-    this.props.context.reduxStore.register(UserSegment);
+    this.props.context.store.registerDataComponent(UserProfile);
+    this.props.context.store.register(UserSegment);
     this.setState({
       index: 0,
       components: []
@@ -35,7 +35,7 @@ class Component extends React.Component {
       </ul>
       {this.state.components}
       <DebugPanel top right bottom>
-        <DevTools store={this.props.context.reduxStore._store} monitor={LogMonitor} />
+        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
       </DebugPanel>
     </div>;
   }
@@ -67,7 +67,7 @@ class Component extends React.Component {
     });
 
     if (forceLoad) {
-      this.props.context.reduxStore.query(UserSegment.id(), {username: query}, true);
+      this.props.context.store.query(UserSegment.id(), {username: query}, true);
     }
   }
 }
@@ -86,10 +86,7 @@ class RuntimeComponent extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Runtime Data Component</title>';
     reactRenderer.body = React.createElement(Component, {
-      context: {
-        reduxStore: store,
-        config: this.config
-      },
+      context: this.createContext(store),
       queries: [
         'rickchristie',
         'willywonka',

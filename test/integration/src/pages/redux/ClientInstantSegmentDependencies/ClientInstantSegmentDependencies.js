@@ -52,7 +52,7 @@ class Component extends React.Component {
       <h3>Recursive Segment Dependencies</h3>
       <FibonacciTotal context={this.props.context} loadAtClient={true} number={10} />
       <DebugPanel top right bottom>
-        <DevTools store={this.props.context.reduxStore._store} monitor={LogMonitor} />
+        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
       </DebugPanel>
     </div>;
   }
@@ -72,10 +72,7 @@ class ClientInstantSegmentDependencies extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Segment Dependencies Test</title>';
     reactRenderer.body = React.createElement(Component, {
-      context: {
-        reduxStore: store,
-        config: this.config
-      }
+      context: this.createContext(store)
     });
     var renderResult = new RenderResult(reactRenderer);
     callback(renderResult);

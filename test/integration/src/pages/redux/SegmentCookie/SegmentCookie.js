@@ -12,7 +12,7 @@ import BookingBox from '../../../components/contextual/BookingBox/BookingBox.js'
 
 class Component extends React.Component {
   componentWillMount() {
-    this.props.context.reduxStore.registerDataComponent(BookingBox);
+    this.props.context.store.registerDataComponent(BookingBox);
     this.setState({
       clientBookingBox: null,
       clientErrorBookingBox: null
@@ -33,7 +33,7 @@ class Component extends React.Component {
       {this.state.clientBookingBox}
       {this.state.clientErrorBookingBox}
       <DebugPanel top right bottom>
-        <DevTools store={this.props.context.reduxStore._store} monitor={LogMonitor} />
+        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
       </DebugPanel>
     </div>
   }
@@ -67,10 +67,7 @@ class SegmentCookie extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Segment With Cookie Test</title>';
     reactRenderer.body = React.createElement(Component, {
-      context: {
-        reduxStore: store,
-        config: this.config
-      }
+      context: this.createContext(store)
     });
     var renderResult = new RenderResult(reactRenderer);
     callback(renderResult);

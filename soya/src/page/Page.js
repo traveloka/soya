@@ -1,6 +1,7 @@
 import RenderResult from './RenderResult.js';
 import ServerHttpRequest from '../http/ServerHttpRequest.js';
 import ClientHttpRequest from '../http/ClientHttpRequest.js';
+import smokesignals from '../event/smokesignals.js';
 
 /**
  * Represents a web page with URL link. There are three different situations
@@ -102,12 +103,45 @@ export default class Page {
    *
    * The reason this method is separated from render is because we want to
    * reuse Store instance in case of history API navigation or hot-loading.
+   * This means that this method may not be called if we already have an
+   * instantiated store namespace for that page.
    *
    * @param {Object} initialState
    * @returns {void | Store}
    */
   createStore(initialState) {
     return null;
+  }
+
+  /**
+   * Create an event emitter that can be used by different components send
+   * and receive events between each other.
+   *
+   * @return {any}
+   */
+  createEventEmitter() {
+    var object = {};
+    smokesignals.convert(object);
+    return object;
+  }
+
+  /**
+   * Default context object to be passed down to components that listens to
+   * state changes or events. Also contains client configuration and router.
+   * Context objects should be created per render.
+   *
+   * @param {Store} store
+   * @returns {Object}
+   */
+  createContext(store) {
+    return {
+      reduxStore: store, // For backwards compatibility, don't use this! Use context.store instead!
+      store: store,
+      router: this.router,
+      config: this.config,
+      cookieJar: this.cookieJar,
+      emitter: this.createEventEmitter()
+    }
   }
 
   /**

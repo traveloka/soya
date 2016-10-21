@@ -19,9 +19,9 @@ const REUSE_FORM_ID = 'kontakte';
 
 class Component extends React.Component {
   componentWillMount() {
-    this.actions = this.props.context.reduxStore.register(FormSegment);
-    this._form = new Form(this.props.context.reduxStore, FORM_ID);
-    this._kontakteForm = new Form(this.props.context.reduxStore, REUSE_FORM_ID);
+    this.actions = this.props.context.store.register(FormSegment);
+    this._form = new Form(this.props.context.store, FORM_ID);
+    this._kontakteForm = new Form(this.props.context.store, REUSE_FORM_ID);
   }
 
   render() {
@@ -48,13 +48,13 @@ class Component extends React.Component {
       </ul>
       <ContactForm form={this._kontakteForm} formName="Kontakte Form" context={this.props.context} />
       <DebugPanel top right bottom>
-        <DevTools store={this.props.context.reduxStore._store} monitor={LogMonitor} />
+        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
       </DebugPanel>
     </div>
   }
 
   replaceValues() {
-    this.props.context.reduxStore.dispatch(this.actions.setValues(FORM_ID, [
+    this.props.context.store.dispatch(this.actions.setValues(FORM_ID, [
       { fieldName: 'name', value: 'Rick Christie' },
       { fieldName: 'phoneNumber', value: '123 456 789'},
       { fieldName: 'message', value: 'Bring me back that Meteora LP that you borrowed!' },
@@ -70,7 +70,7 @@ class Component extends React.Component {
   }
 
   replaceKontakteForm() {
-    this.props.context.reduxStore.dispatch(this.actions.setValues(REUSE_FORM_ID, [
+    this.props.context.store.dispatch(this.actions.setValues(REUSE_FORM_ID, [
       { fieldName: 'name', value: '' },
       { fieldName: 'phoneNumber', value: '' },
       { fieldName: 'nickname', value: 'Long Winded Man' },
@@ -92,7 +92,7 @@ class Component extends React.Component {
   }
 
   clearValues() {
-    this.props.context.reduxStore.dispatch(this.actions.clear(FORM_ID));
+    this.props.context.store.dispatch(this.actions.clear(FORM_ID));
   }
 }
 
@@ -110,10 +110,7 @@ class SimpleForm extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Simple Form Test</title>';
     reactRenderer.body = React.createElement(Component, {
-      context: {
-        reduxStore: store,
-        config: this.config
-      }
+      context: this.createContext(store)
     });
     var renderResult = new RenderResult(reactRenderer);
     callback(renderResult);

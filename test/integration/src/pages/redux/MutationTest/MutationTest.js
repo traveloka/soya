@@ -37,24 +37,24 @@ class Component extends React.Component {
       <h3>Badge Names</h3>
       <BadgeList context={this.props.context} />
       <DebugPanel top right bottom>
-        <DevTools store={this.props.context.reduxStore._store} monitor={LogMonitor} />
+        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
       </DebugPanel>
     </div>
   }
 
   incrementSingle(username) {
     var mutation = new IncrementUserPostMutation(username);
-    this.props.context.reduxStore.execute(mutation);
+    this.props.context.store.execute(mutation);
   }
 
   resetAll(number) {
     var mutation = new ResetUserPostMutation(number);
-    this.props.context.reduxStore.execute(mutation);
+    this.props.context.store.execute(mutation);
   }
 
   flipBadge() {
     var mutation = new FlipBadgeMutation();
-    this.props.context.reduxStore.execute(mutation);
+    this.props.context.store.execute(mutation);
   }
 }
 
@@ -72,10 +72,7 @@ class MutationTest extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Mutation Test</title>';
     reactRenderer.body = React.createElement(Component, {
-      context: {
-        reduxStore: store,
-        config: this.config
-      }
+      context: this.createContext(store)
     });
     var renderResult = new RenderResult(reactRenderer);
     callback(renderResult);
