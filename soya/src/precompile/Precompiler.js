@@ -43,11 +43,11 @@ export default class Precompiler {
     if (this._frameworkConfig.componentBrowser) {
       var listFilePath = Precompiler.getCmptBrowserListPagePath(this._frameworkConfig);
       fs.writeFileSync(listFilePath, generateListPage(components));
+
+      // Add component browser pages to list of pages to require.
+      pages.push(Precompiler.getCmptBrowserListPageRelativePath());
     }
-
-    // Add component browser pages to list of pages to require.
-    pages.push(Precompiler.getCmptBrowserListPageRelativePath());
-
+    
     // Generate server.js file, containing references to all pages needed for
     // server side routing, plus all component definition for component browser.
     var serverFilePath = Precompiler.getServerFilePath(this._frameworkConfig);
