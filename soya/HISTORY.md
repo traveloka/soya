@@ -1,5 +1,8 @@
 # Version 0.0.x
 
+## 0.0.42
+- Add CmptBrowserListPage only if frameworkConfig.componentBrowser is defined and true.
+
 ## 0.0.40
 
 - Added Page.createContext() method to make passing down context objects like
