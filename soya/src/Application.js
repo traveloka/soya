@@ -7,6 +7,7 @@ import CookieJar from './http/CookieJar.js';
 import ServerCookieJar from './http/ServerCookieJar.js';
 import { SERVER } from './data/RenderType';
 import SocketIO from 'socket.io';
+import SocketIORedis from 'socket.io-redis';
 
 var path = require('path');
 var http = require('http');
@@ -302,48 +303,7 @@ export default class Application {
     }).listen(this._frameworkConfig.port);
 
     if (this._frameworkConfig.webSocket.enabled === true) {
-      // with socket.io
-      var socketServer = new SocketIO(this._frameworkConfig.webSocket.port);
-      var i, route, pageClass, routes = this._wsRouter.getAllRoutes();
-      var socketDomain = domain.create().on('error', error => {
-        this._logger.error('[WebSocket] Error happened.', error);
-      });
-
-      for (i = 0; i < routes.length; i++) {
-        route = routes[i];
-        pageClass = this._wsPageClasses[route.pageName];
-
-        if (!pageClass) {
-          throw new Error('Invalid socket route data, page '+ route.pageName + ' doesn\'t exist');
-        }
-        var page = new pageClass();
-        var nspSocketIO = socketServer.of(route.path);
-        nspSocketIO.on('connection', socket => {
-          page.render(socket);
-        });
-        socketDomain.add(nspSocketIO);
-      }
-    }
-
-
-    if (this._frameworkConfig.webSocket.enabled === true) {
-      // with socket.io
-      var serverSocket = new SocketIO(this._frameworkConfig.webSocket.port);
-      var i, route, pageClass, routes = this._wsRouter.getAllRoutes();
-
-      for (i = 0; i < routes.length; i++) {
-        route = routes[i];
-        pageClass = this._wsPageClasses[route.pageName];
-
-        if (!pageClass) {
-          throw new Error('Invalid socket route data, page '+ route.pageName + ' doesn\'t exist');
-        }
-        var page = new pageClass();
-        var nsp = serverSocket.of(route.path);
-        nsp.on('connection', socket => {
-          page.render(socket);
-        });
-      }
+      this._createWebsocketeServer();
     }
 
     this._logger.info('Server listening at port: ' + this._frameworkConfig.port + '.');
@@ -481,5 +441,141 @@ export default class Application {
     if (error instanceof Error) return error;
     if (typeof error == 'string') return new Error(error);
     return new Error('Error when resolving store promise! Unable to convert reject arg: ' + error);
+  }
+
+  /**
+   * @private
+   */
+  _createWebsocketeServer() {
+    var redis, socket, uid, pub, sub, publishCallback;
+    var dispatcherMap = { };
+
+    redis = new SocketIORedis({
+      host: this._frameworkConfig.webSocket.redisConf.host,
+      port: this._frameworkConfig.webSocket.redisConf.port });
+    socket = new SocketIO(this._frameworkConfig.webSocket.port);
+    socket.adapter(redis);
+
+    uid = redis.uid;
+    pub = redis.pubClient;
+    sub = redis.subClient;
+
+    publishCallback = function(channel, eventName, message) {
+      pub.publish(channel, JSON.stringify({
+        pubUID: uid,
+        pubEvent: eventName,
+        pubMessage: message }));
+    };
+    sub.on('subscribe', (channel, count) => {
+      console.log('[Redis 1] subscribe, channel: '+ channel +', subscribers: '+ count);
+    });
+    sub.on('unsubscribe', (channel, count) => {
+      console.log('[Redis 1] unsubscribe, channel: '+ channel +', subscribers: '+ count);
+    });
+    sub.on('message', (channel, message) => {
+      console.log('[Redis 1] message, channel: '+ channel +', message: '+ message);
+
+      var messageObj, pubUID, pubEvent, pubMessage, dispatcher;
+      messageObj = JSON.parse(message);
+      pubUID = messageObj.pubUID;
+      pubEvent = messageObj.pubEvent;
+      pubMessage = messageObj.pubMessage;
+
+      if ((dispatcher = dispatcherMap[channel]) != null && uid != pubUID) {
+        dispatcher(pubEvent, pubMessage);
+      }
+    });
+
+    var i, route, pageClass, socketDomain, routes;
+
+    routes = this._wsRouter.getAllRoutes();
+    socketDomain = domain.create().on('error', error => {
+      this._logger.error('[WebSocket] Error happened.', error);
+    });
+
+    // for demo
+    // --------------------------------------
+    var redis2, socket2, uid2, pub2, sub2, publishCallback2;
+    var dispatcherMap2 = { };
+
+    redis2 = new SocketIORedis({
+      host: this._frameworkConfig.webSocket.redisConf.host,
+      port: this._frameworkConfig.webSocket.redisConf.port });
+    socket2 = new SocketIO(29072);
+    socket2.adapter(redis2);
+
+    uid2 = redis2.uid;
+    pub2 = redis2.pubClient;
+    sub2 = redis2.subClient;
+
+    publishCallback2 = function(channel, eventName, message) {
+      pub2.publish(channel, JSON.stringify({
+        pubUID: uid2,
+        pubEvent: eventName,
+        pubMessage: message }));
+    };
+    sub2.on('subscribe', (channel, count) => {
+      console.log('[Redis 2] subscribe, channel: '+ channel +', subscribers: '+ count);
+    });
+    sub2.on('unsubscribe', (channel, count) => {
+      console.log('[Redis 2] unsubscribe, channel: '+ channel +', subscribers: '+ count);
+    });
+    sub2.on('message', (channel, message) => {
+      console.log('[Redis 2] message, channel: '+ channel +', message: '+ message);
+
+      var messageObj, pubUID, pubEvent, pubMessage, dispatcher;
+      messageObj = JSON.parse(message);
+      pubUID = messageObj.pubUID;
+      pubEvent = messageObj.pubEvent;
+      pubMessage = messageObj.pubMessage;
+
+      if ((dispatcher = dispatcherMap2[channel]) != null && uid2 != pubUID) {
+        dispatcher(pubEvent, pubMessage);
+      }
+    });
+
+
+    // # Iterate for each route
+    // -----------------------------
+    for (i = 0; i < routes.length; i++) {
+      route = routes[i];
+      pageClass = this._wsPageClasses[route.pageName];
+
+      if (!pageClass) {
+        throw new Error('Invalid socket route data, page '+ route.pageName + ' doesn\'t exist');
+      }
+
+      var page, nsp, channel;
+
+      channel = pageClass.pageName;
+      sub.subscribe(channel);
+
+      page = new pageClass();
+      page.initialize(channel, publishCallback);
+      dispatcherMap[channel] = page.eventDispatcher.bind(page);
+
+      nsp = socket.of(route.path);
+      nsp.on('connection', client => {
+        page.render(client, pub, sub, this._frameworkConfig.webSocket.port);
+      });
+      socketDomain.add(nsp);
+
+      // for demo
+      // --------------------------------------
+      var page2, nsp2, channel2;
+
+      channel2 = pageClass.pageName;
+      sub2.subscribe(channel2);
+
+      page2 = new pageClass();
+      page2.initialize(channel2, publishCallback2);
+      dispatcherMap2[channel2] = page2.eventDispatcher.bind(page2);
+
+      nsp2 = socket2.of(route.path);
+      nsp2.on('connection', client => {
+        page2.render(client, pub2, sub2, 29072);
+      });
+      socketDomain.add(nsp2);
+    }
   }
 }

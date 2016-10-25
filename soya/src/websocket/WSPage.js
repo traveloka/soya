@@ -1,8 +1,29 @@
 /**
  * A Base-class for Websocket page
+ * notes:
+ * - PUBLISH : send message to other process / servers
+ * - BROADCAST : send message to all connected client.
  * @SERVER
  */
 export default class WSPage {
+
+  /**
+   * @type {string}
+   * @private
+   */
+  _channel;
+
+  /**
+   * @type {function(string, string, string)}
+   * @private
+   */
+  _publishCallback;
+
+  /**
+   * @type {Socket}
+   * @protected
+   */
+  _socket;
 
   constructor() {
 
@@ -19,9 +40,46 @@ export default class WSPage {
   }
 
   /**
+   * @param {string} channel
+   * @param {function(string, string, string)} publishCallback
+   */
+  initialize(channel, publishCallback) {
+    this._channel = channel;
+    this._publishCallback = publishCallback;
+  }
+
+  /**
    * @param {Socket} socket
    */
   render(socket) {
-
+    this._socket = socket;
+    this._socket.on('disconnect', () => {
+      console.log('[Socket Server] Disconnected');
+    });
+    this.bindEvent();
   }
+
+  /**
+   * @param {string} event
+   * @param {string} message
+   */
+  eventDispatcher(event, message) {
+    console.log('[Socket Server] Dispatch Event: '+ event +', message: '+ message +' , @Channel: '+ this._channel);
+  }
+
+  /**
+   * @protected
+   */
+  bindEvent() { }
+
+  /**
+   * A wrapper method to publish event
+   * @param {string} event
+   * @param {string} message
+   * @protected
+   */
+  _publish(event, message) {
+    this._publishCallback(this._channel, event, message);
+  }
+
 }

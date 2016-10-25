@@ -10,7 +10,10 @@ export const DEFAULT_FRAMEWORK_CONFIG = {
   absoluteComponentsDir: [],
   webSocket: {
     enabled: false,
-    routesFilePath: '',
-    port: 8010
+    port: 8010,
+    redisConf: {
+      host: 'localhost',
+      port: 6379
+    }
   }
 };
