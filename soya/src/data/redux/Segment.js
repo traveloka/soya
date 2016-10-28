@@ -89,6 +89,9 @@ export default class Segment {
    * structure. Segment's reducer should ignore this action if the piece is
    * already populated or loaded.
    *
+   * TODO: Why the need for initialization? Remove? Make things simpler.
+   *
+   * @deprecated
    * @param {string} queryId
    * @return {Object}
    */
@@ -100,6 +103,9 @@ export default class Segment {
    * Returns a basic payload object that nullifies the segment data. This is
    * called when hot reloading a change in Segment.
    *
+   * TODO: This has no use. If we hot reload with change in structure, just refresh.
+   *
+   * @deprecated
    * @return {Object}
    */
   _createSyncCleanAction() {
@@ -143,6 +149,9 @@ export default class Segment {
   /**
    * Compares pieces of two state. If they are equal return null, otherwise
    * return an array containing the current segment piece.
+   *
+   * The reason we enclose the piece in array is we need to differentiate
+   * between equal values (null) and differing ones (array).
    *
    * @param prevSegmentState
    * @param segmentState

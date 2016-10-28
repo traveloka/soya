@@ -595,8 +595,8 @@ export default class ReduxStore extends Store {
 
         // Nullifies the current segment data. Because we are replacing Segment
         // implementation, state data may differ.
-        var cleanAction = registeredSegment._createSyncCleanAction();
-        this.dispatch(cleanAction);
+        //var cleanAction = registeredSegment._createSyncCleanAction();
+        //this.dispatch(cleanAction);
       } else {
         throw new Error('Segment id clash! Claimed by ' + RegisteredSegmentClass + ' and ' + SegmentClass + ', with id: ' + id + '.');
       }
@@ -810,13 +810,21 @@ export default class ReduxStore extends Store {
     // directly.
     var segmentPiece = this._getSegmentPiece(segmentId, queryId);
 
-    if (!segmentPiece) {
-      // Populate with initial data if not already populated..
+    if (segmentPiece == null) {
+      // We can't know if the segment piece is supposed to be null or not.
+
+      // This will mean loads and loads of sync init actions even though the
+      // stuff has already been loaded.
+      // TODO: Remove at a later date.
+
+      // Populate with initial data if not already populated.
       var initAction = segment._createSyncInitAction(queryId);
-      if (typeof initAction == 'function') {
-        throw new Error('Init action must be sync! Please return an action object instead!');
+      if (initAction != null) {
+        if (typeof initAction == 'function') {
+          throw new Error('Init action must be sync! Please return an action object instead!');
+        }
+        this.dispatch(initAction);
       }
-      this.dispatch(initAction);
     }
 
     // If we are at server, and is told to ignore, return a promise that

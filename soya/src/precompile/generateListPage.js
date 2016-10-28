@@ -40,6 +40,10 @@ class CmptBrowserSearchPage extends Page {
     return 'CmptBrowserSearchPage';
   }
   
+  static getStoreNamespace() {
+    return '__component__browser';
+  }
+  
   // TODO: Major abstraction leakage, how come we can know that the user is using ReduxStore?
   createStore(initialState) {
     var reduxStore = new ReduxStore(Promise, initialState, this.config, this.cookieJar);

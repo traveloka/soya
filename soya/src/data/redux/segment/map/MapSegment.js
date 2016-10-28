@@ -210,12 +210,14 @@ export default class MapSegment extends Segment {
     }
 
     // Test the query ID, it could be that this query hasn't changed.
-    if (prevSegmentState[queryId] === segmentState[queryId]) {
+    var prevSegmentPiece = this._getPieceObject(prevSegmentState, queryId);
+    var segmentPiece = this._getPieceObject(segmentState, queryId);
+    if (prevSegmentPiece === segmentPiece) {
       return null;
     }
 
     // Otherwise, state has changed, return piece object.
-    return [this._getPieceObject(segmentState, queryId)];
+    return [segmentPiece];
   }
 
   /**
