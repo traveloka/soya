@@ -3,8 +3,6 @@ import ActionNameUtil from '../ActionNameUtil.js';
 
 import update from 'react-addons-update';
 
-var Promise;
-
 /**
  * You can query LocalSegment by specifying keys separated by dots. Examples:
  * "key", "key.subKey", etc.
@@ -41,11 +39,9 @@ export default class LocalSegment extends Segment {
    * @param {Object} config
    * @param {CookieJar} cookieJar
    * @param {Object} dependencyActionCreatorMap
-   * @param {Promise} PromiseImpl
    */
-  constructor(config, cookieJar, dependencyActionCreatorMap, PromiseImpl) {
-    super(config, cookieJar, dependencyActionCreatorMap, PromiseImpl);
-    Promise = PromiseImpl;
+  constructor(config, cookieJar, dependencyActionCreatorMap) {
+    super(config, cookieJar, dependencyActionCreatorMap);
 
     // Since segment name is guaranteed never to clash by ReduxStore, we can
     // safely use segment name as action type.

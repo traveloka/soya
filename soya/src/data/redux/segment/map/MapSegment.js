@@ -3,13 +3,6 @@ import ActionNameUtil from '../ActionNameUtil.js';
 import Thunk from '../../Thunk.js';
 
 /**
- * Promise implementation, in local variable so that our code can be natural.
- *
- * @type {Function}
- */
-var Promise;
-
-/**
  * Organizes pieces inside its segment as simple key-value map. This means
  * segment piece granularity is limited to top-level values (you cannot
  * query a particular field, for instance).
@@ -46,11 +39,9 @@ export default class MapSegment extends Segment {
    * @param {Object} config
    * @param {CookieJar} cookieJar
    * @param {Object} dependencyActionCreatorMap
-   * @param {Promise} PromiseImpl
    */
-  constructor(config, cookieJar, dependencyActionCreatorMap, PromiseImpl) {
-    super(config, cookieJar, dependencyActionCreatorMap, PromiseImpl);
-    Promise = PromiseImpl;
+  constructor(config, cookieJar, dependencyActionCreatorMap) {
+    super(config, cookieJar, dependencyActionCreatorMap);
 
     // Since segment name is guaranteed never to clash by ReduxStore, we can
     // safely use segment name as action type.

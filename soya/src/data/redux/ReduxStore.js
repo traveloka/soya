@@ -11,8 +11,6 @@ import { devTools, persistState } from 'redux-devtools';
 import thunk from 'redux-thunk';
 import scope from 'soya/lib/scope';
 
-var Promise;
-
 /*
 
 type StoreReference = {
@@ -191,6 +189,8 @@ export default class ReduxStore extends Store {
    * the same library, or a library compatible with the one used at
    * ActionCreator implementations.
    *
+   * TODO: Deprecate PromiseImpl
+   *
    * @param {Function} PromiseImpl
    * @param {any} initialState
    * @param {Object} config
@@ -218,7 +218,6 @@ export default class ReduxStore extends Store {
     this._actionCreators = {};
     this._allowOverwriteSegment = {};
     this._cookieJar = cookieJar;
-    Promise = PromiseImpl;
   }
 
   /**
@@ -941,7 +940,7 @@ export default class ReduxStore extends Store {
    * @param {Promise} promise
    */
   _ensurePromise(promise) {
-    if (!(promise instanceof Promise)) {
+    if (promise == null || typeof promise.then != 'function') {
       throw new Error('Expected Promise from async action creator, got this instead: ' + promise + '.');
     }
   }
