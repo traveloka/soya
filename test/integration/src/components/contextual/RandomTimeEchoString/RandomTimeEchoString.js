@@ -38,7 +38,7 @@ class RandomTimeEchoString {
     var title = 'String: \'' + this.props.value + '\'';
     title += this.props.isParallel ? ', Parallel' : ', Serial' ;
 
-    if (!this.props.result.concatVal.loaded) {
+    if (this.props.result.concatVal == null) {
       return <div className={style.container}>
         <h3>{title}</h3>
         <p>Loading...</p>

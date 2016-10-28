@@ -32,12 +32,12 @@ class BookingBox {
 
   render() {
     var title = `Booking Detail (${this.props.bookingId})`;
-    if (!this.props.result.booking.loaded) {
-      var loading;
-      if (this.props.result.booking.errors) {
-        loading = <p>Error: {this.props.result.booking.errors[0]}</p>;
-      } else {
-        loading = <p>Loading...</p>;
+    if (this.props.result.booking == null || !this.props.result.booking.loaded) {
+      var loading = <p>Loading...</p>;
+      if (this.props.result.booking != null) {
+        if (this.props.result.booking.errors) {
+          loading = <p>Error: {this.props.result.booking.errors[0]}</p>;
+        }
       }
       return <div className={style.container}>
         <h3>{title}</h3>

@@ -1,6 +1,7 @@
 import LocalSegment from '../segment/local/LocalSegment';
 import ActionNameUtil from '../segment/ActionNameUtil';
 import { isStringDuckType, isArrayDuckType, isArray, isEqualShallow } from '../helper';
+import QueryResult from '../QueryResult.js';
 
 import update from 'react-addons-update';
 
@@ -301,22 +302,22 @@ export default class FormSegment extends LocalSegment {
   _queryState(query, queryId, segmentState) {
     switch (query.type) {
       case '*':
-        return this._getAllValues(segmentState, query.formId);
+        return QueryResult.loaded(this._getAllValues(segmentState, query.formId));
         break;
       case '**':
-        return segmentState[query.formId] ? segmentState[query.formId] : {};
+        return QueryResult.loaded(segmentState[query.formId] ? segmentState[query.formId] : {});
         break;
       case 'isEnabled':
-        return segmentState[query.formId] ? state[query.formId].isEnabled : true;
+        return QueryResult.loaded(segmentState[query.formId] ? segmentState[query.formId].isEnabled : true);
         break;
       case 'hasErrors':
-        return this._hasErrors(segmentState, query.formId);
+        return QueryResult.loaded(this._hasErrors(segmentState, query.formId));
         break;
       case 'field':
-        return this._getField(segmentState, query.formId, query.fieldName);
+        return QueryResult.loaded(this._getField(segmentState, query.formId, query.fieldName));
         break;
       case 'length':
-        return this._getLength(segmentState, query.formId, query.fieldName, query.minLength);
+        return QueryResult.loaded(this._getLength(segmentState, query.formId, query.fieldName, query.minLength));
         break;
       default:
         throw new Error('Unable to translate query: ' + queryId);

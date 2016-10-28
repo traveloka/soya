@@ -109,18 +109,18 @@ export default class LocalSegment extends Segment {
   }
 
   _queryState(query, queryId, segmentState) {
-    if (typeof state == 'object' && typeof queryId == 'string' && queryId != '') {
-      var i, segment = state, splitQuery = queryId.split('.');
+    if (typeof segmentState == 'object' && typeof queryId == 'string' && queryId != '') {
+      var i, segment = segmentState, splitQuery = queryId.split('.');
       for (i = 0; i < splitQuery.length; i++) {
         if (segment.hasOwnProperty(splitQuery[i])) {
           segment = segment[splitQuery[i]];
         } else {
-          return null;
+          return QueryResult.loaded(null);
         }
       }
-      return segment;
+      return QueryResult.loaded(segment);
     }
-    return state;
+    return QueryResult.loaded(segmentState);
   }
 
   /**

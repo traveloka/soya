@@ -29,7 +29,7 @@ class FibonacciTotal {
 
   render() {
     var title = `Fibonacci Total (${this.props.number})`;
-    if (!this.props.result.fib.loaded) {
+    if (this.props.result.fib == null) {
       return <div className={style.container}>
         <h3>{title}</h3>
         <p>Loading...</p>

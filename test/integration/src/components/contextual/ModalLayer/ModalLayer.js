@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 
 import connect from 'soya/lib/data/redux/connect';
 import { isEqualShallow, isReactChildrenEqual } from 'soya/lib/data/redux/helper';
@@ -10,7 +9,7 @@ import style from './style.mod.css';
 /**
  * @CLIENT_SERVER
  */
-class ModalLayer {
+class ModalLayer extends React.Component {
   static connectId() {
     return 'ModalLayer';
   }
@@ -41,6 +40,9 @@ class ModalLayer {
   }
 
   render() {
+    if (this.props.result.modals == null) {
+      return null;
+    }
     var modalWindowTypes = {}, modalWindows = [], modalElement, i;
     var childrenElements = React.Children.toArray(this.props.children);
     for (i = 0; i < childrenElements.length; i++) {

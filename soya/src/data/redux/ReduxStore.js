@@ -796,7 +796,6 @@ export default class ReduxStore extends Store {
    * @return {Promise}
    */
   query(segmentId, query, forceLoad, ignoreAtServer) {
-    debugger;
     var segment = this._segments[segmentId];
     if (!segment) {
       throw new Error('Cannot query, Segment is not registered: ' + segmentId + '.');
@@ -834,7 +833,7 @@ export default class ReduxStore extends Store {
     if (loadAction == null) {
       // If load action is null, then this segment doesn't need to do load
       // actions. We return immediately with previously fetched segment piece.
-      return Promise.resolve(segmentPiece);
+      return Promise.resolve(queryResult.data);
     }
     return this.dispatch(loadAction).then(getSegmentPiece);
   }

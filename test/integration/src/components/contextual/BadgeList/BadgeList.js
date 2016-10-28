@@ -18,7 +18,7 @@ class BadgeList extends React.Component {
   }
 
   render() {
-    if (!this.props.result.badge.loaded) {
+    if (this.props.result.badge == null) {
       return <div>
         Badge list is loading....
       </div>

@@ -5,14 +5,15 @@ import style from './style.mod.css';
 
 export class RadioButtonsInput extends React.Component {
   render() {
-    var i, value, id, radios = [];
+    var i, value, id, radios = [], name;
     for (i = 0; i < this.props.options.length; i++) {
       value = this.props.options[i].value;
-      id = 'RDB_' + this.props.name + '_' + i;
+      id = 'RDB_' + this.props.form.getFormId() + this.props.name + '_' + i;
+      name = 'RDB_' + this.props.form.getFormId() + this.props.name;
       radios.push(
         <div key={id}>
           <input id={id} type="radio" value={value}
-                 checked={this.props.value == value} name={this.props.name}
+                 checked={this.props.value == value} name={name}
                  disabled={this.props.isDisabled}
                  onChange={(event) => {this.props.handleChange(event.target.value)}} />
           <label htmlFor={id}>{this.props.options[i].label}</label>

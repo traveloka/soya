@@ -32,20 +32,18 @@ class AirportInputBase extends React.Component {
 
   generateItemList(props) {
     var itemList = [], valueMap = {};
-    if (props.result.airports.loaded) {
-      if (props.result.airports.loaded) {
-        var key, airport;
-        for (key in props.result.airports.data) {
-          if (!props.result.airports.data.hasOwnProperty(key)) continue;
-          airport = props.result.airports.data[key];
-          itemList.push({
-            label: `${airport.name} (${airport.code}) - ${airport.location}`,
-            inputLabel: `${airport.location} (${airport.code})`,
-            searchStr: `${airport.name} ${airport.location} ${airport.code}`,
-            value: `${airport.location} (${airport.code})`
-          });
-          valueMap[`${airport.location} (${airport.code})`] = null;
-        }
+    if (props.result.airports != null) {
+      var key, airport;
+      for (key in props.result.airports.data) {
+        if (!props.result.airports.data.hasOwnProperty(key)) continue;
+        airport = props.result.airports.data[key];
+        itemList.push({
+          label: `${airport.name} (${airport.code}) - ${airport.location}`,
+          inputLabel: `${airport.location} (${airport.code})`,
+          searchStr: `${airport.name} ${airport.location} ${airport.code}`,
+          value: `${airport.location} (${airport.code})`
+        });
+        valueMap[`${airport.location} (${airport.code})`] = null;
       }
     }
     this.setState({
