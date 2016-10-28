@@ -77,10 +77,11 @@ export default class LocalSegment extends Segment {
   }
 
   /**
+   * @param {string} queryId
    * @param {any} piece
    * @return {boolean}
    */
-  _isLoaded(piece) {
+  _isLoaded(queryId, piece) {
     // Since this is a local segment, all segment pieces are always already
     // loaded and ready to be used.
     return true;

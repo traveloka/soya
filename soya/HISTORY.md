@@ -1,5 +1,13 @@
 # Version 0.0.x
 
+## 0.0.43
+
+- Fix MapSegment bug in getting piece directly.
+- Deprecates SyncCleanAction and SyncInitAction on ReduxStore.
+- Differentiate store namespace for component browser and default value.
+- Fix Segment._isLoaded() interface.
+- Remove references to PromiseImpl.
+
 ## 0.0.42
 - Add CmptBrowserListPage only if frameworkConfig.componentBrowser is defined and true.
 

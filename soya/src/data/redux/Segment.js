@@ -65,11 +65,12 @@ export default class Segment {
    * Returns true if the given piece is already loaded. Segments that do not
    * load anything should always return true.
    *
+   * @param {string} queryId
    * @param {any} piece
    * @return {boolean}
    */
-  _isLoaded(piece) {
-
+  _isLoaded(queryId, piece) {
+    
   }
 
   /**
@@ -142,7 +143,7 @@ export default class Segment {
    * @return {boolean}
    */
   _isStateEqual(segmentStateA, segmentStateB) {
-
+    return segmentStateA === segmentStateB;
   }
 
   /**
@@ -158,7 +159,19 @@ export default class Segment {
    * @return {?Array<any>}
    */
   _comparePiece(prevSegmentState, segmentState, queryId) {
+    // If state is equal, nothing has changed, since our reducer always
+    // re-creates the object.
+    if (this._isStateEqual(prevSegmentState, segmentState)) {
+      return null;
+    }
 
+    var prevSegmentPiece = this._getPieceObject(prevSegmentState, queryId);
+    var segmentPiece = this._getPieceObject(segmentState, queryId);
+    if (segmentPiece === prevSegmentPiece) {
+      return null;
+    }
+
+    return [segmentPiece];
   }
 
   /**

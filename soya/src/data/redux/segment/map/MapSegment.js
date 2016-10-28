@@ -93,10 +93,12 @@ export default class MapSegment extends Segment {
   }
 
   /**
+   * @param {string} queryId
    * @param {any} piece
-   * @return {string}
+   * @return {boolean}
    */
-  _isLoaded(piece) {
+  _isLoaded(queryId, piece) {
+    if (piece == null) return false;
     return piece.loaded;
   }
 

@@ -480,7 +480,7 @@ export default class ReduxStore extends Store {
 
         // Don't need to do anything if it's already loaded.
         var segmentPiece = this._getSegmentPiece(segmentId, queryId);
-        if (segment._isLoaded(segmentPiece)) continue;
+        if (segment._isLoaded(queryId, segmentPiece)) continue;
 
         var shouldLoad = (
           this._renderType == CLIENT ||
@@ -617,8 +617,7 @@ export default class ReduxStore extends Store {
    */
   _initSegment(SegmentClass, dependencyActionCreatorMap) {
     var id = SegmentClass.id();
-    // TODO: Fix! This is ugly - Promise only exists to ensure ReduxStore and its Segments utilize the same Promise implementation.
-    var segment = new SegmentClass(this._config, this._cookieJar, dependencyActionCreatorMap, Promise);
+    var segment = new SegmentClass(this._config, this._cookieJar, dependencyActionCreatorMap);
     this._segments[id] = segment;
     this._segmentClasses[id] = SegmentClass;
     this._reducers[id] = segment._getReducer();
@@ -828,6 +827,7 @@ export default class ReduxStore extends Store {
 
     // If we are at server, and is told to ignore, return a promise that
     // never resolves.
+    // TODO: Why?? Isn't this dangerous?
     if (ignoreAtServer && this._renderType == SERVER) {
       return new Promise(function() {});
     }
@@ -835,7 +835,7 @@ export default class ReduxStore extends Store {
     // Up until this point, segment piece will never be empty.
     // If already loaded, return immediately.
     segmentPiece = this._getSegmentPiece(segmentId, queryId);
-    if (segment._isLoaded(segmentPiece) && !forceLoad) {
+    if (segment._isLoaded(queryId, segmentPiece) && !forceLoad) {
       return Promise.resolve(segmentPiece);
     }
 
