@@ -73,34 +73,6 @@ export default class Segment {
   }
 
   /**
-   * Returns a basic payload object to populate the segment piece with initial
-   * structure. Segment's reducer should ignore this action if the piece is
-   * already populated or loaded.
-   *
-   * TODO: Why the need for initialization? Remove? Make things simpler.
-   *
-   * @deprecated
-   * @param {string} queryId
-   * @return {Object}
-   */
-  _createSyncInitAction(queryId) {
-
-  }
-
-  /**
-   * Returns a basic payload object that nullifies the segment data. This is
-   * called when hot reloading a change in Segment.
-   *
-   * TODO: This has no use. If we hot reload with change in structure, just refresh.
-   *
-   * @deprecated
-   * @return {Object}
-   */
-  _createSyncCleanAction() {
-
-  }
-
-  /**
    * Uses action creator to create load action of the given query.
    *
    * @param {any} query

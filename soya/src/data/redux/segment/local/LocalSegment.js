@@ -78,26 +78,6 @@ export default class LocalSegment extends Segment {
   }
 
   /**
-   * @param {string} queryId
-   * @return {Object}
-   */
-  _createSyncInitAction(queryId) {
-    return {
-      type: this._initActionType,
-      queryId: queryId
-    };
-  }
-
-  /**
-   * @return {Object}
-   */
-  _createSyncCleanAction() {
-    return {
-      type: this._cleanActionType
-    };
-  }
-
-  /**
    * No need for loading. This is local segment after all.
    *
    * @param {any} query

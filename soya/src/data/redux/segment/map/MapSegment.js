@@ -52,9 +52,6 @@ export default class MapSegment extends Segment {
     this._cleanActionType = ActionNameUtil.generate(id, 'CLEAN');
 
     this._actionCreator = {
-      clean: () => {
-        return this._createSyncCleanAction();
-      },
       load: query => {
         var queryId = this._generateQueryId(query);
         return this._createLoadAction(query, queryId);
@@ -125,32 +122,6 @@ export default class MapSegment extends Segment {
         errors: errors,
         loaded: errors ? false : true
       }
-    };
-  }
-
-  /**
-   * @param {string} queryId
-   * @return {Object}
-   */
-  _createSyncInitAction(queryId) {
-    return {
-      type: this._initActionType,
-      queryId: queryId,
-      payload: {
-        data: null,
-        updated: Date.now ? Date.now() : new Date().getTime(),
-        errors: null,
-        loaded: false
-      }
-    };
-  }
-
-  /**
-   * @return {Object}
-   */
-  _createSyncCleanAction() {
-    return {
-      type: this._cleanActionType
     };
   }
 
