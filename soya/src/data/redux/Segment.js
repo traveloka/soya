@@ -125,17 +125,6 @@ export default class Segment {
   }
 
   /**
-   * Returns an object containing the query result.
-   *
-   * @param {any} state
-   * @param {string} queryId
-   * @return {any}
-   */
-  _getPieceObject(state, queryId) {
-
-  }
-
-  /**
    * Compares two segment states, returns true if the segment state is
    * different.
    *
@@ -156,18 +145,25 @@ export default class Segment {
    *
    * @param prevSegmentState
    * @param segmentState
+   * @param query
    * @param queryId
    * @return {?Array<any>}
    */
-  _comparePiece(prevSegmentState, segmentState, queryId) {
+  _comparePiece(prevSegmentState, segmentState, query, queryId) {
     // If state is equal, nothing has changed, since our reducer always
     // re-creates the object.
     if (this._isStateEqual(prevSegmentState, segmentState)) {
       return null;
     }
 
-    var prevSegmentPiece = this._getPieceObject(prevSegmentState, queryId);
-    var segmentPiece = this._getPieceObject(segmentState, queryId);
+    var prevQueryResult = this._queryState(query, queryId, prevSegmentState);
+    var queryResult = this._queryState(query, queryId, segmentState);
+    if (prevQueryResult.loaded != queryResult.loaded) {
+      return [queryResult.data];
+    }
+
+    var prevSegmentPiece = prevQueryResult.data;
+    var segmentPiece = queryResult.data;
     if (segmentPiece === prevSegmentPiece) {
       return null;
     }

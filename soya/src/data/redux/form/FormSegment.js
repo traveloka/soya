@@ -298,26 +298,25 @@ export default class FormSegment extends LocalSegment {
    *   {formId: 'formId', type: 'length', fieldName: ['fieldName']}
    * </pre>
    */
-  _getPieceObject(state, queryId) {
-    var query = this._queryIdCache[queryId];
+  _queryState(query, queryId, segmentState) {
     switch (query.type) {
       case '*':
-        return this._getAllValues(state, query.formId);
+        return this._getAllValues(segmentState, query.formId);
         break;
       case '**':
-        return state[query.formId] ? state[query.formId] : {};
+        return segmentState[query.formId] ? segmentState[query.formId] : {};
         break;
       case 'isEnabled':
-        return state[query.formId] ? state[query.formId].isEnabled : true;
+        return segmentState[query.formId] ? state[query.formId].isEnabled : true;
         break;
       case 'hasErrors':
-        return this._hasErrors(state, query.formId);
+        return this._hasErrors(segmentState, query.formId);
         break;
       case 'field':
-        return this._getField(state, query.formId, query.fieldName);
+        return this._getField(segmentState, query.formId, query.fieldName);
         break;
       case 'length':
-        return this._getLength(state, query.formId, query.fieldName, query.minLength);
+        return this._getLength(segmentState, query.formId, query.fieldName, query.minLength);
         break;
       default:
         throw new Error('Unable to translate query: ' + queryId);

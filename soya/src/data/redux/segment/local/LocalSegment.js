@@ -77,24 +77,6 @@ export default class LocalSegment extends Segment {
     return query;
   }
 
-  _queryState(query, queryId, segmentState) {
-    // Since this is local segment (without any need of loading queries). Query
-    // result is always already loaded.
-    if (typeof segmentState == 'object' && typeof queryId == 'string' && queryId != '') {
-      var i, segment = segmentState, splitQuery = queryId.split('.');
-      for (i = 0; i < splitQuery.length; i++) {
-        if (segment.hasOwnProperty(splitQuery[i])) {
-          segment = segment[splitQuery[i]];
-        } else {
-          return QueryResult.loaded(null);
-        }
-      }
-      return QueryResult.loaded(segment);
-    }
-    // Unrecognized forms of query returns the entire
-    return QueryResult.loaded(segmentState);
-  }
-
   /**
    * @param {string} queryId
    * @return {Object}
@@ -126,14 +108,7 @@ export default class LocalSegment extends Segment {
     return null;
   }
 
-  /**
-   * Returns an object containing data and errors.
-   *
-   * @param {any} state
-   * @param {string} queryId
-   * @return {any}
-   */
-  _getPieceObject(state, queryId) {
+  _queryState(query, queryId, segmentState) {
     if (typeof state == 'object' && typeof queryId == 'string' && queryId != '') {
       var i, segment = state, splitQuery = queryId.split('.');
       for (i = 0; i < splitQuery.length; i++) {
@@ -146,44 +121,6 @@ export default class LocalSegment extends Segment {
       return segment;
     }
     return state;
-  }
-
-  /**
-   * Compares two segment states, returns true if the segment state is
-   * different.
-   *
-   * @param {any} segmentStateA
-   * @param {any} segmentStateB
-   * @return {boolean}
-   */
-  _isStateEqual(segmentStateA, segmentStateB) {
-    // Since we use react immutability helper.
-    return segmentStateA === segmentStateB;
-  }
-
-  /**
-   * Compares pieces of two state. If they are equal return null, otherwise
-   * return piece of the current segment state.
-   *
-   * @param prevSegmentState
-   * @param segmentState
-   * @param queryId
-   * @return {any}
-   */
-  _comparePiece(prevSegmentState, segmentState, queryId) {
-    // If state is equal, nothing has changed, since our reducer always
-    // re-creates the object.
-    if (this._isStateEqual(prevSegmentState, segmentState)) {
-      return null;
-    }
-
-    var prevSegmentPiece = this._getPieceObject(prevSegmentState, queryId);
-    var segmentPiece = this._getPieceObject(segmentState, queryId);
-    if (segmentPiece === prevSegmentPiece) {
-      return null;
-    }
-
-    return [segmentPiece];
   }
 
   /**

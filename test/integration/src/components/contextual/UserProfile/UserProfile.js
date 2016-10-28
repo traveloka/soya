@@ -26,7 +26,7 @@ class UserProfile extends React.Component {
   }
 
   render() {
-    if (!this.props.result.user.loaded) {
+    if (this.props.result.user == null) {
       return <div>
         User data is loading....
       </div>

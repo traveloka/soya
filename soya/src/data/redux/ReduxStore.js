@@ -322,14 +322,14 @@ export default class ReduxStore extends Store {
     // Assume comparison is cheaper than re-rendering. We do way more comparison
     // when we compare each piece, with the benefits of not doing unnecessary
     // re-rendering.
-    var segmentName, segment, segmentState, prevSegmentState, segmentSubscribers,
-        queryId, querySubscribers, subscriberId, segmentPiece, shouldUpdate;
-    for (segmentName in this._segments) {
-      if (!this._segments.hasOwnProperty(segmentName)) continue;
-      segment = this._segments[segmentName];
-      segmentSubscribers = this._subscribers[segmentName];
-      segmentState = state[segmentName];
-      prevSegmentState = this._previousState.state[segmentName];
+    var segmentId, segment, segmentState, prevSegmentState, segmentSubscribers,
+        queryId, querySubscribers, subscriberId, segmentPiece, shouldUpdate, query;
+    for (segmentId in this._segments) {
+      if (!this._segments.hasOwnProperty(segmentId)) continue;
+      segment = this._segments[segmentId];
+      segmentSubscribers = this._subscribers[segmentId];
+      segmentState = state[segmentId];
+      prevSegmentState = this._previousState.state[segmentId];
       for (queryId in segmentSubscribers) {
         if (!segmentSubscribers.hasOwnProperty(queryId)) continue;
         querySubscribers = segmentSubscribers[queryId];
@@ -338,8 +338,9 @@ export default class ReduxStore extends Store {
         // object, so we don't need to call update.
         // TODO: This assumption/design seems to be flawed, null to existence is a change, and we should notify listeners.
         shouldUpdate = false;
+        query = this._queries[segmentId][queryId].query;
         if (prevSegmentState != null) {
-          segmentPiece = segment._comparePiece(prevSegmentState, segmentState, queryId);
+          segmentPiece = segment._comparePiece(prevSegmentState, segmentState, query, queryId);
           shouldUpdate = segmentPiece != null;
         }
         if (shouldUpdate) {
@@ -398,29 +399,21 @@ export default class ReduxStore extends Store {
   /**
    * @param {string} segmentId
    * @param {any} query
-   * @return {Object}
+   * @param {string} queryId
+   * @returns {Object}
    */
-  _getSegmentPieceWithQuery(segmentId, query) {
-    var segment = this._segments[segmentId];
-    var queryId = segment._generateQueryId(query);
-    return this._getSegmentPiece(segmentId, queryId);
+  _getSegmentPiece(segmentId, query, queryId) {
+    var queryResult = this._queryState(segmentId, query, queryId);
+    if (!queryResult.loaded) return null;
+    return queryResult.data;
   }
 
   /**
    * @param {string} segmentId
+   * @param {any} query
    * @param {string} queryId
-   * @returns {Object}
+   * @returns {QueryResult}
    */
-  _getSegmentPiece(segmentId, queryId) {
-    var state = this._store.getState();
-    var segmentState = state[segmentId];
-    if (!segmentState) return null;
-    var pieceObject = this._segments[segmentId]._getPieceObject(segmentState, queryId);
-    // We return the real object so that users can do simple equality check to
-    // see if the object has changed or not.
-    return pieceObject;
-  }
-
   _queryState(segmentId, query, queryId) {
     var state = this._store.getState();
     var segmentState = state[segmentId];
@@ -488,10 +481,7 @@ export default class ReduxStore extends Store {
 
         // Don't need to do anything if it's already loaded.
         var queryResult = this._queryState(segmentId, query, queryId);
-        if (queryResult.loaded)  
-        
-        var segmentPiece = this._getSegmentPiece(segmentId, queryId);
-        if (segment._isLoaded(queryId, segmentPiece)) continue;
+        if (queryResult.loaded) continue;
 
         var shouldLoad = (
           this._renderType == CLIENT ||
@@ -789,7 +779,7 @@ export default class ReduxStore extends Store {
     this._subscribers[segmentId][queryId][subscriberId] = callback;
 
     var result = {
-      getState: this._getSegmentPiece.bind(this, segmentId, queryId),
+      getState: this._getSegmentPiece.bind(this, segmentId, query, queryId),
       unsubscribe: this._unsubscribe.bind(this, segmentId, queryId, subscriberId)
     };
     return result;
@@ -806,6 +796,7 @@ export default class ReduxStore extends Store {
    * @return {Promise}
    */
   query(segmentId, query, forceLoad, ignoreAtServer) {
+    debugger;
     var segment = this._segments[segmentId];
     if (!segment) {
       throw new Error('Cannot query, Segment is not registered: ' + segmentId + '.');
@@ -813,28 +804,6 @@ export default class ReduxStore extends Store {
 
     var queryId = segment._generateQueryId(query);
     this._initQuery(segmentId, queryId, query);
-
-    // Get the piece (data might already be loaded). Since getSegmentPiece() is
-    // supposed to be a fast operation anyway, we can just grab segment piece
-    // directly.
-    var segmentPiece = this._getSegmentPiece(segmentId, queryId);
-
-    if (segmentPiece == null) {
-      // We can't know if the segment piece is supposed to be null or not.
-
-      // This will mean loads and loads of sync init actions even though the
-      // stuff has already been loaded.
-      // TODO: Remove at a later date.
-
-      // Populate with initial data if not already populated.
-      var initAction = segment._createSyncInitAction(queryId);
-      if (initAction != null) {
-        if (typeof initAction == 'function') {
-          throw new Error('Init action must be sync! Please return an action object instead!');
-        }
-        this.dispatch(initAction);
-      }
-    }
 
     // If we are at server, and is told to ignore, return a promise that
     // never resolves. The reason for this is we wanted to ignore queries made
@@ -845,14 +814,14 @@ export default class ReduxStore extends Store {
 
     // Up until this point, segment piece will never be empty.
     // If already loaded, return immediately.
-    segmentPiece = this._getSegmentPiece(segmentId, queryId);
-    if (segment._isLoaded(queryId, segmentPiece) && !forceLoad) {
-      return Promise.resolve(segmentPiece);
+    var queryResult = this._queryState(segmentId, query, queryId);
+    if (queryResult.loaded && !forceLoad) {
+      return Promise.resolve(queryResult.data);
     }
 
     // TODO: We should be able to reuse this get segment piece function.
     var getSegmentPiece = () => {
-      return this._getSegmentPiece(segmentId, queryId);
+      return this._getSegmentPiece(segmentId, query, queryId);
     };
 
     // Re-use promise from another dispatch to prevent double fetching.

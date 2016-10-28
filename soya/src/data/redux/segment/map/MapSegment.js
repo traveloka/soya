@@ -168,15 +168,6 @@ export default class MapSegment extends Segment {
   }
 
   /**
-   * @param {Object} state
-   * @param {string} queryId
-   * @return {any}
-   */
-  _getPieceObject(state, queryId) {
-    return state[queryId];
-  }
-
-  /**
    * @return {Function}
    */
   _getReducer() {
