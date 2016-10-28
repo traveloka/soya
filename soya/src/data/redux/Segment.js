@@ -62,18 +62,6 @@ export default class Segment {
   }
 
   /**
-   * Returns true if the given piece is already loaded. Segments that do not
-   * load anything should always return true.
-   *
-   * @param {string} queryId
-   * @param {any} piece
-   * @return {boolean}
-   */
-  _isLoaded(queryId, piece) {
-    
-  }
-
-  /**
    * The generated query ID needs to be string since it'll be used by ReduxStore
    * to store query-related data.
    *
@@ -124,7 +112,20 @@ export default class Segment {
   }
 
   /**
-   * Returns an object containing data and errors.
+   * Returns an object that not only return the resulting data, but also whether
+   * or not the data is loaded.
+   * 
+   * @param {any} query
+   * @param {string} queryId
+   * @param {any} segmentState
+   * @return {QueryResult}
+   */
+  _queryState(query, queryId, segmentState) {
+    
+  }
+
+  /**
+   * Returns an object containing the query result.
    *
    * @param {any} state
    * @param {string} queryId

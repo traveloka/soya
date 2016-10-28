@@ -1,5 +1,6 @@
 import Segment from '../../Segment.js';
 import ActionNameUtil from '../ActionNameUtil.js';
+import QueryResult from '../../QueryResult.js';
 import Thunk from '../../Thunk.js';
 
 /**
@@ -93,16 +94,6 @@ export default class MapSegment extends Segment {
   }
 
   /**
-   * @param {string} queryId
-   * @param {any} piece
-   * @return {boolean}
-   */
-  _isLoaded(queryId, piece) {
-    if (piece == null) return false;
-    return piece.loaded;
-  }
-
-  /**
    * @param {any} query
    * @param {string} queryId
    * @return {Object | Thunk}
@@ -169,6 +160,12 @@ export default class MapSegment extends Segment {
   _getActionCreator() {
     return this._actionCreator;
   }
+  
+  _queryState(query, queryId, segmentState) {
+    var piece = segmentState[queryId];
+    if (piece == null) return QueryResult.notLoaded();
+    return QueryResult.loaded(piece);
+  }
 
   /**
    * @param {Object} state
@@ -177,40 +174,6 @@ export default class MapSegment extends Segment {
    */
   _getPieceObject(state, queryId) {
     return state[queryId];
-  }
-
-  /**
-   * @param {any} segmentStateA
-   * @param {any} segmentStateB
-   * @return {boolean}
-   */
-  _isStateEqual(segmentStateA, segmentStateB) {
-    // We're not using immutable because we store simple maps.
-    return segmentStateA === segmentStateB;
-  }
-
-  /**
-   * @param prevSegmentState
-   * @param segmentState
-   * @param queryId
-   * @return {?{data: ?any; errors: ?any}}
-   */
-  _comparePiece(prevSegmentState, segmentState, queryId) {
-    // If state is equal, nothing has changed, since our reducer always
-    // re-creates the object.
-    if (this._isStateEqual(prevSegmentState, segmentState)) {
-      return null;
-    }
-
-    // Test the query ID, it could be that this query hasn't changed.
-    var prevSegmentPiece = this._getPieceObject(prevSegmentState, queryId);
-    var segmentPiece = this._getPieceObject(segmentState, queryId);
-    if (prevSegmentPiece === segmentPiece) {
-      return null;
-    }
-
-    // Otherwise, state has changed, return piece object.
-    return [segmentPiece];
   }
 
   /**

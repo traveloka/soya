@@ -1,5 +1,6 @@
 import Segment from '../../Segment.js';
 import ActionNameUtil from '../ActionNameUtil.js';
+import QueryResult from '../../QueryResult.js';
 
 import update from 'react-addons-update';
 
@@ -76,15 +77,22 @@ export default class LocalSegment extends Segment {
     return query;
   }
 
-  /**
-   * @param {string} queryId
-   * @param {any} piece
-   * @return {boolean}
-   */
-  _isLoaded(queryId, piece) {
-    // Since this is a local segment, all segment pieces are always already
-    // loaded and ready to be used.
-    return true;
+  _queryState(query, queryId, segmentState) {
+    // Since this is local segment (without any need of loading queries). Query
+    // result is always already loaded.
+    if (typeof segmentState == 'object' && typeof queryId == 'string' && queryId != '') {
+      var i, segment = segmentState, splitQuery = queryId.split('.');
+      for (i = 0; i < splitQuery.length; i++) {
+        if (segment.hasOwnProperty(splitQuery[i])) {
+          segment = segment[splitQuery[i]];
+        } else {
+          return QueryResult.loaded(null);
+        }
+      }
+      return QueryResult.loaded(segment);
+    }
+    // Unrecognized forms of query returns the entire
+    return QueryResult.loaded(segmentState);
   }
 
   /**

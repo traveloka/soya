@@ -6,6 +6,7 @@ import PromiseUtil from './PromiseUtil.js';
 import Thunk from './Thunk.js';
 import QueryDependencies from './QueryDependencies.js';
 
+import QueryResult from './QueryResult.js';
 import { compose, createStore, applyMiddleware } from 'redux';
 import { devTools, persistState } from 'redux-devtools';
 import thunk from 'redux-thunk';
@@ -420,6 +421,13 @@ export default class ReduxStore extends Store {
     return pieceObject;
   }
 
+  _queryState(segmentId, query, queryId) {
+    var state = this._store.getState();
+    var segmentState = state[segmentId];
+    if (!segmentState) return QueryResult.notLoaded();
+    return this._segments[segmentId]._queryState(query, queryId, segmentState);
+  }
+
   /**
    * @param {string} segmentName
    * @param {string} queryId
@@ -479,6 +487,9 @@ export default class ReduxStore extends Store {
         query = this._queries[segmentId][queryId].query;
 
         // Don't need to do anything if it's already loaded.
+        var queryResult = this._queryState(segmentId, query, queryId);
+        if (queryResult.loaded)  
+        
         var segmentPiece = this._getSegmentPiece(segmentId, queryId);
         if (segment._isLoaded(queryId, segmentPiece)) continue;
 
@@ -826,8 +837,8 @@ export default class ReduxStore extends Store {
     }
 
     // If we are at server, and is told to ignore, return a promise that
-    // never resolves.
-    // TODO: Why?? Isn't this dangerous?
+    // never resolves. The reason for this is we wanted to ignore queries made
+    // server side as we wanted to use hydrate() instead.
     if (ignoreAtServer && this._renderType == SERVER) {
       return new Promise(function() {});
     }
