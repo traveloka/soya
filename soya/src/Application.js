@@ -5,7 +5,6 @@ import ServerHttpRequest from './http/ServerHttpRequest';
 import Provider from './Provider.js';
 import CookieJar from './http/CookieJar.js';
 import ServerCookieJar from './http/ServerCookieJar.js';
-import { SERVER } from './data/RenderType';
 import SocketIO from 'socket.io';
 
 var path = require('path');
@@ -370,9 +369,6 @@ export default class Application {
     var cookieJar = new ServerCookieJar(request);
     var page = new pageClass(this._provider, cookieJar, true);
     var store = page.createStore(null);
-    if (store) {
-      store._setRenderType(SERVER);
-    }
 
     this._logger.debug('Rendering page: ' + routeResult.pageName + '.', null);
     page.render(httpRequest, routeResult.routeArgs, store,
@@ -409,7 +405,7 @@ export default class Application {
       }
 
       this._logger.debug('Store requirements gathered, start hydration.', null, store);
-      promise = store.hydrate(SERVER);
+      promise = store.hydrate();
     }
 
     var handlePromiseError = (error) => {

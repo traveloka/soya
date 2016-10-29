@@ -73,13 +73,27 @@ export default class Segment {
   }
 
   /**
+   * Returns a Promise that resolves when the query has been successfully
+   * loaded.
+   *
+   * @param {any} query
+   * @param {string} queryId
+   * @param {any} segmentState
+   * @return {Promise}
+   */
+  _load(query, queryId, segmentState, dispatch) {
+    
+  }
+
+  /**
    * Uses action creator to create load action of the given query.
    *
    * @param {any} query
    * @param {string} queryId
+   * @param {any} segmentState
    * @return {void | Object | Thunk}
    */
-  _createLoadAction(query, queryId) {
+  _createLoadAction(query, queryId, segmentState) {
 
   }
 
@@ -176,6 +190,9 @@ export default class Segment {
   /**
    * Processes the refresh requests according to the given state and generates
    * list of queries that must be run with cache turned off.
+   *
+   * We need to have this method because we only wanted to refresh states that
+   * are already loaded, not the
    *
    * @param {?} segmentState
    * @param {?} refreshRequests

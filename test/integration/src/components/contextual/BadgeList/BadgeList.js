@@ -2,7 +2,6 @@ import React from 'react';
 
 import BadgeSegment from '../../../segments/BadgeSegment.js';
 import connect from 'soya/lib/data/redux/connect';
-import { SERVER } from 'soya/lib/data/RenderType';
 
 class BadgeList extends React.Component {
   static connectId() {

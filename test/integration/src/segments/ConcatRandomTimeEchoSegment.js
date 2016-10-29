@@ -24,6 +24,10 @@ export default class ConcatRandomTimeEchoSegment extends MapSegment {
       (query.shouldReplace ? '$r' : '');
   }
 
+  _isLoadQuery() {
+    return true;
+  }
+
   _generateThunkFunction(thunk) {
     var query = thunk.query;
     var queryId = thunk.queryId;

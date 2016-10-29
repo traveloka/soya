@@ -15,6 +15,10 @@ export default class UserSegment extends MapSegment {
   _generateQueryId(query) {
     return query.username;
   }
+  
+  _isLoadQuery() {
+    return true;
+  }
 
   _generateThunkFunction(thunk) {
     var query = thunk.query;

@@ -1,5 +1,19 @@
 # Version 0.0.x
 
+## 0.0.44
+
+- Replace Segment.isLoaded() and Segment.getPieceObject() with
+  Segment.queryState().
+- Add the passing of segmentState on Segment.createLoadAction() to enable
+  saving of states that changes the way we load data from external sources
+  in our own segment.
+- Redux devTools() now must be enabled with client configuration.
+- Better semantics for Query, Load, Hydration, Subscribe.
+- How to update:
+  - Find '.loaded' string for the usage of MapSegment, instead of checking
+    loaded variable, change it into null checking.
+  - Create _isLoadQuery() implementation that always returns true.
+
 ## 0.0.43
 
 - Fix MapSegment bug in getting piece directly.

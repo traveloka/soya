@@ -2,7 +2,7 @@ import React from 'react';
 
 import BookingSegment from '../../../segments/BookingSegment.js';
 import connect from 'soya/lib/data/redux/connect';
-import { SERVER } from 'soya/lib/data/RenderType';
+import Hydration from 'soya/lib/data/redux/Hydration';
 
 import style from './style.mod.css';
 
@@ -16,18 +16,16 @@ class BookingBox {
   }
 
   static subscribeQueries(nextProps, subscribe) {
-    var hydrationOption = null;
+    var hydration = null;
     if (nextProps.loadAtClient) {
-      hydrationOption = {
-        SERVER: false
-      };
+      hydration = Hydration.noopAtServer();
     }
 
     var query = {
       bookingId: nextProps.bookingId
     };
 
-    subscribe(BookingSegment.id(), query, 'booking', hydrationOption);
+    subscribe(BookingSegment.id(), query, 'booking', hydration);
   }
 
   render() {

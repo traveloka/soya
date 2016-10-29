@@ -20,6 +20,10 @@ export default class LifetimeSessionSegment extends MapSegment {
     return 'default';
   }
 
+  _isLoadQuery() {
+    return true;
+  }
+
   _generateThunkFunction(thunk) {
     var queryId = thunk.queryId;
     var lifetimeCookie = this._cookieJar.read(LIFETIME_COOKIE_NAME);

@@ -16,6 +16,10 @@ export default class BadgeSegment extends MapSegment {
     return '*';
   }
 
+  _isLoadQuery() {
+    return true;
+  }
+
   _generateThunkFunction(thunk) {
     var queryId = thunk.queryId;
     thunk.func = (dispatch) => {

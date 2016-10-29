@@ -11,40 +11,13 @@
  */
 
 var path = require('path');
-var dirname = process.env.SOYA_PROJECT_DIR;
+var env = process.env.NODE_ENV || 'dev';
 
-/**
- * Framework configuration.
- */
-var frameworkConfig = {
-  port: 8000,
-  assetProtocol: 'http',
-  assetHostPath: 'localhost:8000/assets/',
-  absoluteProjectDir: dirname,
-  componentBrowser: true,
-  hotReload: true,
-  clientResolve: [],
-  clientReplace: {},
-  debug: true,
-  minifyJs: false
-};
+var defaultConfig = require('./config/default.js');
+var config = require('./config/' + env);
 
-/**
- * Configuration to instantiate dependencies that needs to be instantiated in
- * both client and server side. Please note that clientConfig is exposed to
- * browser, so you shouldn't put sensitive configuration in there.
- */
-
-var configBase = {
-  cookieDomain: 'localhost',
-  cookieVersion: '1'
-};
 module.exports = {
-  frameworkConfig: frameworkConfig,
-  serverConfig: Object.assign({}, configBase, {
-    // Add config specific to server side here.
-  }),
-  clientConfig: Object.assign({}, configBase, {
-    // Add config specific to clients side here.
-  })
+  frameworkConfig: Object.assign({}, defaultConfig.frameworkConfig, config.frameworkConfig),
+  serverConfig: Object.assign({}, defaultConfig.serverConfig, config.serverConfig),
+  clientConfig: Object.assign({}, defaultConfig.clientConfig, config.clientConfig)
 };

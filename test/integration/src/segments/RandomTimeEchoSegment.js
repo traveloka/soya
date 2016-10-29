@@ -16,6 +16,10 @@ export default class RandomTimeEchoSegment extends MapSegment {
     return query.value;
   }
 
+  _isLoadQuery() {
+    return true;
+  }
+
   _generateThunkFunction(thunk) {
     var query = thunk.query;
     var queryId = thunk.queryId;

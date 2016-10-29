@@ -14,9 +14,6 @@ import style from '../../../shared/sitewide.css';
 
 class Component extends React.Component {
   componentWillMount() {
-    this.props.context.store.registerDataComponent(RandomTimeEchoString);
-    this.props.context.store.registerDataComponent(FibonacciSequence);
-    this.props.context.store.registerDataComponent(FibonacciTotal);
     this.setState({
       serialStr: 'Fetch Serial',
       parallelStr: 'Fetch Parallel',

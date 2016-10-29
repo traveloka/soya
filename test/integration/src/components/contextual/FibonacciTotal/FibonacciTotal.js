@@ -2,11 +2,11 @@ import React from 'react';
 
 import FibonacciTotalSegment from '../../../segments/FibonacciTotalSegment.js';
 import connect from 'soya/lib/data/redux/connect';
-import { SERVER } from 'soya/lib/data/RenderType';
+import Hydration from 'soya/lib/data/redux/Hydration';
 
 import style from './style.mod.css';
 
-class FibonacciTotal {
+class FibonacciTotal extends React.Component {
   static connectId() {
     return 'FibonacciTotal';
   }
@@ -16,15 +16,13 @@ class FibonacciTotal {
   }
 
   static subscribeQueries(nextProps, subscribe) {
-    var hydrationOption = null;
+    var hydration = null;
     if (nextProps.loadAtClient) {
-      hydrationOption = {
-        SERVER: false
-      };
+      hydration = Hydration.noopAtServer();
     }
 
     var query = { number: nextProps.number };
-    subscribe(FibonacciTotalSegment.id(), query, 'fib', hydrationOption);
+    subscribe(FibonacciTotalSegment.id(), query, 'fib', hydration);
   }
 
   render() {

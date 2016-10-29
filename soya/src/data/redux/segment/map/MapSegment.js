@@ -93,12 +93,26 @@ export default class MapSegment extends Segment {
   /**
    * @param {any} query
    * @param {string} queryId
+   * @param {any} segmentState
+   * @return {boolean}
+   * @private
+   */
+  _isLoadQuery(query, queryId, segmentState) {
+    throw new Error('User must override _isLoadQuery method! Instance: ' + this + '.');
+  }
+
+  /**
+   * @param {any} query
+   * @param {string} queryId
+   * @param {any} segmentState
    * @return {Object | Thunk}
    */
-  _createLoadAction(query, queryId) {
-    var thunk = new Thunk(this.constructor.id(), queryId, query);
-    this._generateThunkFunction(thunk);
-    return thunk;
+  _createLoadAction(query, queryId, segmentState) {
+    if (this._isLoadQuery(query, queryId, segmentState)) {
+      var thunk = new Thunk(this.constructor.id(), queryId, query);
+      this._generateThunkFunction(thunk);
+      return thunk;
+    }
   }
 
   /**

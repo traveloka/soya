@@ -9,16 +9,6 @@
  */
 export default class Store {
   /**
-   * Called by Application and SoyaClient immediately after receiving the Store
-   * instance from Page.
-   *
-   * @param {RenderType} renderType
-   */
-  _setRenderType(renderType) {
-    throw new Error('Abstract method not implemented.');
-  }
-
-  /**
    * @return {any}
    */
   _getState() {

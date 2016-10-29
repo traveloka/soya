@@ -13,7 +13,6 @@ import style from '../../../shared/sitewide.css';
 
 class Component extends React.Component {
   componentWillMount() {
-    this.props.context.store.registerDataComponent(UserProfile);
     this.props.context.store.register(UserSegment);
     this.setState({
       index: 0,

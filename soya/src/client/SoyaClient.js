@@ -6,7 +6,6 @@ import PathNode from '../router/PathNode.js';
 import ClientHttpRequest from '../http/ClientHttpRequest.js';
 import ClientCookieJar from '../http/ClientCookieJar.js';
 import Provider from '../Provider.js';
-import { CLIENT } from '../data/RenderType.js';
 
 // The reason we use full path is to make webpack's resolve.alias work.
 // We need to replace custom node registration with user file so that
@@ -157,7 +156,6 @@ export default class SoyaClient {
     var store = this._storeCache[storeNamespace];
     if (!store) {
       store = page.createStore(pageArgs.hydratedState);
-      if (store) store._setRenderType(CLIENT);
     }
     var hasStore = !!store;
 

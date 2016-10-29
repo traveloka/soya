@@ -2,7 +2,7 @@ import React from 'react';
 
 import UserSegment from '../../../segments/UserSegment.js';
 import connect from 'soya/lib/data/redux/connect';
-import { SERVER } from 'soya/lib/data/RenderType';
+import Hydration from 'soya/lib/data/redux/Hydration';
 
 class UserProfile extends React.Component {
   static connectId() {
@@ -14,15 +14,13 @@ class UserProfile extends React.Component {
   }
 
   static subscribeQueries(props, subscribe) {
-    var hydrationOption = null;
+    var hydration = null;
     if (props.loadAtClient) {
-      hydrationOption = {
-        SERVER: false
-      };
+      hydration = Hydration.noopAtServer();
     }
 
     subscribe(UserSegment.id(), { username: props.username }, 'user',
-      hydrationOption);
+      hydration);
   }
 
   render() {

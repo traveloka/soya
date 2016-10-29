@@ -22,6 +22,10 @@ export default class FibonacciTotalSegment extends MapSegment {
     return query.number;
   }
 
+  _isLoadQuery() {
+    return true;
+  }
+
   _generateThunkFunction(thunk) {
     var query = thunk.query;
     var queryId = thunk.queryId;

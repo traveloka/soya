@@ -1,9 +1,8 @@
 import React from 'react';
 import connect from 'soya/lib/data/redux/connect';
 import createField from 'soya/lib/data/redux/form/createField';
-import { SERVER } from 'soya/lib/data/RenderType';
+import Hydration from 'soya/lib/data/redux/Hydration';
 
-import Autocomplete from '../../common/Autocomplete/Autocomplete';
 import AutocompleteDisplay from '../../common/Autocomplete/AutocompleteDisplay';
 import AirportListSegment from '../../../segments/AirportListSegment';
 
@@ -17,8 +16,7 @@ class AirportInputBase extends React.Component {
   }
 
   static subscribeQueries(nextProps, subscribe) {
-    var hydrationOption = { SERVER: false };
-    subscribe(AirportListSegment.id(), '*', 'airports', hydrationOption);
+    subscribe(AirportListSegment.id(), '*', 'airports', Hydration.noopAtServer());
   }
 
   componentWillMount() {

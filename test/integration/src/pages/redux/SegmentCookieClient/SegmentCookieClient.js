@@ -12,7 +12,6 @@ import BookingBox from '../../../components/contextual/BookingBox/BookingBox.js'
 
 class Component extends React.Component {
   componentWillMount() {
-    this.props.context.store.registerDataComponent(BookingBox);
     this.setState({
       clientBookingBox: null,
       clientErrorBookingBox: null

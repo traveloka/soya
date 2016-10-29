@@ -22,6 +22,10 @@ export default class BookingSegment extends MapSegment {
     return query.bookingId;
   }
 
+  _isLoadQuery() {
+    return true;
+  }
+
   _generateThunkFunction(thunk) {
     var queryId = thunk.queryId;
     var query = thunk.query;

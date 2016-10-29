@@ -183,9 +183,9 @@ export default function connect(ReactComponent) {
      * @param {string} segmentId
      * @param {any} query
      * @param {string} stateName
-     * @param {?Object} hydrationOption
+     * @param {Hydration} hydration
      */
-    subscribe(segmentId, query, stateName, hydrationOption) {
+    subscribe(segmentId, query, stateName, hydration) {
       // Unsubscribe if already subscribed.
       this.unsubscribe(stateName);
 
@@ -195,7 +195,7 @@ export default function connect(ReactComponent) {
       };
 
       var storeRef = this.getReduxStore().subscribe(
-        segmentId, query, callback, this, hydrationOption);
+        segmentId, query, callback, this, hydration);
       this.unsubscribe[segmentId] = storeRef.unsubscribe;
       this.setState({
         [stateName]: storeRef.getState()

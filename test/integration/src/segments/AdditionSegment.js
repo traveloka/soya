@@ -16,6 +16,10 @@ export default class AdditionSegment extends MapSegment {
     return query.a + '+' + query.b;
   }
 
+  _isLoadQuery() {
+    return true;
+  }
+
   _generateThunkFunction(thunk) {
     var query = thunk.query;
     var queryId = thunk.queryId;
