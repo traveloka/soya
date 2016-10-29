@@ -650,6 +650,8 @@ export default class ReduxStore extends Store {
    * segment state, we ask the Segment, providing their current segment state,
    * to tell us which query we need to re-run.
    *
+   * TODO: Need to figure out how to handle mutation at server side.
+   *
    * @param {Mutation} mutation
    * @return {{mutation: Promise; refresh: Promise}}
    */
