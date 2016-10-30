@@ -104,7 +104,7 @@ export default class MapSegment extends Segment {
    */
   _createLoadAction(query, queryId, segmentState) {
     if (this._isLoadQuery(query, queryId, segmentState)) {
-      var thunk = new Thunk(this.constructor.id(), queryId, query);
+      var thunk = new Thunk(this.constructor.id(), query, queryId);
       this._generateThunkFunction(thunk, segmentState);
       return thunk;
     }

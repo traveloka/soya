@@ -38,7 +38,7 @@ export default class Thunk {
    * @param {string} queryId
    * @param {any} query
    */
-  constructor(segmentId, queryId, query) {
+  constructor(segmentId, query, queryId) {
     this.segmentId = segmentId;
     this.queryId = queryId;
     this.query = query;

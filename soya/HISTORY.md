@@ -1,5 +1,9 @@
 # Version 0.0.x
 
+## 0.0.46
+
+- Update Thunk constructor to follow (query, queryId) arg convention.
+
 ## 0.0.45
 
 - Update MapSegment._generateThunkFunction() interface.
