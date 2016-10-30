@@ -389,7 +389,9 @@ export default class ReduxStore extends Store {
     var state = this._store.getState();
     var segmentState = state[segmentId];
     if (!segmentState) return QueryResult.notLoaded();
-    return this._segments[segmentId]._queryState(query, queryId, segmentState);
+    var queryResult = this._segments[segmentId]._queryState(query, queryId, segmentState);
+    if (queryResult.constructor != QueryResult) throw new Error('_queryState must return instance of QueryResult! queryId: ' + queryId);
+    return queryResult;
   }
 
   /**
