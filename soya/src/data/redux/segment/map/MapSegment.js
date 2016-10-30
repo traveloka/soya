@@ -50,13 +50,7 @@ export default class MapSegment extends Segment {
     this._loadActionType = ActionNameUtil.generate(id, 'LOAD');
     this._initActionType = ActionNameUtil.generate(id, 'INIT');
     this._cleanActionType = ActionNameUtil.generate(id, 'CLEAN');
-
-    this._actionCreator = {
-      load: query => {
-        var queryId = this._generateQueryId(query);
-        return this._createLoadAction(query, queryId);
-      }
-    };
+    this._actionCreator = {};
   }
 
   /**
@@ -84,9 +78,10 @@ export default class MapSegment extends Segment {
    * ABSTRACT: To be overridden by child implementations.
    *
    * @param {Thunk} thunk
+   * @param {any} segmentState
    * @private
    */
-  _generateThunkFunction(thunk) {
+  _generateThunkFunction(thunk, segmentState) {
     throw new Error('User must override _generateThunkFunction method! Instance: ' + this + '.');
   }
 
@@ -110,7 +105,7 @@ export default class MapSegment extends Segment {
   _createLoadAction(query, queryId, segmentState) {
     if (this._isLoadQuery(query, queryId, segmentState)) {
       var thunk = new Thunk(this.constructor.id(), queryId, query);
-      this._generateThunkFunction(thunk);
+      this._generateThunkFunction(thunk, segmentState);
       return thunk;
     }
   }

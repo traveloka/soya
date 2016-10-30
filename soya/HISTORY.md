@@ -1,5 +1,9 @@
 # Version 0.0.x
 
+## 0.0.45
+
+- Update MapSegment._generateThunkFunction() interface.
+
 ## 0.0.44
 
 - Replace Segment.isLoaded() and Segment.getPieceObject() with
