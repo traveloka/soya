@@ -1,6 +1,6 @@
-import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment.js';
-import Thunk from 'soya/lib/data/redux/Thunk.js';
-import QueryDependencies from 'soya/lib/data/redux/QueryDependencies.js';
+import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment';
+import QueryDependencies from 'soya/lib/data/redux/QueryDependencies';
+import Load from 'soya/lib/data/redux/Load';
 
 // TODO: Figure out how to do polyfill.
 // TODO: Figure out how to load client-side libraries like jQuery!
@@ -22,17 +22,12 @@ export default class BookingSegment extends MapSegment {
     return query.bookingId;
   }
 
-  _isLoadQuery() {
-    return true;
-  }
-
-  _generateThunkFunction(thunk) {
-    var queryId = thunk.queryId;
-    var query = thunk.query;
+  _createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load();
     var dependencies = QueryDependencies.serial(Promise);
     dependencies.add('context', LifetimeSessionSegment.id(), null);
-    thunk.dependencies = dependencies;
-    thunk.func = (dispatch) => {
+    load.dependencies = dependencies;
+    load.func = (dispatch) => {
       var result = new Promise((resolve, reject) => {
         // Note: can already use lifetime and session in this request.
         request.get('http://localhost:8000/api/booking/' + encodeURIComponent(query.bookingId)).end((err, res) => {
@@ -47,5 +42,6 @@ export default class BookingSegment extends MapSegment {
       });
       return result;
     };
+    return load;
   }
 }

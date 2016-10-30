@@ -1,10 +1,6 @@
-import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment.js';
-import Thunk from 'soya/lib/data/redux/Thunk.js';
-import QueryDependencies from 'soya/lib/data/redux/QueryDependencies.js';
-
-// TODO: Figure out how to do polyfill.
-// TODO: Figure out how to load client-side libraries like jQuery!
-import request from 'superagent';
+import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment';
+import QueryDependencies from 'soya/lib/data/redux/QueryDependencies';
+import Load from 'soya/lib/data/redux/Load';
 
 import { ConcatRandomTimeEchoSegmentId } from './ids.js';
 import RandomTimeEchoSegment from './RandomTimeEchoSegment.js';
@@ -24,13 +20,8 @@ export default class ConcatRandomTimeEchoSegment extends MapSegment {
       (query.shouldReplace ? '$r' : '');
   }
 
-  _isLoadQuery() {
-    return true;
-  }
-
-  _generateThunkFunction(thunk) {
-    var query = thunk.query;
-    var queryId = thunk.queryId;
+  _createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load();
     var dependencies, recursiveDependencies, RecursiveQueryCtor, i, val;
 
     dependencies = query.isParallel ?
@@ -54,8 +45,8 @@ export default class ConcatRandomTimeEchoSegment extends MapSegment {
       dependencies.add(i + '', RandomTimeEchoSegment.id(), {value: val}, true);
     }
 
-    thunk.dependencies = dependencies;
-    thunk.func = (dispatch) => {
+    load.dependencies = dependencies;
+    load.func = (dispatch) => {
       // Put results to array, we're going to sort them by the time they arrive.
       var i, result, resultArray = [];
       for (i = 0; i < query.value.length; i++) {
@@ -83,5 +74,6 @@ export default class ConcatRandomTimeEchoSegment extends MapSegment {
       }
       return dispatch(this._createSyncLoadActionObject(queryId, resultStr));
     };
+    return load;
   }
 }

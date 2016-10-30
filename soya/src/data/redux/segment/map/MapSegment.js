@@ -1,7 +1,7 @@
 import Segment from '../../Segment.js';
 import ActionNameUtil from '../ActionNameUtil.js';
 import QueryResult from '../../QueryResult.js';
-import Thunk from '../../Thunk.js';
+import Load from '../../Load.js';
 
 /**
  * Organizes pieces inside its segment as simple key-value map. This means
@@ -69,45 +69,13 @@ export default class MapSegment extends Segment {
   }
 
   /**
-   * Fetches query result from external source, returns a Redux thunk function
-   * that may be wrapped with QueryDependencies.
-   *
-   * IMPORTANT NOTE: The thunk function must do the dispatch, and return a
-   * Promise that resolves *after* dispatch is done.
-   *
-   * ABSTRACT: To be overridden by child implementations.
-   *
-   * @param {Thunk} thunk
-   * @param {any} segmentState
-   * @private
-   */
-  _generateThunkFunction(thunk, segmentState) {
-    throw new Error('User must override _generateThunkFunction method! Instance: ' + this + '.');
-  }
-
-  /**
    * @param {any} query
    * @param {string} queryId
    * @param {any} segmentState
-   * @return {boolean}
-   * @private
+   * @return {Object | Load}
    */
-  _isLoadQuery(query, queryId, segmentState) {
-    throw new Error('User must override _isLoadQuery method! Instance: ' + this + '.');
-  }
-
-  /**
-   * @param {any} query
-   * @param {string} queryId
-   * @param {any} segmentState
-   * @return {Object | Thunk}
-   */
-  _createLoadAction(query, queryId, segmentState) {
-    if (this._isLoadQuery(query, queryId, segmentState)) {
-      var thunk = new Thunk(this.constructor.id(), query, queryId);
-      this._generateThunkFunction(thunk, segmentState);
-      return thunk;
-    }
+  _createLoadFromQuery(query, queryId, segmentState) {
+    throw new Error('User must override _createLoadFromQuery method! Instance: ' + this + '.');
   }
 
   /**

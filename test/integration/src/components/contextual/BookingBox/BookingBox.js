@@ -6,7 +6,7 @@ import Hydration from 'soya/lib/data/redux/Hydration';
 
 import style from './style.mod.css';
 
-class BookingBox {
+class BookingBox extends React.Component {
   static connectId() {
     return 'BookingBox';
   }

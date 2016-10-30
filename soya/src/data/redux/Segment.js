@@ -73,27 +73,14 @@ export default class Segment {
   }
 
   /**
-   * Returns a Promise that resolves when the query has been successfully
-   * loaded.
-   *
-   * @param {any} query
-   * @param {string} queryId
-   * @param {any} segmentState
-   * @return {Promise}
-   */
-  _load(query, queryId, segmentState, dispatch) {
-    
-  }
-
-  /**
    * Uses action creator to create load action of the given query.
    *
    * @param {any} query
    * @param {string} queryId
    * @param {any} segmentState
-   * @return {void | Object | Thunk}
+   * @return {void | Load}
    */
-  _createLoadAction(query, queryId, segmentState) {
+  _createLoadFromQuery(query, queryId, segmentState) {
 
   }
 

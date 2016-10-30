@@ -1,5 +1,5 @@
-import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment.js';
-import Thunk from 'soya/lib/data/redux/Thunk.js';
+import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment';
+import Load from 'soya/lib/data/redux/Load';
 
 // TODO: Figure out how to do polyfill.
 // TODO: Figure out how to load client-side libraries like jQuery!
@@ -16,14 +16,9 @@ export default class AdditionSegment extends MapSegment {
     return query.a + '+' + query.b;
   }
 
-  _isLoadQuery() {
-    return true;
-  }
-
-  _generateThunkFunction(thunk) {
-    var query = thunk.query;
-    var queryId = thunk.queryId;
-    thunk.func = (dispatch) => {
+  _createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load();
+    load.func = (dispatch) => {
       var result = new Promise((resolve, reject) => {
         request.get('http://localhost:8000/api/addition/' + encodeURIComponent(query.a) + '/' + encodeURIComponent(query.b)).end((err, res) => {
           if (res.ok) {
@@ -37,5 +32,6 @@ export default class AdditionSegment extends MapSegment {
       });
       return result;
     };
+    return load;
   }
 }

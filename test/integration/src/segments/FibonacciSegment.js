@@ -1,10 +1,6 @@
-import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment.js';
-import Thunk from 'soya/lib/data/redux/Thunk.js';
+import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment';
 import QueryDependencies from 'soya/lib/data/redux/QueryDependencies';
-
-// TODO: Figure out how to do polyfill.
-// TODO: Figure out how to load client-side libraries like jQuery!
-import request from 'superagent';
+import Load from 'soya/lib/data/redux/Load';
 
 import { FibonacciSegmentId } from './ids.js';
 import AdditionSegment from './AdditionSegment.js';
@@ -22,13 +18,8 @@ export default class FibonacciSegment extends MapSegment {
     return query.number;
   }
 
-  _isLoadQuery() {
-    return true;
-  }
-
-  _generateThunkFunction(thunk) {
-    var query = thunk.query;
-    var queryId = thunk.queryId;
+  _createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load();
     var i, dependencies = QueryDependencies.serial(Promise);
     var a = 1, b = 1;
 
@@ -48,8 +39,8 @@ export default class FibonacciSegment extends MapSegment {
       dependencies.addFunction(i + '', func);
     }
 
-    thunk.dependencies = dependencies;
-    thunk.func = (dispatch) => {
+    load.dependencies = dependencies;
+    load.func = (dispatch) => {
       var resultStr = '';
       for (i = 0; i < query.number; i++) {
         resultStr += dependencies.getResult(i + '').data + ' ';
@@ -57,5 +48,6 @@ export default class FibonacciSegment extends MapSegment {
       var actionObj = this._createSyncLoadActionObject(queryId, resultStr);
       return dispatch(actionObj);
     };
+    return load;
   }
 }

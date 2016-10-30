@@ -2,7 +2,7 @@
 
 import Store from '../Store.js';
 import PromiseUtil from './PromiseUtil.js';
-import Thunk from './Thunk.js';
+import Load from './Load.js';
 import QueryDependencies from './QueryDependencies.js';
 import Hydration from './Hydration.js';
 
@@ -27,7 +27,7 @@ const REPLACE_STATE = '__soyaReplaceState';
 /**
  * Creates and wraps redux store. Responsibilities:
  *
- * 1. Wraps redux store's dispatch, reads special Thunk object and executes its
+ * 1. Wraps redux store's dispatch, reads special Load object and executes its
  *    associated query dependencies.
  * 2. Wraps redux store's subscribe to makes it easier for components to
  *    'connect' or listen to changes to just a specific part of the state instead
@@ -82,8 +82,8 @@ export default class ReduxStore extends Store {
    *   {
    *     segmentId: {
    *       queryId: {
-   *         subscriberId: subscribeFunc,
-   *         subscriberId: subscribeFunc
+   *         subscriberId: callbackFunc,
+   *         subscriberId: callbackFunc
    *       }
    *     }
    *   }
@@ -521,16 +521,6 @@ export default class ReduxStore extends Store {
       }
     }
 
-    //if (!this._allowRegisterSegment) {
-    //  var isNewSegment = !registeredSegment || SegmentClass !== RegisteredSegmentClass;
-    //  if (isNewSegment) {
-    //    // We only throw error if it's an attempt to register a new Segment.
-    //    throw new Error('Segment registration is only allowed at render process!');
-    //  }
-    //  // Otherwise, it's a no-op.
-    //  return registeredSegment._getActionCreator();
-    //}
-
     // Register segment.
     if (!registeredSegment) {
       registeredSegment = this._initSegment(SegmentClass, dependencyActionCreatorMap);
@@ -541,11 +531,6 @@ export default class ReduxStore extends Store {
         // TODO: Make two logger implementation, client and server, then use clientReplace accordingly.
         console.log('Replacing segment.. (this should not happen in production!)', RegisteredSegmentClass, SegmentClass);
         registeredSegment = this._initSegment(SegmentClass, dependencyActionCreatorMap);
-
-        // Nullifies the current segment data. Because we are replacing Segment
-        // implementation, state data may differ.
-        //var cleanAction = registeredSegment._createSyncCleanAction();
-        //this.dispatch(cleanAction);
       } else {
         throw new Error('Segment id clash! Claimed by ' + RegisteredSegmentClass + ' and ' + SegmentClass + ', with id: ' + id + '.');
       }
@@ -576,46 +561,6 @@ export default class ReduxStore extends Store {
     this._registeredQueries[id] = {};
     return segment;
   }
-
-  // /**
-  //  * Returns true if the prototypes of Segment and its ActionCreator is the
-  //  * same. Segment implementations are not allowed to have configurations that
-  //  * changes its behavior, so we only need to check implementation.
-  //  *
-  //  * Segment dependencies equality are handled independently, since all of them
-  //  * are going to be registered in the same way.
-  //  *
-  //  * We ensure that no Segment clash will happen without an exception being
-  //  * thrown at server side as long as these assumptions are true:
-  //  *
-  //  * 1) This method is executed at server-side, where we have guaranteed access
-  //  *    to Object.getPrototypeOf().
-  //  * 2) All segment registration is made explicit, even the conditional ones,
-  //  *    and they are all registered at server-side.
-  //  *    a) Segment registration is only allowed at ContentRenderer.render().
-  //  *    b) ContentRenderer.render() is a sync method.
-  //  *
-  //  * @param {Segment} registeredSegment
-  //  * @param {Segment} segment
-  //  * @return {boolean}
-  //  */
-  // _isSegmentEqual(registeredSegment, segment) {
-  //   if (registeredSegment === segment) {
-  //     return true;
-  //   }
-  //
-  //   if (Object.getPrototypeOf) {
-  //     return (
-  //       Object.getPrototypeOf(registeredSegment) === Object.getPrototypeOf(segment) &&
-  //       Object.getPrototypeOf(registeredSegment._getActionCreator()) === Object.getPrototypeOf(segment._getActionCreator())
-  //     );
-  //   }
-  //
-  //   // Since everything is already checked at server-side, safely assume
-  //   // that the given Segment implementation is the same. All possible Segment
-  //   // clashes would have already triggered an error at server-side.
-  //   return true;
-  // }
 
   /**
    * @param {string} segmentId
@@ -790,13 +735,22 @@ export default class ReduxStore extends Store {
     // So we ask Segment to load the query.
     var state = this._store.getState();
     var segmentState = state[segmentId];
-    var loadAction = segment._createLoadAction(query, queryId, segmentState);
+    var loadAction = segment._createLoadFromQuery(query, queryId, segmentState);
     if (loadAction == null) {
       // If load action is null, then this segment doesn't need to do load
       // actions. We return immediately with previously fetched segment piece.
       return Promise.resolve(queryResult.data);
     }
-    return this.dispatch(loadAction).then(getSegmentPiece);
+
+    // Cache the load promise so multiple same queries will only result in
+    // one load action, saving user's bandwidth. If the user dispatches the
+    // load action directly, the promise won't get cached, so make sure to
+    // mention to the user to use query to load data whenever possible.
+    var loadPromise = this.dispatch(loadAction);
+    this._queries[segmentId][queryId].promise = loadPromise;
+
+    // Return a promise that resolves with the segment piece.
+    return loadPromise.then(getSegmentPiece);
   }
 
   /**
@@ -836,7 +790,7 @@ export default class ReduxStore extends Store {
    * returns a Promise or not. If not, it will throw an error. Otherwise the
    * Promise is returned.
    *
-   * @param {Thunk | Object} action
+   * @param {Load | Object} action
    * @return {Promise}
    */
   dispatch(action) {
@@ -847,13 +801,10 @@ export default class ReduxStore extends Store {
     }
 
     var result;
-    if (action instanceof Thunk) {
-      // We initialize the query just in case the user calls dispatch directly
-      // using action creator (uses default hydration option).
-      this._initQuery(action.segmentId, action.queryId, action.query);
+    if (action instanceof Load) {
       // Immediately create a promise so we can ensure no identical fetching
       // can happen at the same time with query() or subscribe().
-      return this._queries[action.segmentId][action.queryId].promise = new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         // Resolve dependencies first.
         var depResolvedPromise = Promise.resolve(null);
         if (action.dependencies instanceof QueryDependencies) {

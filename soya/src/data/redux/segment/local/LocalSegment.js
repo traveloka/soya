@@ -83,9 +83,9 @@ export default class LocalSegment extends Segment {
    * @param {any} query
    * @param {string} queryId
    * @param {any} segmentState
-   * @return {void | Object | Thunk}
+   * @return {void | Load}
    */
-  _createLoadAction(query, queryId, segmentState) {
+  _createLoadFromQuery(query, queryId, segmentState) {
     return null;
   }
 

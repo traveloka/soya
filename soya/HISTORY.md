@@ -1,5 +1,15 @@
 # Version 0.0.x
 
+## 0.0.47
+
+- Rename Thunk object name to Load.
+- Remove the need for query, queryId in Load.
+- Rename _createLoadAction to _createLoadFromQuery() to make it clearer that
+  Load actions can be created without any connection with queries.
+- Remove _generateThunkFunction() from MapSegment.
+- How to update:
+  - Update _generateThunkFunction() into _createLoadFromQuery() method.
+
 ## 0.0.46
 
 - Update Thunk constructor to follow (query, queryId) arg convention.
