@@ -439,7 +439,7 @@ export default class FormSegment extends LocalSegment {
 
   _getReducer() {
     return (state, action) => {
-      if (state == null) return {};
+      if (state == null) state = {};
       switch (action.type) {
         case this._setFormEnabledStateActionType:
           return this._setFormEnabledState(state, action);

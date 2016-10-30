@@ -1,5 +1,9 @@
 # Version 0.0.x
 
+## 0.0.49
+
+- Fix FormSegment bug.
+
 ## 0.0.48
 
 - Rename _createSyncLoadActionObject() to _createSetResultAction().
