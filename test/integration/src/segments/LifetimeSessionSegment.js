@@ -27,13 +27,13 @@ export default class LifetimeSessionSegment extends MapSegment {
     if (lifetimeCookie != null && sessionCookie != null) {
       // Just re-use what we already have in cookie.
       load.func = (dispatch) => {
-        dispatch(this._createSyncLoadActionObject(queryId, {
+        dispatch(this._createSetResultAction(queryId, {
           lifetime: lifetimeCookie,
           session: sessionCookie
         }));
         return Promise.resolve(null);
       };
-      return;
+      return load;
     }
 
     load.func = (dispatch) => {
@@ -41,7 +41,7 @@ export default class LifetimeSessionSegment extends MapSegment {
         request.get('http://localhost:8000/api/context').end((err, res) => {
           if (res.ok) {
             var payload = JSON.parse(res.text);
-            dispatch(this._createSyncLoadActionObject(queryId, payload));
+            dispatch(this._createSetResultAction(queryId, payload));
             var sessionCookie = Cookie.createSession(SESSION_COOKIE_NAME, payload.session);
             var lifetimeCookie = Cookie.createExpireInDays(LIFETIME_COOKIE_NAME, payload.lifetime, 10 * 360);
             this._cookieJar.set(sessionCookie);

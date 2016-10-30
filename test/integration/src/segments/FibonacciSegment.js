@@ -45,7 +45,7 @@ export default class FibonacciSegment extends MapSegment {
       for (i = 0; i < query.number; i++) {
         resultStr += dependencies.getResult(i + '').data + ' ';
       }
-      var actionObj = this._createSyncLoadActionObject(queryId, resultStr);
+      var actionObj = this._createSetResultAction(queryId, resultStr);
       return dispatch(actionObj);
     };
     return load;

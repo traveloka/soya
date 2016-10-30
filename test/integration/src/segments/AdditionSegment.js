@@ -23,7 +23,7 @@ export default class AdditionSegment extends MapSegment {
         request.get('http://localhost:8000/api/addition/' + encodeURIComponent(query.a) + '/' + encodeURIComponent(query.b)).end((err, res) => {
           if (res.ok) {
             var payload = JSON.parse(res.text);
-            dispatch(this._createSyncLoadActionObject(queryId, payload));
+            dispatch(this._createSetResultAction(queryId, payload));
             resolve();
           } else {
             reject(new Error('Unable to fetch user data!'));

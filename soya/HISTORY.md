@@ -1,5 +1,12 @@
 # Version 0.0.x
 
+## 0.0.48
+
+- Rename _createSyncLoadActionObject() to _createSetResultAction().
+- How to update:
+  - Rename usage of the above method to the new name. Signatures does not
+    change.
+
 ## 0.0.47
 
 - Rename Thunk object name to Load.

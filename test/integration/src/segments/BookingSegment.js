@@ -33,10 +33,10 @@ export default class BookingSegment extends MapSegment {
         request.get('http://localhost:8000/api/booking/' + encodeURIComponent(query.bookingId)).end((err, res) => {
           var payload = JSON.parse(res.text);
           if (res.ok) {
-            dispatch(this._createSyncLoadActionObject(queryId, payload));
+            dispatch(this._createSetResultAction(queryId, payload));
             resolve();
           } else if (res.notFound) {
-            dispatch(this._createSyncLoadActionObject(queryId, null, [payload.error]));
+            dispatch(this._createSetResultAction(queryId, null, [payload.error]));
           }
         });
       });

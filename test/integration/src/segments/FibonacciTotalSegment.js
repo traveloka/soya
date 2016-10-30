@@ -31,7 +31,7 @@ export default class FibonacciTotalSegment extends MapSegment {
         if (n == '') continue;
         total += parseInt(n, 10);
       }
-      var actionObj = this._createSyncLoadActionObject(queryId, total);
+      var actionObj = this._createSetResultAction(queryId, total);
       return dispatch(actionObj);
     };
     return load;

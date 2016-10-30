@@ -19,17 +19,7 @@ export default class MapSegment extends Segment {
   /**
    * @type {string}
    */
-  _loadActionType;
-
-  /**
-   * @type {string}
-   */
-  _initActionType;
-
-  /**
-   * @type {string}
-   */
-  _cleanActionType;
+  _setActionType;
 
   /**
    * @type {CookieJar}
@@ -47,9 +37,7 @@ export default class MapSegment extends Segment {
     // Since segment name is guaranteed never to clash by ReduxStore, we can
     // safely use segment name as action type.
     var id = this.constructor.id();
-    this._loadActionType = ActionNameUtil.generate(id, 'LOAD');
-    this._initActionType = ActionNameUtil.generate(id, 'INIT');
-    this._cleanActionType = ActionNameUtil.generate(id, 'CLEAN');
+    this._setActionType = ActionNameUtil.generate(id, 'SET');
     this._actionCreator = {};
   }
 
@@ -89,9 +77,9 @@ export default class MapSegment extends Segment {
    * @param {void | Array<any>} errors
    * @return {Object}
    */
-  _createSyncLoadActionObject(queryId, payload, errors) {
+  _createSetResultAction(queryId, payload, errors) {
     return {
-      type: this._loadActionType,
+      type: this._setActionType,
       queryId: queryId,
       payload: {
         data: payload,
@@ -119,31 +107,17 @@ export default class MapSegment extends Segment {
    * @return {Function}
    */
   _getReducer() {
-    var loadActionType = this._loadActionType;
-    var initActionType = this._initActionType;
-    var cleanActionType = this._cleanActionType;
+    var setActionType = this._setActionType;
     return (state, action) => {
       // If state is undefined, return initial state.
       if (!state) state = {};
-      var newState, isUninitialized;
+      var newState;
       switch(action.type) {
-        case cleanActionType:
-          // Nullifies the segment:
-          return {};
-          break;
-        case loadActionType:
+        case setActionType:
           // Replace the map entry with the new loaded one.
           newState = this._createNewStateObj(state);
           newState[action.queryId] = action.payload;
           return newState;
-          break;
-        case initActionType:
-          isUninitialized = (!state[action.queryId] || !state[action.queryId].loaded);
-          if (isUninitialized) {
-            newState = this._createNewStateObj(state);
-            newState[action.queryId] = action.payload;
-            return newState;
-          }
           break;
       }
       return state;
