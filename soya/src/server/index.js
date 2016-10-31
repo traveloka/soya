@@ -26,9 +26,10 @@ import defaultCreateErrorHandler from './createErrorHandler.js';
  * @param {Object} config
  * @param {Object} pages
  * @param {Object} components
+ * @param {Object} wspages
  * @SERVER
  */
-export default function server(config, pages) {
+export default function server(config, pages, components, wspages) {
   var frameworkConfig = config.frameworkConfig;
   var serverConfig = config.serverConfig;
   var clientConfig = config.clientConfig;
@@ -103,31 +104,30 @@ export default function server(config, pages) {
   var websocketOption = null;
 
   if (frameworkConfig.webSocket.enabled === true) {
-    var wsComponentRegister = new ComponentRegister(logger);
-    var wsPageRequireContext = frameworkConfig.webSocketPageRequireContext;
-    var wsPageRequirePath = frameworkConfig.webSocketAbsolutePageRequirePath;
-
-    finder.find(wsPageRequirePath, function(vendor, name, absDir, relativeDir) {
-      wsComponentRegister.regPage(name, absDir, wsPageRequireContext('./' + path.join(relativeDir, name + '.js')));
-    });
+    var wsPageName, wsComponentRegister = new ComponentRegister(logger);
+    // Register all websocket pages to handler register.
+    for (wsPageName in wspages) {
+      wsComponentRegister.regPage(
+        wsPageName, path.join(frameworkConfig.absoluteProjectDir, wsPageName),
+        wspages[wsPageName]
+      );
+    }
 
     // Load custom router nodes and create router.
     var wsRouter = new Router(logger, nodeFactory, wsComponentRegister);
     var wsReverseRouter = new ReverseRouter(nodeFactory);
 
     // Load routes.
-    var wsRoutes = yaml.safeLoad(fs.readFileSync(frameworkConfig.webSocketRoutesFilePath, 'utf8'));
-    var wsRouteId;
+    var wsRouteId, wsRoutes = yaml.safeLoad(fs.readFileSync(path.join(config.frameworkConfig.absoluteProjectDir, 'wsRoutes.yml'), 'utf8'));
 
     for (wsRouteId in wsRoutes) {
-      if (!wsRoutes.hasOwnProperty(wsRouteId)) continue;
       wsRouter.reg(wsRouteId, wsRoutes[wsRouteId]);
       wsReverseRouter.reg(wsRouteId, wsRoutes[wsRouteId]);
     }
 
     // If not found page is not set up.
-    if (!router.getNotFoundRouteResult()) {
-      throw new Error('404 not found page not registered! Please create a 404 not found page.');
+    if (!wsRouter.getNotFoundRouteResult()) {
+      throw new Error('\'Not found\' page not registered! Please create a \'Not found\' page.');
     }
 
     websocketOption = {

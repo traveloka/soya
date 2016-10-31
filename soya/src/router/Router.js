@@ -225,7 +225,6 @@ export default class Router {
    * @private
    */
   _getRouteRecursively(node, prePath, result) {
-    var i, childNode;
     var reverseRoutingData = new ReverseRoutingData(null);
     node.reverseEvaluate(reverseRoutingData);
 
@@ -243,7 +242,7 @@ export default class Router {
         path: currentPath
       });
     } else {
-      var children = node.getChildren();
+      var i, children = node.getChildren();
       for (i = 0; i < children.length; i++) {
         this._getRouteRecursively(children[i], currentPath, result);
       }

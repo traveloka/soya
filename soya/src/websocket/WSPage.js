@@ -1,3 +1,5 @@
+import url from 'url';
+
 /**
  * A Base-class for Websocket page
  * notes:
@@ -25,9 +27,22 @@ export default class WSPage {
    */
   _socket;
 
-  constructor() {
+  /**
+   * @type {Object}
+   * @protected
+   */
+  _query;
 
-  }
+  /**
+   * @type {Object}
+   * @protected
+   */
+  _arguments;
+
+  /**
+   * @constructor
+   */
+  constructor() { }
 
   /**
    * Returns namespace name. Namespace name must be the same as the name of the file and
@@ -40,23 +55,22 @@ export default class WSPage {
   }
 
   /**
-   * @param {string} channel
-   * @param {function(string, string, string)} publishCallback
+   * @param {Socket} socket
+   * @param {Object} args
    */
-  initialize(channel, publishCallback) {
+  render(socketNamespace, channel, publishCallback) {
     this._channel = channel;
     this._publishCallback = publishCallback;
-  }
 
-  /**
-   * @param {Socket} socket
-   */
-  render(socket) {
-    this._socket = socket;
-    this._socket.on('disconnect', () => {
-      console.log('[Socket Server] Disconnected');
+    socketNamespace.on('connection', socket => {
+      this._socket = socket;
+      this._socket.on('disconnect', () => {
+        console.log('[Socket Server] Disconnected');
+      });
+
+      this._query = url.parse(socket.handshake.url, true).query;
+      this.bindEvent();
     });
-    this.bindEvent();
   }
 
   /**
@@ -64,7 +78,7 @@ export default class WSPage {
    * @param {string} message
    */
   eventDispatcher(event, message) {
-    console.log('[Socket Server] Dispatch Event: '+ event +', message: '+ message +' , @Channel: '+ this._channel);
+    console.log('[Socket Server] Dispatch Event: '+ event +', message: '+ message +', @Channel: '+ this._channel);
   }
 
   /**
