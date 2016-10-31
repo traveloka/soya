@@ -34,12 +34,6 @@ export default class WSPage {
   _query;
 
   /**
-   * @type {Object}
-   * @protected
-   */
-  _arguments;
-
-  /**
    * @constructor
    */
   constructor() { }
