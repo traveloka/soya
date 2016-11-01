@@ -704,6 +704,7 @@ export default class ReduxStore extends Store {
     // TODO: When we turn on history navigation, this._queries map will pile up, causing memory leak. Fix.
     var queryId = segment._generateQueryId(query);
     this._initQuery(segmentId, queryId, query, hydration);
+    hydration = this._queries[segmentId][queryId].hydration;
 
     if ((scope.server && !this._inHydration) ||
         (scope.server && !hydration.shouldHydrateAtServer())) {
