@@ -1,5 +1,12 @@
 # Version 0.0.x
 
+## 0.0.50
+
+- Fix fetching on server side of non hydrated queries.
+- Fix CSS modules resolving as undefined in server.
+- Added extra check to ensure that the return value of _queryState() is
+  QueryResult, should make it easier to build segment that way.
+
 ## 0.0.49
 
 - Fix FormSegment bug.
