@@ -705,7 +705,8 @@ export default class ReduxStore extends Store {
     var queryId = segment._generateQueryId(query);
     this._initQuery(segmentId, queryId, query, hydration);
 
-    if (scope.server && !this._inHydration) {
+    if ((scope.server && !this._inHydration) ||
+        (scope.server && !hydration.shouldHydrateAtServer())) {
       // If at server, returns a promise that never resolves. Querying in server
       // will be done via an explicit hydrate() method. This reduces unnecessary
       // execution of code at our server, ensuring no surprises when dealing
