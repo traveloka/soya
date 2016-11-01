@@ -145,18 +145,17 @@ export default class WebpackCompiler extends Compiler {
         loaders: [
           WebpackCompiler.getBabelLoaderConfig(),
           WebpackCompiler.getFileLoaderConfig(frameworkConfig),
-          { test: /\.css$/, loader: 'css-loader', exclude: /\.mod\.css/ },
-          { test: /\.mod\.css$/, loader: 'css-loader?sourceMap&modules' },
-          { test: /\.scss$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader!sass-loader'), exclude: /\.mod\.scss/ },
-          { test: /\.mod\.scss$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap&modules!sass-loader') },
+          { test: /\.css$/, loader: 'css-loader/locals', exclude: /\.mod\.css/ },
+          { test: /\.mod\.css$/, loader: 'css-loader/locals?sourceMap&modules' },
+          { test: /\.scss$/, loader: 'css-loader/locals!sass-loader', exclude: /\.mod\.scss/ },
+          { test: /\.mod\.scss$/, loader: 'css-loader/locals?sourceMap&modules!sass-loader' }
         ]
       },
       plugins: [
         new webpack.BannerPlugin('require("source-map-support").install();',
           { raw: true, entryOnly: false }),
         new webpack.optimize.OccurenceOrderPlugin(),
-        new webpack.NoErrorsPlugin(),
-        new ExtractTextPlugin('css/[name]-[contenthash].css')
+        new webpack.NoErrorsPlugin()
       ],
       resolve: WebpackCompiler.generateResolveConfig(frameworkConfig),
       externals: nodeModules
