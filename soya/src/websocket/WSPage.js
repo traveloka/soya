@@ -28,12 +28,6 @@ export default class WSPage {
   _socket;
 
   /**
-   * @type {Object}
-   * @protected
-   */
-  _query;
-
-  /**
    * @constructor
    */
   constructor() { }
@@ -49,22 +43,19 @@ export default class WSPage {
   }
 
   /**
-   * @param {Socket} socket
+   * @param {io.Socket} socket
    * @param {Object} args
    */
-  render(socketNamespace, channel, publishCallback) {
+  render(socket, routeArgs, channel, publishCallback) {
     this._channel = channel;
     this._publishCallback = publishCallback;
 
-    socketNamespace.on('connection', socket => {
-      this._socket = socket;
-      this._socket.on('disconnect', () => {
-        console.log('[Socket Server] Disconnected');
-      });
-
-      this._query = url.parse(socket.handshake.url, true).query;
-      this.bindEvent();
+    this._socket = socket;
+    this._socket.on('disconnect', () => {
+      console.log('[Socket Server] A Socket connection has been disconnected. @Channel: '+ this._channel);
+      // TODO do publish to redish
     });
+    this.bindEvent(routeArgs);
   }
 
   /**
@@ -78,7 +69,7 @@ export default class WSPage {
   /**
    * @protected
    */
-  bindEvent() { }
+  bindEvent(routeArgs) { }
 
   /**
    * A wrapper method to publish event

@@ -2,6 +2,7 @@ import Compiler from './compiler/Compiler';
 import Router from './router/Router';
 import EntryPoint from './EntryPoint';
 import ServerHttpRequest from './http/ServerHttpRequest';
+import ServerWsRequest from './websocket/ServerWSRequest';
 import Provider from './Provider.js';
 import CookieJar from './http/CookieJar.js';
 import ServerCookieJar from './http/ServerCookieJar.js';
@@ -12,7 +13,6 @@ import SocketIORedis from 'socket.io-redis';
 var path = require('path');
 var http = require('http');
 var domain = require('domain');
-var url = require('url');
 
 /**
  * Orchestrates all the things that makes the application server run:
@@ -450,24 +450,16 @@ export default class Application {
   _createWebsocketeServer() {
     var redis, server, uid, pub, sub, publishCallback;
     var dispatcherMap = { };
-debugger;
+
     redis = SocketIORedis({
       host: this._frameworkConfig.webSocket.redisConf.host,
       port: this._frameworkConfig.webSocket.redisConf.port,
-      key: this._frameworkConfig.webSocket.redisConf.keyEvent });
-    server = new SocketIO(this._frameworkConfig.webSocket.port);
-    server.adapter(redis);
-
+      key: this._frameworkConfig.webSocket.redisConf.keyEvent
+    });
     uid = redis.uid;
     pub = redis.pubClient;
     sub = redis.subClient;
 
-    publishCallback = function(channel, eventName, message) {
-      pub.publish(channel, JSON.stringify({
-        pubUID: uid,
-        pubEvent: eventName,
-        pubMessage: message }));
-    };
     sub.on('subscribe', (channel, count) => {
       console.log('[Redis 1] subscribe, channel: '+ channel +', subscribers: '+ count);
     });
@@ -488,35 +480,62 @@ debugger;
       }
     });
 
-    var i, route, pageClass, socketDomain, routes;
+    publishCallback = function(channel, eventName, message) {
+      pub.publish(channel, JSON.stringify({
+        pubUID: uid,
+        pubEvent: eventName,
+        pubMessage: message }));
+    };
 
-    routes = this._wsRouter.getAllRoutes();
-    socketDomain = domain.create().on('error', error => {
-      this._logger.error('[WebSocket] Error happened.', error);
+    server = new SocketIO(this._frameworkConfig.webSocket.port);
+    server.sockets.on('connect', socket => {
+      var wsRequest, routeResult, pageClass, page, channel, ioNamespace;
+
+      wsRequest = new ServerWsRequest(socket);
+      routeResult = this._wsRouter.route(wsRequest);
+
+      if (routeResult == null) {
+        throw new Error('[WebSocket 1] Unable to route request, router returned null');
+      }
+
+      pageClass = this._wsPageClasses[routeResult.pageName];
+      if (!pageClass) {
+        throw new Error('[WebSocket 1] Unable to route request, page ' + routeResult.pageName + ' doesn\'t exist');
+      }
+
+      ioNamespace = server.of(wsRequest.getPath());
+      if (ioNamespace.listenerCount('connection') == 0) {
+        channel = `${this._frameworkConfig.webSocket.redisConf.keyEvent}.${wsRequest.getPath()}`;
+        sub.subscribe(channel);
+        page = new pageClass();
+
+        ioNamespace.on('connection', socket => {
+          console.log('[WebSocket 1] Namespace.onConnection');
+          page.render(socket, routeResult.routeArgs, channel, publishCallback);
+        });
+        dispatcherMap[channel] = page.eventDispatcher.bind(page);
+      }
+
+      var socketDomain = domain.create();
+      socketDomain.on('error', error => { this._logger.error('[WebSocket 1] Error happened.', error); });
+      socketDomain.add(socket);
     });
+    server.adapter(redis);
 
-    // for demo
-    // --------------------------------------
+    // # for demo
+    // ---------------------------
     var redis2, server2, uid2, pub2, sub2, publishCallback2;
     var dispatcherMap2 = { };
 
     redis2 = SocketIORedis({
       host: this._frameworkConfig.webSocket.redisConf.host,
       port: this._frameworkConfig.webSocket.redisConf.port,
-      key: this._frameworkConfig.webSocket.redisConf.keyEvent });
-    server2 = new SocketIO(29072);
-    server2.adapter(redis2);
-
+      key: this._frameworkConfig.webSocket.redisConf.keyEvent
+    });
     uid2 = redis2.uid;
     pub2 = redis2.pubClient;
     sub2 = redis2.subClient;
 
-    publishCallback2 = function(channel, eventName, message) {
-      pub2.publish(channel, JSON.stringify({
-        pubUID: uid2,
-        pubEvent: eventName,
-        pubMessage: message }));
-    };
     sub2.on('subscribe', (channel, count) => {
       console.log('[Redis 2] subscribe, channel: '+ channel +', subscribers: '+ count);
     });
@@ -536,44 +555,47 @@ debugger;
         dispatcher(pubEvent, pubMessage);
       }
     });
-debugger;
-    // # Iterate for each route
-    // -----------------------------
-    for (i = 0; i < routes.length; i++) {
-      route = routes[i];
-      pageClass = this._wsPageClasses[route.pageName];
 
-      if (!pageClass) {
-        throw new Error('Invalid socket route data, page '+ route.pageName + ' doesn\'t exist');
+    publishCallback2 = function(channel, eventName, message) {
+      pub2.publish(channel, JSON.stringify({
+        pubUID: uid2,
+        pubEvent: eventName,
+        pubMessage: message }));
+    };
+
+    server2 = new SocketIO(29072);
+    server2.sockets.on('connect', socket => {
+      var wsRequest, routeResult, pageClass, page, channel, ioNamespace;
+
+      wsRequest = new ServerWsRequest(socket);
+      routeResult = this._wsRouter.route(wsRequest);
+
+      if (routeResult == null) {
+        throw new Error('[Websocket 2] Unable to route request, router returned null');
       }
 
-      var page, nsp, channel;
+      pageClass = this._wsPageClasses[routeResult.pageName];
+      if (!pageClass) {
+        throw new Error('[Websocket 2] Unable to route request, page ' + routeResult.pageName + ' doesn\'t exist');
+      }
 
-      // channel = `${this._frameworkConfig.webSocket.redisConf.keyEvent}#${route.path}#`;
-      channel = `${this._frameworkConfig.webSocket.redisConf.keyEvent}.${pageClass.pageName}`;
-      sub.subscribe(channel);
+      ioNamespace = server2.of(wsRequest.getPath());
+      if (ioNamespace.listenerCount('connection') == 0) {
+        channel = `${this._frameworkConfig.webSocket.redisConf.keyEvent}.${wsRequest.getPath()}`;
+        sub2.subscribe(channel);
+        page = new pageClass();
 
-      nsp = server.of(route.path);
-      socketDomain.add(nsp);
+        ioNamespace.on('connection', socket => {
+          console.log('[Websocket 2] Namespace.onConnection');
+          page.render(socket, routeResult.routeArgs, channel, publishCallback2);
+        });
+        dispatcherMap2[channel] = page.eventDispatcher.bind(page);
+      }
 
-      page = new pageClass();
-      page.render(nsp, channel, publishCallback);
-      dispatcherMap[channel] = page.eventDispatcher.bind(page);
-
-      // for demo
-      // --------------------------------------
-      var page2, nsp2, channel2;
-
-      // channel2 = `${this._frameworkConfig.webSocket.redisConf.keyEvent}#${route.path}#`;
-      channel2 = `${this._frameworkConfig.webSocket.redisConf.keyEvent}.${pageClass.pageName}`;
-      sub2.subscribe(channel2);
-
-      nsp2 = server2.of(route.path);
-      socketDomain.add(nsp2);
-
-      page2 = new pageClass();
-      page2.render(nsp2, channel2, publishCallback2);
-      dispatcherMap2[channel2] = page2.eventDispatcher.bind(page2);
-    }
+      var socketDomain = domain.create();
+      socketDomain.on('error', error => { this._logger.error('[WebSocket 2] Error happened.', error); });
+      socketDomain.add(socket);
+    });
+    server2.adapter(redis2);
   }
 }
