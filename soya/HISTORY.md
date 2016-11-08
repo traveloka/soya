@@ -1,5 +1,10 @@
 # Version 0.0.x
 
+## 0.0.52
+
+- Fix CookieJar read returning inconsistent return values on server side
+  (undefined) and client side (null). Changed server side to return null.
+
 ## 0.0.51
 
 - Fix ReduxStore not updating component if previous segment state is null.
