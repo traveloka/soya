@@ -98,6 +98,7 @@ export default class MapSegment extends Segment {
   }
   
   _queryState(query, queryId, segmentState) {
+    if (segmentState == null) return QueryResult.notLoaded();
     var piece = segmentState[queryId];
     if (piece == null) return QueryResult.notLoaded();
     return QueryResult.loaded(piece);

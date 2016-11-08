@@ -1,5 +1,9 @@
 # Version 0.0.x
 
+## 0.0.51
+
+- Fix ReduxStore not updating component if previous segment state is null.
+
 ## 0.0.50
 
 - Fix fetching on server side of non hydrated queries.
@@ -49,6 +53,7 @@
   - Find '.loaded' string for the usage of MapSegment, instead of checking
     loaded variable, change it into null checking.
   - Create _isLoadQuery() implementation that always returns true.
+  - Replace hydration configuration object with new Hydration instance.
 
 ## 0.0.43
 
@@ -86,6 +91,9 @@
 - Added root resolve configuration on webpack so that we can resolve components
   from $SOYA_PROJECT_DIR.
 - Auto generation of component browser list page.
+- How to update:
+  - Change routes.yml to use relative path instead.
+  - Update webpack.config.js.
 
 ## 0.0.36
 

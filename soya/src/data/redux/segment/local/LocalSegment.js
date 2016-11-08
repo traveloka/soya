@@ -90,6 +90,7 @@ export default class LocalSegment extends Segment {
   }
 
   _queryState(query, queryId, segmentState) {
+    if (segmentState == null) return QueryResult.loaded(null);
     if (typeof segmentState == 'object' && typeof queryId == 'string' && queryId != '') {
       var i, segment = segmentState, splitQuery = queryId.split('.');
       for (i = 0; i < splitQuery.length; i++) {

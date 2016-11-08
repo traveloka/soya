@@ -300,6 +300,9 @@ export default class FormSegment extends LocalSegment {
    * </pre>
    */
   _queryState(query, queryId, segmentState) {
+    if (segmentState == null) {
+      return QueryResult.loaded(null);
+    }
     switch (query.type) {
       case '*':
         return QueryResult.loaded(this._getAllValues(segmentState, query.formId));

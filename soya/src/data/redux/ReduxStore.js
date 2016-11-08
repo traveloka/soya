@@ -312,10 +312,8 @@ export default class ReduxStore extends Store {
         // TODO: This assumption/design seems to be flawed, null to existence is a change, and we should notify listeners.
         shouldUpdate = false;
         query = this._queries[segmentId][queryId].query;
-        if (prevSegmentState != null) {
-          segmentPiece = segment._comparePiece(prevSegmentState, segmentState, query, queryId);
-          shouldUpdate = segmentPiece != null;
-        }
+        segmentPiece = segment._comparePiece(prevSegmentState, segmentState, query, queryId);
+        shouldUpdate = segmentPiece != null;
         if (shouldUpdate) {
           // Segment piece has changed, call all registered subscribers.
           for (subscriberId in querySubscribers) {
