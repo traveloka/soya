@@ -121,12 +121,12 @@ export default class WebpackCompiler extends Compiler {
     var absEntryPointFile = path.join(frameworkConfig.absoluteProjectDir, 'build/precompile/server.js');
     var absBuildTargetDir = path.join(frameworkConfig.absoluteProjectDir, 'build/server');
     fs.readdirSync(path.join(absProjectDir, 'node_modules'))
-      .filter(function(x) {
-        return ['.bin'].indexOf(x) === -1;
-      })
-      .forEach(function(mod) {
-        nodeModules[mod] = 'commonjs ' + mod;
-      });
+    .filter(function(x) {
+      return ['.bin'].indexOf(x) === -1;
+    })
+    .forEach(function(mod) {
+      nodeModules[mod] = 'commonjs ' + mod;
+    });
 
     return {
       entry: absEntryPointFile,
@@ -145,10 +145,37 @@ export default class WebpackCompiler extends Compiler {
         loaders: [
           WebpackCompiler.getBabelLoaderConfig(),
           WebpackCompiler.getFileLoaderConfig(frameworkConfig),
-          { test: /\.css$/, loader: 'css-loader/locals', exclude: /\.mod\.css/ },
-          { test: /\.mod\.css$/, loader: 'css-loader/locals?sourceMap&modules' },
-          { test: /\.scss$/, loader: 'css-loader/locals!sass-loader', exclude: /\.mod\.scss/ },
-          { test: /\.mod\.scss$/, loader: 'css-loader/locals?sourceMap&modules!sass-loader' }
+          {
+            test: /\.css$/,
+            loader: 'css-loader/locals',
+            exclude: /\.mod\.css/
+          },
+          {
+            test: /\.css$/,
+            loaders: [
+              'css-loader/locals?' + JSON.stringify({
+                sourceMap: true,
+                modules: true,
+                localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+              })
+            ]
+          },
+          {
+            test: /\.scss$/,
+            loader: 'css-loader/locals!sass-loader',
+            exclude: /\.mod\.scss/
+          },
+          {
+            test: /\.mod\.scss$/,
+            loaders: [
+              'css-loader/locals?' + JSON.stringify({
+                sourceMap: true,
+                modules: true,
+                localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+              }),
+              'sass-loader'
+            ]
+          }
         ]
       },
       plugins: [
@@ -283,55 +310,70 @@ export default class WebpackCompiler extends Compiler {
       ]
     };
 
-    // Links you need to read to understand this CSS section:
+    // Links you need to read to understand this CSS / SCSS section:
     // - https://webpack.github.io/docs/stylesheets.html
     // - https://github.com/webpack/extract-text-webpack-plugin
     // - https://webpack.github.io/docs/list-of-plugins.html
     // - https://github.com/webpack/css-loader
     // - https://github.com/webpack/style-loader
-    var modulesCssLoader = {
-      test: /\.mod\.css$/,
-      loader: 'style-loader!css-loader?sourceMap&modules'
-    };
+    // - https://github.com/jtangelder/sass-loader
     var normalCssLoader = {
       test: /\.css$/,
       loader: 'style-loader!css-loader',
       exclude: /\.mod\.css$/
-    };
-    var modulesScssLoader = {
-      test: /\.mod\.scss$/,
-      loader: 'style-loader!css-loader?sourceMap&modules!sass-loader'
-    };
-    var normalSassLoader = {
+    }, modulesCssLoader = {
+      test: /\.mod\.css$/,
+      loaders: [
+        'style-loader',
+        'css-loader?' + JSON.stringify({
+          sourceMap: true,
+          modules: true,
+          localIdentName: this._frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+        })
+      ]
+    }, normalSassLoader = {
       test: /\.scss$/,
       loader: 'style-loader!css-loader!sass-loader',
       exclude: /\.mod\.scss$/
+    }, modulesScssLoader = {
+      test: /\.mod\.scss$/,
+      loaders: [
+        'style-loader',
+        'css-loader?' + JSON.stringify({
+          sourceMap: true,
+          modules: true,
+          localIdentName: this._frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+        }),
+        'sass-loader'
+      ]
     };
+
     if (!this._frameworkConfig.hotReload) {
-      // Enable loading CSS as files.
-      modulesCssLoader.loader = ExtractTextPlugin.extract(
-        "style-loader",
-        "css-loader?sourceMap&modules"
-      );
+      // Enable loading CSS / SCSS as files.
       normalCssLoader.loader = ExtractTextPlugin.extract(
         "style-loader",
         "css-loader"
       );
-      modulesScssLoader.loader = ExtractTextPlugin.extract(
+      modulesCssLoader.loader = ExtractTextPlugin.extract(
         "style-loader",
-        "css-loader?sourceMap&modules!sass-loader"
+        "css-loader?sourceMap&modules"
       );
       normalSassLoader.loader = ExtractTextPlugin.extract(
         "style-loader",
         "css-loader!sass-loader"
       );
+      modulesScssLoader.loader = ExtractTextPlugin.extract(
+        "style-loader",
+        "css-loader?sourceMap&modules!sass-loader"
+      );
       configuration.plugins.push(
         new ExtractTextPlugin('css/[name]-[chunkhash].css'));
     }
-    configuration.module.loaders.push(modulesCssLoader);
+
     configuration.module.loaders.push(normalCssLoader);
-    configuration.module.loaders.push(modulesScssLoader);
+    configuration.module.loaders.push(modulesCssLoader);
     configuration.module.loaders.push(normalSassLoader);
+    configuration.module.loaders.push(modulesScssLoader);
 
     for (i in this._clientReplace) {
       if (!this._clientReplace.hasOwnProperty(i)) continue;
@@ -394,7 +436,7 @@ export default class WebpackCompiler extends Compiler {
       var commonsChunk = chunkMap[COMMONS_ENTRY_NAME];
 
       var compileResult = new CompileResult(), entryPointChunk, entryPointName,
-          pageDep, depArray;
+        pageDep, depArray;
       for (i = 0; i < entryPointList.length; i++) {
         entryPointName = entryPointList[i];
         if (!chunkMap.hasOwnProperty(entryPointName)) {
