@@ -4,6 +4,10 @@
 
 - Fix CookieJar read returning inconsistent return values on server side
   (undefined) and client side (null). Changed server side to return null.
+- Fix integration with Redux Dev Tools chrome extension
+  (https://github.com/zalmoxisus/redux-devtools-extension).
+- ReduxStore now doesn't assume query is not loaded if the segment state is
+  null.
 
 ## 0.0.51
 

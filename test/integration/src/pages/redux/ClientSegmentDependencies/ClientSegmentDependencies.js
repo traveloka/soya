@@ -7,7 +7,6 @@ import ReduxStore from 'soya/lib/data/redux/ReduxStore.js';
 import RandomTimeEchoString from '../../../components/contextual/RandomTimeEchoString/RandomTimeEchoString.js';
 import FibonacciSequence from '../../../components/contextual/FibonacciSequence/FibonacciSequence.js';
 import FibonacciTotal from '../../../components/contextual/FibonacciTotal/FibonacciTotal.js';
-import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';
 
 // TODO: Figure out how to do promise polyfill.
 import style from '../../../shared/sitewide.css';
@@ -70,9 +69,6 @@ class Component extends React.Component {
         <li>Returned value should be sum of all numbers in a Fibonacci sequence. Click <a href="javascript:void(0)" onClick={this.addFibonacciTotalComponent.bind(this)}>here to load</a>.</li>
       </ul>
       {this.state.fibonacciTotalComponent}
-      <DebugPanel top right bottom>
-        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
-      </DebugPanel>
     </div>;
   }
 

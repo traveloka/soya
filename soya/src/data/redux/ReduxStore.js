@@ -210,28 +210,15 @@ export default class ReduxStore extends Store {
    * @returns {Object}
    */
   _createStore(initialState) {
-    if (this._clientConfig.enableDevTools) {
-      return this._createStoreWithDevTools(initialState);
+    // https://github.com/zalmoxisus/redux-devtools-extension
+    // TODO: Probably should be framework config instead of client config?
+    let composeEnhancers = compose;
+    if (this._clientConfig.enableDevTools && scope.client) {
+      composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
     }
 
-    var composedCreateStore = compose(
+    var composedCreateStore = composeEnhancers(
       applyMiddleware(thunk)
-    )(createStore);
-    return composedCreateStore(this._rootReducer.bind(this), initialState);
-  }
-
-  _createStoreWithDevTools(initialState) {
-    let devTool = devTools();
-    if (scope.client) {
-      // If the user has devTools plugin installed, use it.
-      if (window !== null && window.devToolsExtension) {
-        devTool = window.devToolsExtension();
-      }
-    }
-
-    var composedCreateStore = compose(
-      applyMiddleware(thunk),
-      devTool
     )(createStore);
     return composedCreateStore(this._rootReducer.bind(this), initialState);
   }
@@ -386,7 +373,6 @@ export default class ReduxStore extends Store {
   _queryState(segmentId, query, queryId) {
     var state = this._store.getState();
     var segmentState = state[segmentId];
-    if (!segmentState) return QueryResult.notLoaded();
     var queryResult = this._segments[segmentId]._queryState(query, queryId, segmentState);
     if (queryResult.constructor != QueryResult) throw new Error('_queryState must return instance of QueryResult! queryId: ' + queryId);
     return queryResult;

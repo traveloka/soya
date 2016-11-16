@@ -300,26 +300,29 @@ export default class FormSegment extends LocalSegment {
    * </pre>
    */
   _queryState(query, queryId, segmentState) {
-    if (segmentState == null) {
-      return QueryResult.loaded(null);
-    }
     switch (query.type) {
       case '*':
+        if (segmentState == null) return QueryResult.loaded(null);
         return QueryResult.loaded(this._getAllValues(segmentState, query.formId));
         break;
       case '**':
+        if (segmentState == null) return QueryResult.loaded({});
         return QueryResult.loaded(segmentState[query.formId] ? segmentState[query.formId] : {});
         break;
       case 'isEnabled':
+        if (segmentState == null) return QueryResult.loaded(true);
         return QueryResult.loaded(segmentState[query.formId] ? segmentState[query.formId].isEnabled : true);
         break;
       case 'hasErrors':
+        if (segmentState == null) return QueryResult.loaded(null);
         return QueryResult.loaded(this._hasErrors(segmentState, query.formId));
         break;
       case 'field':
+        if (segmentState == null) return QueryResult.loaded(null);
         return QueryResult.loaded(this._getField(segmentState, query.formId, query.fieldName));
         break;
       case 'length':
+        if (segmentState == null) return QueryResult.loaded(null);
         return QueryResult.loaded(this._getLength(segmentState, query.formId, query.fieldName, query.minLength));
         break;
       default:

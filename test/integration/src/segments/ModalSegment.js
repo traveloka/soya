@@ -68,7 +68,7 @@ export default class ModalSegment extends LocalSegment {
   _getReducer() {
     var self = this;
     return function(state, action) {
-      if (state == null) return ModalSegment.createInitialData();
+      if (state == null) state = ModalSegment.createInitialData();
       switch (action.type) {
         case self._addActionType:
           return self._addModal(state, action);

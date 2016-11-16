@@ -9,7 +9,6 @@ import BadgeList from '../../../components/contextual/BadgeList/BadgeList.js';
 import IncrementUserPostMutation from '../../../mutation/IncrementUserPostMutation.js';
 import ResetUserPostMutation from '../../../mutation/ResetUserPostMutation.js';
 import FlipBadgeMutation from '../../../mutation/FlipBadgeMutation.js';
-import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';
 
 // TODO: Figure out how to do promise polyfill.
 import style from '../../../shared/sitewide.css';
@@ -36,9 +35,6 @@ class Component extends React.Component {
       <UserProfile context={this.props.context} username={USERNAME_C}></UserProfile>
       <h3>Badge Names</h3>
       <BadgeList context={this.props.context} />
-      <DebugPanel top right bottom>
-        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
-      </DebugPanel>
     </div>
   }
 
