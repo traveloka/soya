@@ -46,7 +46,10 @@ export default class ServerCookieJar extends CookieJar {
     if (this._cookies == null) {
       this._createCache();
     }
-    return this._cookies[name];
+    if (this._cookies.hasOwnProperty(name)) {
+      return this._cookies[name];
+    }
+    return null;
   }
 
   /**

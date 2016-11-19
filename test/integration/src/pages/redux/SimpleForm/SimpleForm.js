@@ -4,7 +4,6 @@ import RenderResult from 'soya/lib/page/RenderResult';
 import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import register from 'soya/lib/client/Register';
 import ReduxStore from 'soya/lib/data/redux/ReduxStore';
-import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';
 import smokesignals from 'soya/lib/event/smokesignals';
 import Form from 'soya/lib/data/redux/form/Form';
 import FormSegment from 'soya/lib/data/redux/form/FormSegment';
@@ -47,9 +46,6 @@ class Component extends React.Component {
         <li><a href="javascript:void(0)" onClick={this.replaceKontakteForm.bind(this)}>Setting values to this form doesn't</a> set it to the first one.</li>
       </ul>
       <ContactForm form={this._kontakteForm} formName="Kontakte Form" context={this.props.context} />
-      <DebugPanel top right bottom>
-        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
-      </DebugPanel>
     </div>
   }
 

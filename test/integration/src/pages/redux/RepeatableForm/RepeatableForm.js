@@ -4,7 +4,6 @@ import RenderResult from 'soya/lib/page/RenderResult';
 import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import register from 'soya/lib/client/Register';
 import ReduxStore from 'soya/lib/data/redux/ReduxStore';
-import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';
 import smokesignals from 'soya/lib/event/smokesignals';
 import Form from 'soya/lib/data/redux/form/Form';
 import FormSegment from 'soya/lib/data/redux/form/FormSegment';
@@ -40,9 +39,6 @@ class Component extends React.Component {
         <li>Forms are able to easily create custom object hierarchies.</li>
         <li>Forms are able to easily repeat a set of fields to create a <code>List&lt;T&gt;</code> structure.</li>
       </ul>
-      <DebugPanel top right bottom>
-        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
-      </DebugPanel>
     </div>
   }
 

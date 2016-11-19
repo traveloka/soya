@@ -6,7 +6,6 @@ import ReduxStore from 'soya/lib/data/redux/ReduxStore.js';
 import register from 'soya/lib/client/Register';
 import UserProfile from '../../../components/contextual/UserProfile/UserProfile.js';
 import UserSegment from '../../../segments/UserSegment.js';
-import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';  
 
 // TODO: Figure out how to do promise polyfill.
 import style from '../../../shared/sitewide.css';
@@ -33,9 +32,6 @@ class Component extends React.Component {
         <li>You can <a href="javascript:void(0)" onClick={this.addProfile.bind(this, true)}>add a component and force re-load</a> the query.</li>
       </ul>
       {this.state.components}
-      <DebugPanel top right bottom>
-        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
-      </DebugPanel>
     </div>;
   }
 

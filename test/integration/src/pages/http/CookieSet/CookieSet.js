@@ -4,6 +4,7 @@ import RenderResult from 'soya/lib/page/RenderResult';
 import ReactRenderer from 'soya/lib/page/react/ReactRenderer.js';
 import register from 'soya/lib/client/Register';
 import Cookie from 'soya/lib/http/Cookie.js';
+import scope from 'soya/lib/scope';
 
 import style from '../../../shared/sitewide.css';
 
@@ -65,10 +66,10 @@ class CookieSet extends Page {
   }
 
   render(httpRequest, routeArgs, store, callback) {
-    if (this.inServer && this.cookieJar.read('decade') == null) {
+    if (scope.server && this.cookieJar.read('decade') == null) {
       this.cookieJar.set(Cookie.createExpireInDays('decade', '10-years', 10 * 360));
     }
-    if (this.inServer && this.cookieJar.read('one-night-stand') == null) {
+    if (scope.server && this.cookieJar.read('one-night-stand') == null) {
       this.cookieJar.set(Cookie.createSession('one-night-stand', 'sounds-fun'));
     }
 
