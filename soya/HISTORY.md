@@ -2,8 +2,9 @@
 
 ## 0.0.53
 
-- Change segment method names and make the static.
+- Change segment method names and make them static.
 - How to update:
+  - This applies to all your segment classes.
   - Change _generateQueryId() to static generateQueryId().
   - Change _createLoadFromQuery() to static createLoadFromQuery().
   - Change _queryState() to static queryState().
@@ -12,6 +13,8 @@
   - Change _getReducer() to static getReducer().
   - Change _getActionCreator() to static getActionCreator().
   - Change _processRefreshRequests() to static processRefreshRequests().
+  - Change the usage of _dependencyActionCreatorMap, use
+    Segment.getActionCreator() instead.
   - Remove constructor on all of your segments.
     - Move initialization of action types to const declarations above.
     - Move action creator and reducer above the class definitions.

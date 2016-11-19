@@ -12,7 +12,7 @@ const removeAllActionType = ActionNameUtil.generate(ModalSegmentId, 'REMOVE_ALL'
 const ACTION_CREATOR = {
   add(modalType, modalId, data) {
     return {
-      type: self._addActionType,
+      type: addActionType,
       modalType: modalType,
       modalId: modalId,
       data: data
@@ -20,78 +20,61 @@ const ACTION_CREATOR = {
   },
   update(modalId, commands) {
     return {
-      type: self._setDataActionType,
+      type: setDataActionType,
       modalId: modalId,
       commands: commands
     }
   },
   remove(modalId) {
     return {
-      type: self._removeActionType,
+      type: removeActionType,
       modalId: modalId
     };
   },
   removeAll() {
     return {
-      type: self._removeAllActionType
+      type: removeAllActionType
     };
   }
+};
+
+const REDUCER = function(state, action) {
+  if (state == null) state = [];
+  switch (action.type) {
+    case addActionType:
+      return ModalSegment._addModal(state, action);
+      break;
+    case setDataActionType:
+      return ModalSegment._setModalData(state, action);
+      break;
+    case removeActionType:
+      return ModalSegment._removeModal(state, action);
+      break;
+    case removeAllActionType:
+      return [];
+      break;
+  }
+  return state;
 };
 
 /**
  * @CLIENT_SERVER
  */
 export default class ModalSegment extends LocalSegment {
-  _addActionType;
-  _setDataActionType;
-  _removeActionType;
-  _removeAllActionType;
-  _actionCreator;
-
   static id() {
     return ModalSegmentId;
   }
 
-  static createInitialData() {
-    return [];
-  }
-
-  constructor(config, cookieJar, PromiseImpl) {
-    super(config, cookieJar, PromiseImpl);
-    var id = ModalSegment.id();
-
-    var self = this;
-    this._actionCreator =
-  }
-
-  _getActionCreator() {
-    return this._actionCreator;
+  static getActionCreator() {
+    return ACTION_CREATOR;
   }
 
   static getReducer() {
-    var self = this;
-    return function(state, action) {
-      if (state == null) state = ModalSegment.createInitialData();
-      switch (action.type) {
-        case self._addActionType:
-          return self._addModal(state, action);
-          break;
-        case self._setDataActionType:
-          return self._setModalData(state, action);
-          break;
-        case self._removeActionType:
-          return self._removeModal(state, action);
-          break;
-        case self._removeAllActionType:
-          return [];
-          break;
-      }
-      return state;
-    };
+    return REDUCER;
   }
 
-  _addModal(state, action) {
-    state = this._removeModal(state, action);
+  static _addModal(state, action) {
+    state = ModalSegment._removeModal(state, action);
     return update(state, { $push: [{
       modalId: action.modalId,
       modalType: action.modalType,
@@ -99,8 +82,8 @@ export default class ModalSegment extends LocalSegment {
     }]});
   }
 
-  _setModalData(state, action) {
-    var index = this._find(state, action.modalId);
+  static _setModalData(state, action) {
+    var index = ModalSegment._find(state, action.modalId);
     if (index <= -1) {
       return state;
     }
@@ -109,8 +92,8 @@ export default class ModalSegment extends LocalSegment {
     }}});
   }
 
-  _removeModal(state, action) {
-    var index = this._find(state, action.modalId);
+  static _removeModal(state, action) {
+    var index = ModalSegment._find(state, action.modalId);
     if (index > -1) {
       state = update(state, { $splice: [[index, 1]] });
     }
@@ -122,7 +105,7 @@ export default class ModalSegment extends LocalSegment {
    * @param {string} modalId
    * @returns {number}
    */
-  _find(state, modalId) {
+  static _find(state, modalId) {
     // Assuming that in a normal application, your modal window count won't
     // be more than 10, we need no indexes.
     var i, modal;

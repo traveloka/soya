@@ -500,6 +500,7 @@ export default class ReduxStore extends Store {
     // Register segment.
     if (!RegisteredSegmentClass) {
       this._initSegment(SegmentClass);
+      RegisteredSegmentClass = SegmentClass;
     }
     else if (SegmentClass !== RegisteredSegmentClass) {
       if (this._allowOverwriteSegment[id]) {
@@ -507,6 +508,7 @@ export default class ReduxStore extends Store {
         // TODO: Make two logger implementation, client and server, then use clientReplace accordingly.
         console.log('Replacing segment.. (this should not happen in production!)', RegisteredSegmentClass, SegmentClass);
         this._initSegment(SegmentClass);
+        RegisteredSegmentClass = SegmentClass;
       } else {
         throw new Error('Segment id clash! Claimed by ' + RegisteredSegmentClass + ' and ' + SegmentClass + ', with id: ' + id + '.');
       }

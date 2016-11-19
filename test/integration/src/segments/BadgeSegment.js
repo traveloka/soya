@@ -23,7 +23,7 @@ export default class BadgeSegment extends MapSegment {
         request.get('http://localhost:8000/api/user/badge/list').end((err, res) => {
           if (res.ok) {
             var payload = JSON.parse(res.text);
-            dispatch(this._createSetResultAction(queryId, payload));
+            dispatch(this.getActionCreator().set(queryId, payload));
             resolve();
           } else {
             reject(new Error('Unable to fetch badge data!'));
@@ -35,7 +35,7 @@ export default class BadgeSegment extends MapSegment {
     return load;
   }
 
-  _processRefreshRequests(segmentState, refreshRequests) {
+  static processRefreshRequests(segmentState, refreshRequests) {
     // Since there is only one API that updates this segment, we can go crazy.
     return ['*']
   }

@@ -24,7 +24,7 @@ export default class AirportListSegment extends MapSegment {
         request.get('http://localhost:8000/api/airport/list').end((err, res) => {
           if (res.ok) {
             var payload = JSON.parse(res.text);
-            dispatch(this._createSetResultAction(queryId, payload));
+            dispatch(this.getActionCreator().set(queryId, payload));
             resolve();
           } else {
             reject(new Error('Unable to fetch user data!'));

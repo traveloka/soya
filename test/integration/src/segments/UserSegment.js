@@ -23,7 +23,7 @@ export default class UserSegment extends MapSegment {
         request.get('http://localhost:8000/api/user/' + query.username).end((err, res) => {
           if (res.ok) {
             var payload = JSON.parse(res.text);
-            dispatch(this._createSetResultAction(queryId, payload));
+            dispatch(this.getActionCreator().set(queryId, payload));
             resolve();
           } else {
             reject(new Error('Unable to fetch user data!'));
@@ -35,7 +35,7 @@ export default class UserSegment extends MapSegment {
     return load;
   }
 
-  _processRefreshRequests(segmentState, refreshRequests) {
+  static processRefreshRequests(segmentState, refreshRequests) {
     var i, result = [];
     if (refreshRequests == '*') {
       // Update all fetched user data.
