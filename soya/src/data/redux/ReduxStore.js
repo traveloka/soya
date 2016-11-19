@@ -171,14 +171,11 @@ export default class ReduxStore extends Store {
   __isReduxStore;
 
   /**
-   * TODO: Remove PromiseImpl, relic of the past.
-   *
-   * @param {Function} PromiseImpl Deprecated.
    * @param {any} initialState
    * @param {Object} clientConfig
    * @param {CookieJar} cookieJar
    */
-  constructor(PromiseImpl, initialState, clientConfig, cookieJar) {
+  constructor(initialState, clientConfig, cookieJar) {
     super();
     this.__isReduxStore = true;
     this._inHydration = false;
@@ -578,6 +575,14 @@ export default class ReduxStore extends Store {
 
   /**
    * @param {string} segmentId
+   * @return {{[key: string]: Service}}
+   */
+  _getServiceDependencies(segmentId) {
+    return this._serviceDependencies[segmentId];
+  }
+
+  /**
+   * @param {string} segmentId
    * @param {string} queryId
    * @param {any} query
    * @param {Hydration} hydration
@@ -751,7 +756,7 @@ export default class ReduxStore extends Store {
     // So we ask Segment to load the query.
     var state = this._store.getState();
     var segmentState = state[segmentId];
-    var services = this._serviceDependencies[segmentId];
+    var services = this._getServiceDependencies(segmentId);
     var loadAction = segment.createLoadFromQuery(query, queryId, segmentState, services);
     if (loadAction == null) {
       // If load action is null, then this segment doesn't need to do load

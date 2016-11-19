@@ -3,21 +3,32 @@
 ## 0.0.53
 
 - Change segment method names and make them static.
+- Added Service classes and the concept of service dependencies, allowing
+  development of component testing scenarios by mocking services.
+- Remove PromiseImpl from ReduxStore constructor.
 - How to update:
-  - This applies to all your segment classes.
-  - Change _generateQueryId() to static generateQueryId().
-  - Change _createLoadFromQuery() to static createLoadFromQuery().
-  - Change _queryState() to static queryState().
-  - Change _isStateEqual() to static isStateEqual().
-  - Change _comparePiece() to static comparePiece().
-  - Change _getReducer() to static getReducer().
-  - Change _getActionCreator() to static getActionCreator().
-  - Change _processRefreshRequests() to static processRefreshRequests().
-  - Change the usage of _dependencyActionCreatorMap, use
-    Segment.getActionCreator() instead.
-  - Remove constructor on all of your segments.
-    - Move initialization of action types to const declarations above.
-    - Move action creator and reducer above the class definitions.
+  - All your pages:
+    - Change all pages that uses ReduxStore to extend from ReduxPage instead.
+      You'll no longer need to override Page.createStore(), so remove that
+      method. If you don't do this all your pages will throw an error.
+    - If you instantiate ReduxStore directly, remove the first constructor
+      argument (Promise).
+    - Use Page.createContext() to create context object instead of creating it
+      directly. Please see integration test pages for example.
+  - This applies to all your segment classes:
+    - Change _generateQueryId() to static generateQueryId().
+    - Change _createLoadFromQuery() to static createLoadFromQuery().
+    - Change _queryState() to static queryState().
+    - Change _isStateEqual() to static isStateEqual().
+    - Change _comparePiece() to static comparePiece().
+    - Change _getReducer() to static getReducer().
+    - Change _getActionCreator() to static getActionCreator().
+    - Change _processRefreshRequests() to static processRefreshRequests().
+    - Change the usage of _dependencyActionCreatorMap, use
+      Segment.getActionCreator() instead.
+    - Remove constructor on all of your segments.
+      - Move initialization of action types to const declarations above.
+      - Move action creator and reducer above the class definitions.
   - Change usage of MapSegment:
     - this._createSetResultAction(...) needs to change into
       this.getActionCreator().set(...).
