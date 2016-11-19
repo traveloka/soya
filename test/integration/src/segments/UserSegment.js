@@ -12,11 +12,11 @@ export default class UserSegment extends MapSegment {
     return UserSegmentId;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.username;
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     load.func = (dispatch) => {
       var result = new Promise((resolve, reject) => {

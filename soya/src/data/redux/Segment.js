@@ -13,23 +13,13 @@
  *   };
  * </pre>
  *
- * IMPORTANT NOTE: All methods described here is considered non public and
- * should be overridden by child class.
+ * IMPORTANT NOTE: The entirety of this class is supposed to be stateless.
+ * The reason we use class is to make it easier to inherit some of the
+ * pre-defined methods, while also making the interface clear.
  *
  * @CLIENT_SERVER
  */
 export default class Segment {
-  /**
-   * @param {Object} config
-   * @param {CookieJar} cookieJar
-   * @param {Object} dependencyActionCreatorMap
-   */
-  constructor(config, cookieJar, dependencyActionCreatorMap) {
-    this._config = config;
-    this._cookieJar = cookieJar;
-    this._dependencyActionCreators = dependencyActionCreatorMap;
-  }
-
   /**
    * Returns an array of Segment classes that this Segment has dependencies to.
    * Child classes can override this static method to declare their Segment
@@ -68,7 +58,7 @@ export default class Segment {
    * @param {any} query
    * @return {string}
    */
-  _generateQueryId(query) {
+  static generateQueryId(query) {
 
   }
 
@@ -80,8 +70,8 @@ export default class Segment {
    * @param {any} segmentState
    * @return {void | Load}
    */
-  _createLoadFromQuery(query, queryId, segmentState) {
-
+  static createLoadFromQuery(query, queryId, segmentState) {
+    return null;
   }
 
   /**
@@ -93,7 +83,7 @@ export default class Segment {
    * @param {any} segmentState
    * @return {QueryResult}
    */
-  _queryState(query, queryId, segmentState) {
+  static queryState(query, queryId, segmentState) {
     
   }
 
@@ -105,7 +95,7 @@ export default class Segment {
    * @param {any} segmentStateB
    * @return {boolean}
    */
-  _isStateEqual(segmentStateA, segmentStateB) {
+  static isStateEqual(segmentStateA, segmentStateB) {
     return segmentStateA === segmentStateB;
   }
 
@@ -122,15 +112,15 @@ export default class Segment {
    * @param queryId
    * @return {?Array<any>}
    */
-  _comparePiece(prevSegmentState, segmentState, query, queryId) {
+  static comparePiece(prevSegmentState, segmentState, query, queryId) {
     // If state is equal, nothing has changed, since our reducer always
     // re-creates the object.
-    if (this._isStateEqual(prevSegmentState, segmentState)) {
+    if (this.isStateEqual(prevSegmentState, segmentState)) {
       return null;
     }
 
-    var prevQueryResult = this._queryState(query, queryId, prevSegmentState);
-    var queryResult = this._queryState(query, queryId, segmentState);
+    var prevQueryResult = this.queryState(query, queryId, prevSegmentState);
+    var queryResult = this.queryState(query, queryId, segmentState);
     if (prevQueryResult.loaded != queryResult.loaded) {
       return [queryResult.data];
     }
@@ -159,18 +149,16 @@ export default class Segment {
    *
    * @return {Function}
    */
-  _getReducer() {
+  static getReducer() {
 
   }
 
   /**
-   * Returns an object containing action functions. Unlike reducer,
-   * ActionCreator can be stateful objects. This is allowed since ActionCreator
-   * has to deal with caching and AJAX requests.
+   * Returns an object containing action functions.
    *
    * @return {Object}
    */
-  _getActionCreator() {
+  static getActionCreator() {
 
   }
 
@@ -185,7 +173,7 @@ export default class Segment {
    * @param {?} refreshRequests
    * @returns {Array<?>}
    */
-  _processRefreshRequests(segmentState, refreshRequests) {
+  static processRefreshRequests(segmentState, refreshRequests) {
     return [];
   }
 }

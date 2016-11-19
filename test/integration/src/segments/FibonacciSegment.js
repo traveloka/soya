@@ -14,11 +14,11 @@ export default class FibonacciSegment extends MapSegment {
     return [AdditionSegment];
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.number;
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     var i, dependencies = QueryDependencies.serial(Promise);
     var a = 1, b = 1;

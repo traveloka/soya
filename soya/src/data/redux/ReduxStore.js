@@ -57,11 +57,6 @@ export default class ReduxStore extends Store {
   _segmentClasses;
 
   /**
-   * @type {{[key: string]: Segment}}
-   */
-  _segments;
-
-  /**
    * <pre>
    *   {
    *     segmentId: {
@@ -173,7 +168,6 @@ export default class ReduxStore extends Store {
     this._inHydration = false;
     this._allowRegisterSegment = false;
     this._clientConfig = clientConfig;
-    this._segments = {};
     this._segmentClasses = {};
     this._queries = {};
     this._registeredQueries = {};
@@ -247,12 +241,12 @@ export default class ReduxStore extends Store {
 
     for (segmentName in this._reducers) {
       if (!this._reducers.hasOwnProperty(segmentName)) continue;
-      if (!this._segments.hasOwnProperty(segmentName)) continue;
+      if (!this._segmentClasses.hasOwnProperty(segmentName)) continue;
       reducer = this._reducers[segmentName];
-      segment = this._segments[segmentName];
+      segment = this._segmentClasses[segmentName];
       segmentState = state[segmentName];
       nextSegmentState = reducer(segmentState, action);
-      isChanged = isChanged || !segment._isStateEqual(segmentState, nextSegmentState);
+      isChanged = isChanged || !segment.isStateEqual(segmentState, nextSegmentState);
       nextState[segmentName] = nextSegmentState;
     }
     return isChanged ? nextState : state;
@@ -284,9 +278,9 @@ export default class ReduxStore extends Store {
     // re-rendering.
     var segmentId, segment, segmentState, prevSegmentState, segmentSubscribers,
         queryId, querySubscribers, subscriberId, segmentPiece, shouldUpdate, query;
-    for (segmentId in this._segments) {
-      if (!this._segments.hasOwnProperty(segmentId)) continue;
-      segment = this._segments[segmentId];
+    for (segmentId in this._segmentClasses) {
+      if (!this._segmentClasses.hasOwnProperty(segmentId)) continue;
+      segment = this._segmentClasses[segmentId];
       segmentSubscribers = this._subscribers[segmentId];
       segmentState = state[segmentId];
       prevSegmentState = this._previousState.state[segmentId];
@@ -299,7 +293,7 @@ export default class ReduxStore extends Store {
         // TODO: This assumption/design seems to be flawed, null to existence is a change, and we should notify listeners.
         shouldUpdate = false;
         query = this._queries[segmentId][queryId].query;
-        segmentPiece = segment._comparePiece(prevSegmentState, segmentState, query, queryId);
+        segmentPiece = segment.comparePiece(prevSegmentState, segmentState, query, queryId);
         shouldUpdate = segmentPiece != null;
         if (shouldUpdate) {
           // Segment piece has changed, call all registered subscribers.
@@ -373,8 +367,8 @@ export default class ReduxStore extends Store {
   _queryState(segmentId, query, queryId) {
     var state = this._store.getState();
     var segmentState = state[segmentId];
-    var queryResult = this._segments[segmentId]._queryState(query, queryId, segmentState);
-    if (queryResult.constructor != QueryResult) throw new Error('_queryState must return instance of QueryResult! queryId: ' + queryId);
+    var queryResult = this._segmentClasses[segmentId].queryState(query, queryId, segmentState);
+    if (queryResult.constructor != QueryResult) throw new Error('Segment.queryState must return instance of QueryResult! queryId: ' + queryId);
     return queryResult;
   }
 
@@ -395,8 +389,8 @@ export default class ReduxStore extends Store {
   _mayHotReloadSegments() {
     this._allowOverwriteSegment = {};
     var segmentName;
-    for (segmentName in this._segments) {
-      if (!this._segments.hasOwnProperty(segmentName)) continue;
+    for (segmentName in this._segmentClasses) {
+      if (!this._segmentClasses.hasOwnProperty(segmentName)) continue;
       this._allowOverwriteSegment[segmentName] = true;
     }
   }
@@ -424,16 +418,15 @@ export default class ReduxStore extends Store {
    */
   hydrate() {
     this._inHydration = true;
-    var segment, segmentClass, segmentId, queryId, queries, hydration;
+    var segment, segmentId, queryId, queries, hydration;
     var hydrationPromises = [], promise, query;
     for (segmentId in this._queries) {
       if (!this._queries.hasOwnProperty(segmentId)) continue;
-      segmentClass = this._segmentClasses[segmentId];
-      if (!segmentClass.shouldHydrate()) {
+      segment = this._segmentClasses[segmentId];
+      if (!segment.shouldHydrate()) {
         // No need to hydrate local segments.
         continue;
       }
-      segment = this._segments[segmentId];
       queries = this._queries[segmentId];
       for (queryId in queries) {
         if (!queries.hasOwnProperty(queryId)) continue;
@@ -486,37 +479,34 @@ export default class ReduxStore extends Store {
    */
   register(SegmentClass) {
     // First let's register all dependencies that this Segment class has.
-    var i, dependencies = SegmentClass.getSegmentDependencies(),
-        dependencyActionCreatorMap = {}, actionCreator;
+    var i, dependencies = SegmentClass.getSegmentDependencies(), actionCreator;
     for (i = 0; i < dependencies.length; i++) {
       actionCreator = this.register(dependencies[i]);
-      dependencyActionCreatorMap[dependencies[i].id()] = actionCreator;
     }
 
     // Get the segment ID to see if we already have registered the segment.
     var id = SegmentClass.id();
-    var registeredSegment = this._segments[id];
     var RegisteredSegmentClass = this._segmentClasses[id];
 
     if (this._segmentClasses.hasOwnProperty(id)) {
       if (RegisteredSegmentClass === SegmentClass) {
         // Segment already registered.
-        return registeredSegment._getActionCreator();
-      }  else {
+        return RegisteredSegmentClass.getActionCreator();
+      } else {
         throw new Error('Segment name clash: ' + id + '.', RegisteredSegmentClass, SegmentClass);
       }
     }
 
     // Register segment.
-    if (!registeredSegment) {
-      registeredSegment = this._initSegment(SegmentClass, dependencyActionCreatorMap);
+    if (!RegisteredSegmentClass) {
+      this._initSegment(SegmentClass);
     }
     else if (SegmentClass !== RegisteredSegmentClass) {
       if (this._allowOverwriteSegment[id]) {
         // TODO: Create a DEBUG flag using webpack so that we can silent logging in production? or..
         // TODO: Make two logger implementation, client and server, then use clientReplace accordingly.
         console.log('Replacing segment.. (this should not happen in production!)', RegisteredSegmentClass, SegmentClass);
-        registeredSegment = this._initSegment(SegmentClass, dependencyActionCreatorMap);
+        this._initSegment(SegmentClass);
       } else {
         throw new Error('Segment id clash! Claimed by ' + RegisteredSegmentClass + ' and ' + SegmentClass + ', with id: ' + id + '.');
       }
@@ -526,26 +516,23 @@ export default class ReduxStore extends Store {
     // We only allow segment overwrites for *first* registration.
     delete this._allowOverwriteSegment[id];
 
-    return registeredSegment._getActionCreator();
+    return RegisteredSegmentClass.getActionCreator();
   }
 
   /**
    * Returns the instantiated segment.
    *
    * @param {Class<Segment>} SegmentClass
-   * @param {Object} dependencyActionCreatorMap
    * @return {Segment}
    */
-  _initSegment(SegmentClass, dependencyActionCreatorMap) {
+  _initSegment(SegmentClass) {
     var id = SegmentClass.id();
-    var segment = new SegmentClass(this._clientConfig, this._cookieJar, dependencyActionCreatorMap);
-    this._segments[id] = segment;
     this._segmentClasses[id] = SegmentClass;
-    this._reducers[id] = segment._getReducer();
+    this._reducers[id] = SegmentClass.getReducer();
     this._subscribers[id] = {};
-    this._actionCreators[id] = segment._getActionCreator();
+    this._actionCreators[id] = SegmentClass.getActionCreator();
     this._registeredQueries[id] = {};
-    return segment;
+    return SegmentClass;
   }
 
   /**
@@ -595,12 +582,12 @@ export default class ReduxStore extends Store {
         var promiseList = [];
         for (segmentId in refreshRequestMap) {
           if (!refreshRequestMap.hasOwnProperty(segmentId) ||
-              !this._segments.hasOwnProperty(segmentId)) {
+              !this._segmentClasses.hasOwnProperty(segmentId)) {
             continue;
           }
-          segment = this._segments[segmentId];
+          segment = this._segmentClasses[segmentId];
           segmentState = state[segmentId];
-          queryList = segment._processRefreshRequests(
+          queryList = segment.processRefreshRequests(
             segmentState, refreshRequestMap[segmentId]);
           for (i = 0; i < queryList.length; i++) {
             promiseList.push(this.query(segmentId, queryList[i], true));
@@ -645,13 +632,13 @@ export default class ReduxStore extends Store {
       component[SUBSCRIBER_ID] = subscriberId;
     }
 
-    var registeredSegment = this._segments[segmentId];
-    if (!registeredSegment) {
+    var segment = this._segmentClasses[segmentId];
+    if (!segment) {
       throw new Error('Cannot subscribe, Segment is not registered: ' + segmentId + '.');
     }
 
     // TODO: We call generateQueryId twice on subscribe, fix.
-    var queryId = registeredSegment._generateQueryId(query);
+    var queryId = segment.generateQueryId(query);
 
     // Runs the query (if we're at server, the query won't actually be run).
     // Server side queries will be run through hydrate() method.
@@ -680,13 +667,13 @@ export default class ReduxStore extends Store {
    * @return {Promise}
    */
   query(segmentId, query, forceLoad, hydration) {
-    var segment = this._segments[segmentId];
+    var segment = this._segmentClasses[segmentId];
     if (!segment) {
       throw new Error('Cannot query, Segment is not registered: ' + segmentId + '.');
     }
 
     // TODO: When we turn on history navigation, this._queries map will pile up, causing memory leak. Fix.
-    var queryId = segment._generateQueryId(query);
+    var queryId = segment.generateQueryId(query);
     this._initQuery(segmentId, queryId, query, hydration);
     hydration = this._queries[segmentId][queryId].hydration;
 
@@ -723,7 +710,7 @@ export default class ReduxStore extends Store {
     // So we ask Segment to load the query.
     var state = this._store.getState();
     var segmentState = state[segmentId];
-    var loadAction = segment._createLoadFromQuery(query, queryId, segmentState);
+    var loadAction = segment.createLoadFromQuery(query, queryId, segmentState);
     if (loadAction == null) {
       // If load action is null, then this segment doesn't need to do load
       // actions. We return immediately with previously fetched segment piece.

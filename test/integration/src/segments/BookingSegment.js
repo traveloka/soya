@@ -18,11 +18,11 @@ export default class BookingSegment extends MapSegment {
     return [LifetimeSessionSegment];
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.bookingId;
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     var dependencies = QueryDependencies.serial(Promise);
     dependencies.add('context', LifetimeSessionSegment.id(), null);

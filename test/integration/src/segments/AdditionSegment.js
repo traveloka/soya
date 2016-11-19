@@ -12,11 +12,11 @@ export default class AdditionSegment extends MapSegment {
     return AdditionSegmentId;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.a + '+' + query.b;
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     load.func = (dispatch) => {
       var result = new Promise((resolve, reject) => {

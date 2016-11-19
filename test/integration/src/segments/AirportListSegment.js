@@ -12,12 +12,12 @@ export default class AirportListSegment extends MapSegment {
     return AirportListSegmentId;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     // We only have one possible query.
     return '*';
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     load.func = (dispatch) => {
       var result = new Promise((resolve, reject) => {

@@ -16,11 +16,11 @@ export default class LifetimeSessionSegment extends MapSegment {
     return LifetimeSessionSegmentId;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return 'default';
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     var lifetimeCookie = this._cookieJar.read(LIFETIME_COOKIE_NAME);
     var sessionCookie = this._cookieJar.read(SESSION_COOKIE_NAME);

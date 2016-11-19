@@ -14,13 +14,13 @@ export default class ConcatRandomTimeEchoSegment extends MapSegment {
     return [RandomTimeEchoSegment];
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.value + (query.isParallel ? '$p' : '$s') +
       (query.isReplaceParallel ? '$p' : '$s') +
       (query.shouldReplace ? '$r' : '');
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     var dependencies, recursiveDependencies, RecursiveQueryCtor, i, val;
 

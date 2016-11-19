@@ -1,7 +1,8 @@
 import Segment from '../../Segment.js';
 import ActionNameUtil from '../ActionNameUtil.js';
 import QueryResult from '../../QueryResult.js';
-import Load from '../../Load.js';
+
+import update from 'react-addons-update';
 
 /**
  * Organizes pieces inside its segment as simple key-value map. This means
@@ -11,132 +12,67 @@ import Load from '../../Load.js';
  * @CLIENT_SERVER
  */
 export default class MapSegment extends Segment {
-  /**
-   * @type {Object}
-   */
-  _actionCreator;
-
-  /**
-   * @type {string}
-   */
-  _setActionType;
-
-  /**
-   * @type {CookieJar}
-   */
-  _cookieJar;
-
-  /**
-   * @param {Object} config
-   * @param {CookieJar} cookieJar
-   * @param {Object} dependencyActionCreatorMap
-   */
-  constructor(config, cookieJar, dependencyActionCreatorMap) {
-    super(config, cookieJar, dependencyActionCreatorMap);
-
-    // Since segment name is guaranteed never to clash by ReduxStore, we can
-    // safely use segment name as action type.
-    var id = this.constructor.id();
-    this._setActionType = ActionNameUtil.generate(id, 'SET');
-    this._actionCreator = {};
-  }
-
-  /**
-   * Generates a unique string representing the given query. Same query must
-   * generate identical strings. Query ID is used by ReduxStore and Segment
-   * to recognize identical queries.
-   *
-   * ABSTRACT: To be overridden by child implementations.
-   *
-   * @param {any} query
-   * @return {string}
-   * @private
-   */
-  _generateQueryId(query) {
-    throw new Error('User must override this _generateQueryId method! Instance: ' + this + '.');
-  }
-
-  /**
-   * @param {any} query
-   * @param {string} queryId
-   * @param {any} segmentState
-   * @return {Object | Load}
-   */
-  _createLoadFromQuery(query, queryId, segmentState) {
-    throw new Error('User must override _createLoadFromQuery method! Instance: ' + this + '.');
-  }
-
-  /**
-   * Creates an action object with the given state payload.
-   *
-   * IMPORTANT NOTE: Please make sure that you return a *new* object, as redux
-   * store states are supposed to be immutable.
-   *
-   * @param {string} queryId
-   * @param {void | any} payload
-   * @param {void | Array<any>} errors
-   * @return {Object}
-   */
-  _createSetResultAction(queryId, payload, errors) {
-    return {
-      type: this._setActionType,
-      queryId: queryId,
-      payload: {
-        data: payload,
-        updated: Date.now ? Date.now() : new Date().getTime(),
-        errors: errors,
-        loaded: errors ? false : true
+  // We'll cache something at the Segment class. This isn't state, since it's
+  // constant for all user Segment classes extending this class and won't
+  // ever change.
+  static __initialize() {
+    const segment = this;
+    if (segment.__INITIALIZED) return;
+    const id = segment.id();
+    const SET_ACTION_TYPE = ActionNameUtil.generate(id, 'SET');
+    segment.__ACTION_CREATOR = {
+      'set': function(queryId, payload, errors) {
+        return {
+          type: SET_ACTION_TYPE,
+          queryId: queryId,
+          payload: {
+            data: payload,
+            updated: Date.now ? Date.now() : new Date().getTime(),
+            errors: errors
+          }
+        };
       }
     };
+    segment.__REDUCER = function(state, action) {
+      // If state is undefined, return initial state.
+      if (state == null) state = {};
+      switch(action.type) {
+        case SET_ACTION_TYPE:
+          // Replace the map entry with the new loaded one.
+          state = update(state, {
+            [action.queryId]: {$set: action.payload}
+          });
+          break;
+      }
+      return state;
+    };
+    segment.__INITIALIZED = true;
   }
 
   /**
+   * If you find that you need to override this method, you're better off
+   * creating your own Segment class, since overriding this method also means
+   * overriding getReducer() and other methods in this class.
+   *
    * @return {Object}
    */
-  _getActionCreator() {
-    return this._actionCreator;
-  }
-  
-  _queryState(query, queryId, segmentState) {
-    if (segmentState == null) return QueryResult.notLoaded();
-    var piece = segmentState[queryId];
-    if (piece == null) return QueryResult.notLoaded();
-    return QueryResult.loaded(piece);
+  static getActionCreator() {
+    this.__initialize();
+    return this.__ACTION_CREATOR;
   }
 
   /**
    * @return {Function}
    */
-  _getReducer() {
-    var setActionType = this._setActionType;
-    return (state, action) => {
-      // If state is undefined, return initial state.
-      if (!state) state = {};
-      var newState;
-      switch(action.type) {
-        case setActionType:
-          // Replace the map entry with the new loaded one.
-          newState = this._createNewStateObj(state);
-          newState[action.queryId] = action.payload;
-          return newState;
-          break;
-      }
-      return state;
-    };
+  static getReducer() {
+    this.__initialize();
+    return this.__REDUCER;
   }
 
-  /**
-   * Create a new object, redux store state is supposed to immutable!
-   *
-   * @param {Object} state
-   * @return {Object}
-   */
-  _createNewStateObj(state) {
-    var newState = {}, queryId;
-    for (queryId in state) {
-      if (!state.hasOwnProperty(queryId)) continue;
-      newState[queryId] = state[queryId];
-    }
-    return newState;
+  static queryState(query, queryId, segmentState) {
+    if (segmentState == null) return QueryResult.notLoaded();
+    var piece = segmentState[queryId];
+    if (piece == null) return QueryResult.notLoaded();
+    return QueryResult.loaded(piece);
   }
 }

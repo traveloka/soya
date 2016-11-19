@@ -12,11 +12,11 @@ export default class BadgeSegment extends MapSegment {
     return BadgeSegmentId;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return '*';
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     load.func = (dispatch) => {
       var result = new Promise((resolve, reject) => {

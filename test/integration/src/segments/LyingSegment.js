@@ -3,48 +3,41 @@ import ActionNameUtil from 'soya/lib/data/redux/segment/ActionNameUtil';
 
 import { LyingSegmentId } from './ids.js';
 
+const INCREMENT_ACTION_TYPE = ActionNameUtil.generate(LyingSegmentId, 'INCREMENT');
+
+const REDUCER = function(state, action) {
+  if (state == null) state = 0;
+  switch (action.type) {
+    case INCREMENT_ACTION_TYPE:
+      state = state + action.number;
+      break;
+  }
+  return state;
+};
+
+const ACTION_CREATOR = {
+  increment: function(number) {
+    if (number == null || number == undefined) number = 1;
+    return {
+      type: INCREMENT_ACTION_TYPE,
+      number: number
+    }
+  }
+};
+
 /**
  * @CLIENT_SERVER
  */
 export default class LyingSegment extends LocalSegment {
-  _incrementActionType;
-
   static id() {
     return LyingSegmentId;
   }
 
-  static createInitialData() {
-    return 0;
+  static getActionCreator() {
+    return ACTION_CREATOR;
   }
 
-  constructor(config, cookieJar, PromiseImpl) {
-    super(config, cookieJar, PromiseImpl);
-    var id = LyingSegment.id();
-    this._incrementActionType = ActionNameUtil.generate(id, 'INCREMENT');
-  }
-
-  _getActionCreator() {
-    var self = this;
-    return {
-      increment: function(number) {
-        if (number == null || number == undefined) number = 1;
-        return {
-          type: self._incrementActionType,
-          number: number
-        }
-      }
-    }
-  }
-
-  _getReducer() {
-    return (state, action) => {
-      if (state == null) return LyingSegment.createInitialData();
-      switch (action.type) {
-        case this._incrementActionType:
-          state = state + action.number;
-          break;
-      }
-      return state;
-    }
+  static getReducer() {
+    return REDUCER;
   }
 }

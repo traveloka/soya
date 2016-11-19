@@ -4,6 +4,40 @@ import update from 'react-addons-update';
 
 import { ModalSegmentId } from './ids.js';
 
+const addActionType = ActionNameUtil.generate(ModalSegmentId, 'ADD');
+const setDataActionType = ActionNameUtil.generate(ModalSegmentId, 'SET_DATA');
+const removeActionType = ActionNameUtil.generate(ModalSegmentId, 'REMOVE');
+const removeAllActionType = ActionNameUtil.generate(ModalSegmentId, 'REMOVE_ALL');
+
+const ACTION_CREATOR = {
+  add(modalType, modalId, data) {
+    return {
+      type: self._addActionType,
+      modalType: modalType,
+      modalId: modalId,
+      data: data
+    }
+  },
+  update(modalId, commands) {
+    return {
+      type: self._setDataActionType,
+      modalId: modalId,
+      commands: commands
+    }
+  },
+  remove(modalId) {
+    return {
+      type: self._removeActionType,
+      modalId: modalId
+    };
+  },
+  removeAll() {
+    return {
+      type: self._removeAllActionType
+    };
+  }
+};
+
 /**
  * @CLIENT_SERVER
  */
@@ -25,47 +59,16 @@ export default class ModalSegment extends LocalSegment {
   constructor(config, cookieJar, PromiseImpl) {
     super(config, cookieJar, PromiseImpl);
     var id = ModalSegment.id();
-    this._addActionType = ActionNameUtil.generate(id, 'ADD');
-    this._setDataActionType = ActionNameUtil.generate(id, 'SET_DATA');
-    this._removeActionType = ActionNameUtil.generate(id, 'REMOVE');
-    this._removeAllActionType = ActionNameUtil.generate(id, 'REMOVE_ALL');
 
     var self = this;
-    this._actionCreator = {
-      add(modalType, modalId, data) {
-        return {
-          type: self._addActionType,
-          modalType: modalType,
-          modalId: modalId,
-          data: data
-        }
-      },
-      update(modalId, commands) {
-        return {
-          type: self._setDataActionType,
-          modalId: modalId,
-          commands: commands
-        }
-      },
-      remove(modalId) {
-        return {
-          type: self._removeActionType,
-          modalId: modalId
-        };
-      },
-      removeAll() {
-        return {
-          type: self._removeAllActionType
-        };
-      }
-    };
+    this._actionCreator =
   }
 
   _getActionCreator() {
     return this._actionCreator;
   }
 
-  _getReducer() {
+  static getReducer() {
     var self = this;
     return function(state, action) {
       if (state == null) state = ModalSegment.createInitialData();

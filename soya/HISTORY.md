@@ -1,5 +1,27 @@
 # Version 0.0.x
 
+## 0.0.53
+
+- Change segment method names and make the static.
+- How to update:
+  - Change _generateQueryId() to static generateQueryId().
+  - Change _createLoadFromQuery() to static createLoadFromQuery().
+  - Change _queryState() to static queryState().
+  - Change _isStateEqual() to static isStateEqual().
+  - Change _comparePiece() to static comparePiece().
+  - Change _getReducer() to static getReducer().
+  - Change _getActionCreator() to static getActionCreator().
+  - Change _processRefreshRequests() to static processRefreshRequests().
+  - Remove constructor on all of your segments.
+    - Move initialization of action types to const declarations above.
+    - Move action creator and reducer above the class definitions.
+  - Change usage of MapSegment:
+    - this._createSetResultAction(...) needs to change into
+      this.getActionCreator().set(...).
+  - Change usage of LocalSegment:
+    - If getActionCreator() is overridden, make sure that getReducer() is also
+      overridden.
+
 ## 0.0.52
 
 - Fix CookieJar read returning inconsistent return values on server side

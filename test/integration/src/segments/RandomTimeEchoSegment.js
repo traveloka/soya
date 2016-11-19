@@ -12,11 +12,11 @@ export default class RandomTimeEchoSegment extends MapSegment {
     return RandomTimeEchoSegmentId;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.value;
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     load.func = (dispatch) => {
       var result = new Promise((resolve, reject) => {
