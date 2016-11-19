@@ -32,13 +32,22 @@ export default class Segment {
   }
 
   /**
+   * Returns an array of Service classes that this Segment needs.
+   *
+   * @returns {Array<Class<Service>>}
+   */
+  static getServiceDependencies() {
+    return [];
+  }
+
+  /**
    * Get the segment name. Segment's name is hard-coded by each segment
    * implementation and must never change.
    *
    * @return {string}
    */
   static id() {
-    throw new Error('Segment implementation must provide ID!');
+    throw new Error('Must implement: ' + this);
   }
 
   /**
@@ -59,7 +68,7 @@ export default class Segment {
    * @return {string}
    */
   static generateQueryId(query) {
-
+    throw new Error('Must implement: ' + this);
   }
 
   /**
@@ -68,9 +77,10 @@ export default class Segment {
    * @param {any} query
    * @param {string} queryId
    * @param {any} segmentState
+   * @param {{[key: string]: Service}} services
    * @return {void | Load}
    */
-  static createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState, services) {
     return null;
   }
 
@@ -84,7 +94,7 @@ export default class Segment {
    * @return {QueryResult}
    */
   static queryState(query, queryId, segmentState) {
-    
+    throw new Error('Must implement: ' + this);
   }
 
   /**
@@ -150,7 +160,7 @@ export default class Segment {
    * @return {Function}
    */
   static getReducer() {
-
+    throw new Error('Must implement: ' + this);
   }
 
   /**
@@ -159,7 +169,7 @@ export default class Segment {
    * @return {Object}
    */
   static getActionCreator() {
-
+    throw new Error('Must implement: ' + this);
   }
 
   /**

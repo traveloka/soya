@@ -1,0 +1,1 @@
+import Service from 'soya/lib/data/redux';

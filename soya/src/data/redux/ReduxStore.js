@@ -5,6 +5,7 @@ import PromiseUtil from './PromiseUtil.js';
 import Load from './Load.js';
 import QueryDependencies from './QueryDependencies.js';
 import Hydration from './Hydration.js';
+import Service from './Service.js';
 
 import QueryResult from './QueryResult.js';
 import { compose, createStore, applyMiddleware } from 'redux';
@@ -52,9 +53,24 @@ export default class ReduxStore extends Store {
   _nextSubscriberId;
 
   /**
-   * @type {{[key: string}: Class<Segment>}
+   * @type {{[key: string]: Class<Segment>}}
    */
   _segmentClasses;
+
+  /**
+   * @type {{[key: string]: Service}}
+   */
+  _services;
+
+  /**
+   * @type {{[key: string]: Class<Service>}}
+   */
+  _serviceClasses;
+
+  /**
+   * @type {{[key: string]: Array<Service>}}
+   */
+  _serviceDependencies;
 
   /**
    * <pre>
@@ -170,6 +186,9 @@ export default class ReduxStore extends Store {
     this._clientConfig = clientConfig;
     this._segmentClasses = {};
     this._queries = {};
+    this._services = {};
+    this._serviceClasses = {};
+    this._serviceDependencies = {};
     this._registeredQueries = {};
     this._reducers = {};
     this._subscribers = {};
@@ -479,9 +498,9 @@ export default class ReduxStore extends Store {
    */
   register(SegmentClass) {
     // First let's register all dependencies that this Segment class has.
-    var i, dependencies = SegmentClass.getSegmentDependencies(), actionCreator;
+    var i, dependencies = SegmentClass.getSegmentDependencies();
     for (i = 0; i < dependencies.length; i++) {
-      actionCreator = this.register(dependencies[i]);
+      this.register(dependencies[i]);
     }
 
     // Get the segment ID to see if we already have registered the segment.
@@ -522,10 +541,7 @@ export default class ReduxStore extends Store {
   }
 
   /**
-   * Returns the instantiated segment.
-   *
    * @param {Class<Segment>} SegmentClass
-   * @return {Segment}
    */
   _initSegment(SegmentClass) {
     var id = SegmentClass.id();
@@ -534,7 +550,30 @@ export default class ReduxStore extends Store {
     this._subscribers[id] = {};
     this._actionCreators[id] = SegmentClass.getActionCreator();
     this._registeredQueries[id] = {};
-    return SegmentClass;
+    this._serviceDependencies[id] = {};
+
+    var i, serviceId, serviceClass, service,
+      serviceDeps = SegmentClass.getServiceDependencies();
+    for (i = 0; i < serviceDeps.length; i++) {
+      serviceClass = serviceDeps[i];
+      serviceId = serviceClass.id();
+      if (typeof serviceId != 'string') {
+        throw new Error('Service dependencies must extend Service:' + serviceClass);
+      }
+      if (this._serviceClasses.hasOwnProperty(serviceId)) {
+        if (this._serviceClasses[serviceId] === serviceClass) {
+          service = this._services[serviceId];
+        } else {
+          // TODO: Find a way to make this hot-reload-able.
+          throw new Error(`Service id clash: ${serviceId}, between classes: ${serviceClass} and ${this._serviceClasses[serviceId]}`);
+        }
+      } else {
+        service = new serviceClass(this._clientConfig, this._cookieJar);
+        this._serviceClasses[serviceId] = serviceClass;
+        this._services[serviceId] = service;
+      }
+      this._serviceDependencies[id][serviceId] = service;
+    }
   }
 
   /**
@@ -712,7 +751,8 @@ export default class ReduxStore extends Store {
     // So we ask Segment to load the query.
     var state = this._store.getState();
     var segmentState = state[segmentId];
-    var loadAction = segment.createLoadFromQuery(query, queryId, segmentState);
+    var services = this._serviceDependencies[segmentId];
+    var loadAction = segment.createLoadFromQuery(query, queryId, segmentState, services);
     if (loadAction == null) {
       // If load action is null, then this segment doesn't need to do load
       // actions. We return immediately with previously fetched segment piece.
