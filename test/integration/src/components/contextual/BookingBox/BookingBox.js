@@ -30,17 +30,18 @@ class BookingBox extends React.Component {
 
   render() {
     var title = `Booking Detail (${this.props.bookingId})`;
-    if (this.props.result.booking == null || !this.props.result.booking.loaded) {
-      var loading = <p>Loading...</p>;
-      if (this.props.result.booking != null) {
-        if (this.props.result.booking.errors) {
-          loading = <p>Error: {this.props.result.booking.errors[0]}</p>;
-        }
-      }
+    if (this.props.result.booking == null) {
       return <div className={style.container}>
         <h3>{title}</h3>
-        {loading}
+        <p>Loading...</p>
       </div>
+    }
+
+    if (this.props.result.booking.errors) {
+      return <div className={style.container}>
+        <h3>{title}</h3>
+        <p>Error: {this.props.result.booking.errors[0]}</p>
+      </div>;
     }
 
     return <div className={style.container}>
@@ -50,7 +51,7 @@ class BookingBox extends React.Component {
         <li>Status: {this.props.result.booking.data.status}</li>
         <li>Last Updated: {new Date(this.props.result.booking.data.timestamp).toGMTString()}</li>
       </ul>
-    </div>
+    </div>;
   }
 }
 

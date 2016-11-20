@@ -1,12 +1,10 @@
 import React from 'react';
-import Page from 'soya/lib/page/Page';
+import ReduxPage from 'soya/lib/page/ReduxPage';
 import RenderResult from 'soya/lib/page/RenderResult';
-import ReactRenderer from 'soya/lib/page/react/ReactRenderer.js';
+import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import register from 'soya/lib/client/Register';
-import ReduxStore from 'soya/lib/data/redux/ReduxStore.js';
 import UserProfile from '../../../components/contextual/UserProfile/UserProfile.js';
 
-// TODO: Figure out how to do promise polyfill.
 import style from '../../../shared/sitewide.css';
 
 class Component extends React.Component {
@@ -66,14 +64,9 @@ class Component extends React.Component {
   }
 }
 
-class Hydration extends Page {
+class Hydration extends ReduxPage {
   static get pageName() {
     return 'Hydration';
-  }
-
-  createStore(initialState) {
-    var reduxStore = new ReduxStore(Promise, initialState, this.config, this.cookieJar);
-    return reduxStore;
   }
 
   render(httpRequest, routeArgs, store, callback) {

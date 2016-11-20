@@ -14,11 +14,11 @@ export default class FibonacciTotalSegment extends MapSegment {
     return [FibonacciSegment];
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.number;
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     var dependencies = QueryDependencies.serial(Promise);
 
@@ -31,7 +31,7 @@ export default class FibonacciTotalSegment extends MapSegment {
         if (n == '') continue;
         total += parseInt(n, 10);
       }
-      var actionObj = this._createSetResultAction(queryId, total);
+      var actionObj = this.getActionCreator().set(queryId, total);
       return dispatch(actionObj);
     };
     return load;

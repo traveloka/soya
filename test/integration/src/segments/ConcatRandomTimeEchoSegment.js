@@ -14,13 +14,13 @@ export default class ConcatRandomTimeEchoSegment extends MapSegment {
     return [RandomTimeEchoSegment];
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.value + (query.isParallel ? '$p' : '$s') +
       (query.isReplaceParallel ? '$p' : '$s') +
       (query.shouldReplace ? '$r' : '');
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static createLoadFromQuery(query, queryId, segmentState) {
     var load = new Load();
     var dependencies, recursiveDependencies, RecursiveQueryCtor, i, val;
 
@@ -72,7 +72,7 @@ export default class ConcatRandomTimeEchoSegment extends MapSegment {
         segmentPiece = resultArray[i];
         resultStr += segmentPiece != null ? segmentPiece.data : '?';
       }
-      return dispatch(this._createSetResultAction(queryId, resultStr));
+      return dispatch(this.getActionCreator().set(queryId, resultStr));
     };
     return load;
   }

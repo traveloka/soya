@@ -1,10 +1,7 @@
 import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment';
 import Load from 'soya/lib/data/redux/Load';
 
-// TODO: Figure out how to do polyfill.
-// TODO: Figure out how to load client-side libraries like jQuery!
-import request from 'superagent';
-
+import AirportListService from '../services/AirportListService.js';
 import { AirportListSegmentId } from './ids.js';
 
 export default class AirportListSegment extends MapSegment {
@@ -12,24 +9,24 @@ export default class AirportListSegment extends MapSegment {
     return AirportListSegmentId;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     // We only have one possible query.
     return '*';
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static getServiceDependencies() {
+    return [AirportListService];
+  }
+
+  static createLoadFromQuery(query, queryId, segmentState, services) {
     var load = new Load();
+    var airportListService = services[AirportListService.id()];
     load.func = (dispatch) => {
       var result = new Promise((resolve, reject) => {
-        request.get('http://localhost:8000/api/airport/list').end((err, res) => {
-          if (res.ok) {
-            var payload = JSON.parse(res.text);
-            dispatch(this._createSetResultAction(queryId, payload));
-            resolve();
-          } else {
-            reject(new Error('Unable to fetch user data!'));
-          }
-        });
+        airportListService.fetchAirportList().then((payload) => {
+          dispatch(this.getActionCreator().set(queryId, payload));
+          resolve();
+        }).catch(reject);
       });
       return result;
     };

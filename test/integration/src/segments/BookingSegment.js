@@ -2,12 +2,11 @@ import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment';
 import QueryDependencies from 'soya/lib/data/redux/QueryDependencies';
 import Load from 'soya/lib/data/redux/Load';
 
-// TODO: Figure out how to do polyfill.
-// TODO: Figure out how to load client-side libraries like jQuery!
-import request from 'superagent';
-
 import { BookingSegmentId } from './ids.js';
+import BookingService from '../services/BookingService.js';
 import LifetimeSessionSegment from './LifetimeSessionSegment.js';
+
+const CONTEXT = 'c';
 
 export default class BookingSegment extends MapSegment {
   static id() {
@@ -18,29 +17,34 @@ export default class BookingSegment extends MapSegment {
     return [LifetimeSessionSegment];
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.bookingId;
   }
 
-  _createLoadFromQuery(query, queryId, segmentState) {
+  static getServiceDependencies() {
+    return [BookingService];
+  }
+
+  static createLoadFromQuery(query, queryId, segmentState, services) {
     var load = new Load();
+    var bookingService = services[BookingService.id()];
     var dependencies = QueryDependencies.serial(Promise);
-    dependencies.add('context', LifetimeSessionSegment.id(), null);
+    dependencies.add(CONTEXT, LifetimeSessionSegment.id(), null);
     load.dependencies = dependencies;
     load.func = (dispatch) => {
-      var result = new Promise((resolve, reject) => {
-        // Note: can already use lifetime and session in this request.
-        request.get('http://localhost:8000/api/booking/' + encodeURIComponent(query.bookingId)).end((err, res) => {
-          var payload = JSON.parse(res.text);
-          if (res.ok) {
-            dispatch(this._createSetResultAction(queryId, payload));
+      return new Promise((resolve, reject) => {
+        var context = dependencies.getResult(CONTEXT);
+        bookingService.fetchBooking(query.bookingId, context.lifetime, context.session)
+          .then((result) => {
+            if (result.success) {
+              dispatch(this.getActionCreator().set(queryId, result.payload));
+            } else {
+              dispatch(this.getActionCreator().set(queryId, null, [result.errorMessage]));
+            }
             resolve();
-          } else if (res.notFound) {
-            dispatch(this._createSetResultAction(queryId, null, [payload.error]));
-          }
-        });
+          })
+          .catch(reject);
       });
-      return result;
     };
     return load;
   }

@@ -1,14 +1,12 @@
 import React from 'react';
-import Page from 'soya/lib/page/Page';
+import ReduxPage from 'soya/lib/page/ReduxPage';
 import RenderResult from 'soya/lib/page/RenderResult';
-import ReactRenderer from 'soya/lib/page/react/ReactRenderer.js';
+import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import register from 'soya/lib/client/Register';
-import ReduxStore from 'soya/lib/data/redux/ReduxStore.js';
 import RandomTimeEchoString from '../../../components/contextual/RandomTimeEchoString/RandomTimeEchoString.js';
 import FibonacciSequence from '../../../components/contextual/FibonacciSequence/FibonacciSequence.js';
 import FibonacciTotal from '../../../components/contextual/FibonacciTotal/FibonacciTotal.js';
 
-// TODO: Figure out how to do promise polyfill.
 import style from '../../../shared/sitewide.css';
 
 class Component extends React.Component {
@@ -142,14 +140,9 @@ class Component extends React.Component {
   }
 }
 
-class ClientSegmentDependencies extends Page {
+class ClientSegmentDependencies extends ReduxPage {
   static get pageName() {
     return 'ClientSegmentDependencies';
-  }
-
-  createStore(initialState) {
-    var reduxStore = new ReduxStore(Promise, initialState, this.config, this.cookieJar);
-    return reduxStore;
   }
 
   render(httpRequest, routeArgs, store, callback) {

@@ -11,7 +11,7 @@ import Page from 'soya/lib/page/Page';
 import RenderResult from 'soya/lib/page/RenderResult';
 import register from 'soya/lib/client/Register';
 import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
-import ReduxStore from 'soya/lib/data/redux/ReduxStore.js';
+import MockableReduxStore from 'soya/lib/data/redux/MockableReduxStore.js';
 
 import ListPageComponent from 'soya/lib/browser/ListPageComponent.js';
 var componentMap = ${JSON.stringify(components)};
@@ -46,7 +46,7 @@ class CmptBrowserSearchPage extends Page {
   
   // TODO: Major abstraction leakage, how come we can know that the user is using ReduxStore?
   createStore(initialState) {
-    var reduxStore = new ReduxStore(Promise, initialState, this.config, this.cookieJar);
+    var reduxStore = new MockableReduxStore(initialState, this.config, this.cookieJar);
     return reduxStore;
   }
   
