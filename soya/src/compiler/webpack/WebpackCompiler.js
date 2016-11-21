@@ -146,9 +146,19 @@ export default class WebpackCompiler extends Compiler {
           WebpackCompiler.getBabelLoaderConfig(),
           WebpackCompiler.getFileLoaderConfig(frameworkConfig),
           { test: /\.css$/, loader: 'css-loader/locals', exclude: /\.mod\.css/ },
-          { test: /\.mod\.css$/, loader: 'css-loader/locals?sourceMap&modules' },
+          { test: /\.mod\.css$/,
+            loader: 'css-loader/locals?' + JSON.stringify({
+              sourceMap: true,
+              modules: true,
+              localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+            })
+          },
           { test: /\.scss$/, loader: 'css-loader/locals!sass-loader', exclude: /\.mod\.scss/ },
-          { test: /\.mod\.scss$/, loader: 'css-loader/locals?sourceMap&modules!sass-loader' }
+          { test: /\.mod\.scss$/, loader: 'css-loader/locals?' + JSON.stringify({
+            sourceMap: true,
+            modules: true,
+            localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+          }) + '!sass-loader' }
         ]
       },
       plugins: [
@@ -291,7 +301,11 @@ export default class WebpackCompiler extends Compiler {
     // - https://github.com/webpack/style-loader
     var modulesCssLoader = {
       test: /\.mod\.css$/,
-      loader: 'style-loader!css-loader?sourceMap&modules'
+      loader: 'style-loader!css-loader?' + JSON.stringify({
+        sourceMap: true,
+        modules: true,
+        localIdentName: this._frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+      })
     };
     var normalCssLoader = {
       test: /\.css$/,
@@ -300,7 +314,11 @@ export default class WebpackCompiler extends Compiler {
     };
     var modulesScssLoader = {
       test: /\.mod\.scss$/,
-      loader: 'style-loader!css-loader?sourceMap&modules!sass-loader'
+      loader: 'style-loader!css-loader?' + JSON.stringify({
+        sourceMap: true,
+        modules: true,
+        localIdentName: this._frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+      }) + '!sass-loader'
     };
     var normalSassLoader = {
       test: /\.scss$/,
