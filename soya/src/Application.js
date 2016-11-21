@@ -6,6 +6,7 @@ import Provider from './Provider.js';
 import CookieJar from './http/CookieJar.js';
 import ServerCookieJar from './http/ServerCookieJar.js';
 import SocketIO from 'socket.io';
+import fs from 'fs';
 
 var path = require('path');
 var http = require('http');
@@ -284,6 +285,15 @@ export default class Application {
 
     // TODO: Config can set timeout for http requests.
     http.createServer((request, response) => {
+      // Control for favicon
+      if (request.method === 'GET' && request.url === '/favicon.ico') {
+        var faviconPath = path.join(this._frameworkConfig.absoluteProjectDir, 'favicon.ico');
+        if (fs.existsSync(faviconPath)) {
+          response.writeHead(200, {'Content-Type': 'image/x-icon'});
+          response.end(fs.readFileSync(faviconPath), 'binary');
+          return;
+        }
+      }
       var d = domain.create().on('error', (error) => {
         this.handleError(error, request, response);
       });
