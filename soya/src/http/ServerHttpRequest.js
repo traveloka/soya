@@ -113,6 +113,10 @@ export default class ServerHttpRequest extends IncomingRequest {
     return this._parsedUrl.query;
   }
 
+  getHash() {
+    return '';
+  }
+
   /**
    * @return {Promise}
    */

@@ -23,6 +23,14 @@ export default class ClientHttpRequest {
     return givenHostPath.substr(0, hostPath.length) == hostPath;
   }
 
+  getInnerRequest() {
+    return null;
+  }
+
+  getMethod() {
+    return null;
+  }
+
   /**
    * @returns {boolean}
    */
@@ -82,5 +90,9 @@ export default class ClientHttpRequest {
       return hashString.slice(1, hashString.length);
     }
     return hashString;
+  }
+
+  getBody() {
+    return null;
   }
 }
