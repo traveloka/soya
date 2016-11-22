@@ -20,5 +20,5 @@ export default function wrapper(url, opt) {
   qsSource.push(`namespace=${encodeURIComponent(parsedUrl.pathname)}`);
 
   option.query = qsSource.join('&');
-  return io(`${parsedUrl.protocol}//${parsedUrl.host}`, option);
+  return io(`${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`, option);
 }
