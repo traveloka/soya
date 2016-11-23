@@ -1,5 +1,11 @@
 # Version 0.0.x
 
+## 0.0.54
+
+- ReduxStore.getServiceDependencies() is made public.
+- If debug flag is set to true, CSS module classes will have identifiers that
+  hold hints to the actual file and class name.
+
 ## 0.0.53
 
 - Change segment method names and make them static.

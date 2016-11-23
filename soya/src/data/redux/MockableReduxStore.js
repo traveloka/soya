@@ -29,7 +29,7 @@ export default class MockableReduxStore extends ReduxStore {
     this._mockServices = {};
   }
 
-  _getServiceDependencies(segmentId) {
+  getServiceDependencies(segmentId) {
     // This will make MockableReduxStore operate a little bit slower, but since
     // this implementation is only used in component browser/testing, it should
     // be okay.

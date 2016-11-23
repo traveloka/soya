@@ -577,7 +577,7 @@ export default class ReduxStore extends Store {
    * @param {string} segmentId
    * @return {{[key: string]: Service}}
    */
-  _getServiceDependencies(segmentId) {
+  getServiceDependencies(segmentId) {
     return this._serviceDependencies[segmentId];
   }
 
@@ -756,7 +756,7 @@ export default class ReduxStore extends Store {
     // So we ask Segment to load the query.
     var state = this._store.getState();
     var segmentState = state[segmentId];
-    var services = this._getServiceDependencies(segmentId);
+    var services = this.getServiceDependencies(segmentId);
     var loadAction = segment.createLoadFromQuery(query, queryId, segmentState, services);
     if (loadAction == null) {
       // If load action is null, then this segment doesn't need to do load

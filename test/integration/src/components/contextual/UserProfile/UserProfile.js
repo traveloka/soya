@@ -9,7 +9,7 @@ class UserProfile extends React.Component {
     return 'UserProfile';
   }
 
-  static getSegmentDependencies(config) {
+  static getSegmentDependencies() {
     return [UserSegment];
   }
 
