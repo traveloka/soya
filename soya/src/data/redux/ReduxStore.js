@@ -5,7 +5,6 @@ import PromiseUtil from './PromiseUtil.js';
 import Load from './Load.js';
 import QueryDependencies from './QueryDependencies.js';
 import Hydration from './Hydration.js';
-import Service from './Service.js';
 
 import QueryResult from './QueryResult.js';
 import { compose, createStore, applyMiddleware } from 'redux';
@@ -571,18 +570,7 @@ export default class ReduxStore extends Store {
       if (typeof serviceId != 'string') {
         throw new Error('Service dependencies must extend Service:' + serviceClass);
       }
-      if (this._serviceClasses.hasOwnProperty(serviceId)) {
-        if (this._serviceClasses[serviceId] === serviceClass) {
-          service = this._services[serviceId];
-        } else {
-          // TODO: Find a way to make this hot-reload-able.
-          throw new Error(`Service id clash: ${serviceId}, between classes: ${serviceClass} and ${this._serviceClasses[serviceId]}`);
-        }
-      } else {
-        service = new serviceClass(this._clientConfig, this._cookieJar);
-        this._serviceClasses[serviceId] = serviceClass;
-        this._services[serviceId] = service;
-      }
+      service = this.getService(serviceClass);
       this._serviceDependencies[id][serviceId] = service;
     }
   }
@@ -593,6 +581,28 @@ export default class ReduxStore extends Store {
    */
   getServiceDependencies(segmentId) {
     return this._serviceDependencies[segmentId];
+  }
+
+  /**
+   * Instantiate Service if not yet ready, return cache if already exists.
+   *
+   * @param {Service} ServiceClass
+   */
+  getService(ServiceClass) {
+    var id = ServiceClass.id(), service;
+    if (this._serviceClasses.hasOwnProperty(id)) {
+      if (this._serviceClasses[id] === ServiceClass) {
+        return this._services[id];
+      }
+      // TODO: Find a way to make this hot-reload-able.
+      throw new Error(`Service id clash: ${serviceId}, between classes: ${serviceClass} and ${this._serviceClasses[serviceId]}`);
+    }
+
+    // If not available yet, instantiate.
+    service = new ServiceClass(this._clientConfig, this._cookieJar);
+    this._serviceClasses[id] = ServiceClass;
+    this._services[id] = service;
+    return service;
   }
 
   /**

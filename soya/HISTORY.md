@@ -1,5 +1,9 @@
 # Version 0.0.x
 
+## 0.0.57
+
+- ReduxStore.getService(ServiceClass), use this method to get service instance.
+
 ## 0.0.56
 
 - Load.func is called with dispatch, query, and service dependencies as
