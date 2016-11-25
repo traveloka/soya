@@ -10,6 +10,7 @@ import style from '../../../shared/sitewide.css';
 
 class Component extends React.Component {
   componentWillMount() {
+    this.autoIncrementKey = 0;
     this.props.context.store.register(UserSegment);
     this.setState({
       index: 0,
@@ -52,8 +53,8 @@ class Component extends React.Component {
     }
     var query = this.props.queries[this.state.index];
     var components = this.state.components;
-    components.push(<h3>Profile {this.state.index}</h3>);
-    components.push(<UserProfile context={this.props.context} username={query} />);
+    components.push(<h3 key={'h' + this.autoIncrementKey++}>Profile {this.state.index}</h3>);
+    components.push(<UserProfile key={'up' + this.autoIncrementKey++} context={this.props.context} username={query} />);
     this.setState({
       index: nextIndex,
       components: components

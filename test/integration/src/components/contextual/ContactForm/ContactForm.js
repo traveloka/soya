@@ -105,12 +105,13 @@ export default class ContactForm extends React.Component {
   }
 
   submit(result) {
+    var resultStr = JSON.stringify(result);
     console.log('VALIDATION RESULT', result);
     if (!result.isValid) {
-      alert('Error in form!');
+      alert("Error in form!\n" + resultStr);
       return;
     }
-    alert('Form submitted!');
+    alert("Form submitted!\n" + resultStr);
   }
 
   handleSubmit() {

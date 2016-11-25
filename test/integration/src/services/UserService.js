@@ -8,12 +8,14 @@ export default class UserService extends Service {
 
   fetchUserProfile(username) {
     return new Promise((resolve, reject) => {
-      request.get(`http://${this.config.apiHost}/api/user/` + username).end((err, res) => {
+      var url = `http://${this.config.apiHost}/api/user/` + username;
+      request.get(url).end((err, res) => {
         if (res.ok) {
           var payload = JSON.parse(res.text);
           resolve(payload);
         } else {
-          reject(new Error('Unable to fetch user data!'));
+          console.log(url);
+          reject(err);
         }
       });
     });

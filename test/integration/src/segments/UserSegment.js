@@ -17,10 +17,10 @@ export default class UserSegment extends MapSegment {
     return [UserService];
   }
 
-  static createLoadFromQuery(query, queryId, segmentState, services) {
-    var load = new Load();
-    var userService = services[UserService.id()];
-    load.func = (dispatch) => {
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(UserSegment.id());
+    load.func = (dispatch, queryFunc, services) => {
+      var userService = services[UserService.id()];
       return new Promise((resolve, reject) => {
         userService.fetchUserProfile(query.username).then((payload) => {
           dispatch(this.getActionCreator().set(queryId, payload));

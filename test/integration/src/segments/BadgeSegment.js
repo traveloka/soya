@@ -17,10 +17,10 @@ export default class BadgeSegment extends MapSegment {
     return [BadgeService];
   }
 
-  static createLoadFromQuery(query, queryId, segmentState, services) {
-    var load = new Load();
-    var badgeService = services[BadgeService.id()];
-    load.func = (dispatch) => {
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(BadgeSegment.id())
+    load.func = (dispatch, queryFunc, services) => {
+      var badgeService = services[BadgeService.id()];
       return new Promise((resolve, reject) => {
         badgeService.fetchBadges().then((payload) => {
           dispatch(this.getActionCreator().set(queryId, payload));

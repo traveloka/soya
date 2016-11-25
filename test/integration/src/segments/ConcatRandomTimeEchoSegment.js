@@ -21,7 +21,7 @@ export default class ConcatRandomTimeEchoSegment extends MapSegment {
   }
 
   static createLoadFromQuery(query, queryId, segmentState) {
-    var load = new Load();
+    var load = new Load(ConcatRandomTimeEchoSegment.id());
     var dependencies, recursiveDependencies, RecursiveQueryCtor, i, val;
 
     dependencies = query.isParallel ?

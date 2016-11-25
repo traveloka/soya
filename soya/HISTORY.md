@@ -1,5 +1,17 @@
 # Version 0.0.x
 
+## 0.0.56
+
+- Load.func is called with dispatch, query, and service dependencies as
+  arguments. This is more natural, since action creators are the ones that need
+  services.
+- How to update:
+  - When instantiating Load(), pass segment ID into the constructor. For
+    example:
+    ```
+    let load = new Load(UserSegment.id());
+    ```
+
 ## 0.0.55
 
 - Load.func is called with both dispatch and query as arguments.

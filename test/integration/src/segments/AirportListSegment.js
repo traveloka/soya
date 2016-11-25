@@ -18,10 +18,10 @@ export default class AirportListSegment extends MapSegment {
     return [AirportListService];
   }
 
-  static createLoadFromQuery(query, queryId, segmentState, services) {
-    var load = new Load();
-    var airportListService = services[AirportListService.id()];
-    load.func = (dispatch) => {
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(AirportListSegment.id());
+    load.func = (dispatch, queryFunc, services) => {
+      var airportListService = services[AirportListService.id()];
       var result = new Promise((resolve, reject) => {
         airportListService.fetchAirportList().then((payload) => {
           dispatch(this.getActionCreator().set(queryId, payload));

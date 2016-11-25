@@ -17,32 +17,32 @@ export default class LifetimeSessionSegment extends MapSegment {
     return [TokenService];
   }
 
-  static createLoadFromQuery(query, queryId, segmentState, services) {
-    var load = new Load();
-    var tokenService = services[TokenService.id()];
-    var lifetimeTokenCookie = tokenService.fetchLifetimeTokenFromCookie();
-    var sessionTokenCookie = tokenService.fetchSessionTokenFromCookie();
-    if (lifetimeTokenCookie != null && sessionTokenCookie != null) {
-      // Just re-use what we already have in cookie.
-      load.func = (dispatch) => {
-        dispatch(this.getActionCreator().set(queryId, {
-          lifetime: lifetimeTokenCookie,
-          session: sessionTokenCookie
-        }));
-        return Promise.resolve(null);
-      };
-      return load;
-    }
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(LifetimeSessionSegment.id());
+    load.func = (dispatch, queryFunc, services) => {
+      return new Promise((resolve, reject) => {
+        var tokenService = services[TokenService.id()];
 
-    load.func = (dispatch) => {
-      var result = new Promise((resolve, reject) => {
+        // Just re-use what we already have in cookie.
+        var lifetimeTokenCookie = tokenService.fetchLifetimeTokenFromCookie();
+        var sessionTokenCookie = tokenService.fetchSessionTokenFromCookie();
+        if (lifetimeTokenCookie != null && sessionTokenCookie != null) {
+          dispatch(this.getActionCreator().set(queryId, {
+            lifetime: lifetimeTokenCookie,
+            session: sessionTokenCookie
+          }));
+          resolve();
+          return;
+        }
+
         // TODO: Don't re-fetch lifetime token if it already exists.
         tokenService.fetchLifetimeSessionToken().then((payload) => {
           dispatch(this.getActionCreator().set(queryId, payload));
           resolve();
         }).catch(reject);
       });
-      return result;
+
+
     };
     return load;
   }

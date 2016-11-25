@@ -17,10 +17,10 @@ export default class AdditionSegment extends MapSegment {
     return [AdditionService];
   }
 
-  static createLoadFromQuery(query, queryId, segmentState, services) {
-    var additionService = services[AdditionService.id()];
-    var load = new Load();
-    load.func = (dispatch) => {
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(AdditionSegment.id());
+    load.func = (dispatch, queryFunc, services) => {
+      var additionService = services[AdditionService.id()];
       var result = new Promise((resolve, reject) => {
         additionService.calculateAddition(query.a, query.b).then((result) => {
           dispatch(this.getActionCreator().set(queryId, result));

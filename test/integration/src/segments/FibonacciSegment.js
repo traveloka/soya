@@ -19,7 +19,7 @@ export default class FibonacciSegment extends MapSegment {
   }
 
   static createLoadFromQuery(query, queryId, segmentState) {
-    var load = new Load();
+    var load = new Load(FibonacciSegment.id());
     var i, dependencies = QueryDependencies.serial(Promise);
     var a = 1, b = 1;
 

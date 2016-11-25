@@ -17,10 +17,10 @@ export default class RandomTimeEchoSegment extends MapSegment {
     return [RandomTimeEchoService];
   }
 
-  static createLoadFromQuery(query, queryId, segmentState, services) {
-    var load = new Load();
-    var randomTimeEchoService = services[RandomTimeEchoService.id()];
-    load.func = (dispatch) => {
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(RandomTimeEchoSegment.id());
+    load.func = (dispatch, queryFunc, services) => {
+      var randomTimeEchoService = services[RandomTimeEchoService.id()];
       return new Promise((resolve, reject) => {
         randomTimeEchoService.echoInRandomTime(query.value).then((payload) => {
           dispatch(this.getActionCreator().set(queryId, payload));

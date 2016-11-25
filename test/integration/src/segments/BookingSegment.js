@@ -25,13 +25,13 @@ export default class BookingSegment extends MapSegment {
     return [BookingService];
   }
 
-  static createLoadFromQuery(query, queryId, segmentState, services) {
-    var load = new Load();
-    var bookingService = services[BookingService.id()];
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(BookingSegment.id());
     var dependencies = QueryDependencies.serial(Promise);
     dependencies.add(CONTEXT, LifetimeSessionSegment.id(), null);
     load.dependencies = dependencies;
-    load.func = (dispatch) => {
+    load.func = (dispatch, queryFunc, services) => {
+      var bookingService = services[BookingService.id()];
       return new Promise((resolve, reject) => {
         var context = dependencies.getResult(CONTEXT);
         bookingService.fetchBooking(query.bookingId, context.lifetime, context.session)

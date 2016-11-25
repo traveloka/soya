@@ -166,6 +166,16 @@ export default class ReduxStore extends Store {
   _cookieJar;
 
   /**
+   * @type {Function}
+   */
+  _boundDispatch;
+
+  /**
+   * @type {Function}
+   */
+  _boundQuery;
+
+  /**
    * @type {boolean}
    */
   __isReduxStore;
@@ -199,6 +209,8 @@ export default class ReduxStore extends Store {
     this._actionCreators = {};
     this._allowOverwriteSegment = {};
     this._cookieJar = cookieJar;
+    this._boundDispatch = this.dispatch.bind(this);
+    this._boundQuery = this.query.bind(this);
   }
 
   /**
@@ -839,8 +851,10 @@ export default class ReduxStore extends Store {
         // function should still have reference to QueryDependencies, allowing
         // it to access its dependencies' query results.
         depResolvedPromise.then(() => {
-          // TODO: Cache the bound store dispatch.
-          result = action.func(this.dispatch.bind(this), this.query.bind(this));
+          result = action.func(
+            this._boundDispatch, this._boundQuery,
+            this.getServiceDependencies(action.segmentId)
+          );
           this._ensurePromise(result);
           result.then(resolve).catch(reject);
         }).catch(reject);
