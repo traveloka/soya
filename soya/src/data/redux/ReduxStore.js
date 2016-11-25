@@ -236,6 +236,8 @@ export default class ReduxStore extends Store {
   /**
    * Root reducer.
    *
+   * TODO: Don't run action on reducers that are not associated with the segment, should be faster, since there'll be less string comparison.
+   *
    * @param {void | Object} state
    * @param {any} action
    * @returns {Object}
@@ -838,7 +840,7 @@ export default class ReduxStore extends Store {
         // it to access its dependencies' query results.
         depResolvedPromise.then(() => {
           // TODO: Cache the bound store dispatch.
-          result = action.func(this.dispatch.bind(this));
+          result = action.func(this.dispatch.bind(this), this.query.bind(this));
           this._ensurePromise(result);
           result.then(resolve).catch(reject);
         }).catch(reject);

@@ -1,5 +1,9 @@
 # Version 0.0.x
 
+## 0.0.55
+
+- Load.func is called with both dispatch and query as arguments.
+
 ## 0.0.54
 
 - ReduxStore.getServiceDependencies() is made public.
