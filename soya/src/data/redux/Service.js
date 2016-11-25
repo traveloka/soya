@@ -19,7 +19,7 @@ export default class Service {
    * @return {string}
    */
   static id() {
-    throw new Error('Must implement: ' + this);
+    throw new Error('Service must implement static id(): ' + this);
   }
 
   /**
