@@ -3,6 +3,7 @@
 ## 0.0.59
 
 - QueryResult.notLoaded() can now provide data.
+- ReduxStore will not pass null if QueryResult is not loaded.
 
 ## 0.0.58
 
