@@ -1,5 +1,19 @@
 # Version 0.0.x
 
+## 0.0.60
+
+- Helper methods in Form (it's more correct to have users access from Form
+  instead of giving them FormSegment's action creator, it should be an
+  implementation detail).
+  - Form.setValue
+  - Form.setValues
+  - Form.setDefaultValue
+  - Form.setDefaultValues
+  - Form.setErrors
+  - Form.addErrors
+  - Form.clearForm
+  - Form.clearErrors
+
 ## 0.0.59
 
 - QueryResult.notLoaded() can now provide data.
