@@ -383,7 +383,6 @@ export default class ReduxStore extends Store {
    */
   _getSegmentPiece(segmentId, query, queryId) {
     var queryResult = this._queryState(segmentId, query, queryId);
-    if (!queryResult.loaded) return null;
     return queryResult.data;
   }
 
