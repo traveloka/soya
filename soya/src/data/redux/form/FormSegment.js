@@ -15,6 +15,8 @@ const DEFAULT_FIELD = {
 
 const ID = 'form';
 
+const SET_DEFAULT_VALUE_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_DEFAULT_VALUE');
+const SET_DEFAULT_VALUES_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_DEFAULT_VALUES');
 const SET_VALUE_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_VALUE');
 const SET_VALUES_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_VALUES');
 const CLEAR_FIELD_ACTION_TYPE = ActionNameUtil.generate(ID, 'CLEAR_FIELD');
@@ -35,28 +37,28 @@ const REORDER_LIST_ITEM_DEC_ACTION_TYPE = ActionNameUtil.generate(ID,'REORDER_IT
 
 const ACTION_CREATOR = {
   // Simple field related actions.
-  setFormEnabledState: (formId, isEnabled) => {
+  setFormEnabledState(formId, isEnabled) {
     return {
       type: SET_ENABLED_STATE_ACTION_TYPE,
       formId: formId,
       isEnabled: isEnabled
     };
   },
-  setIsValidating: (formId, map) => {
+  setIsValidating(formId, map) {
     return {
       type: SET_IS_VALIDATION_ACTION_TYPE,
       formId: formId,
       map: map
     };
   },
-  mergeFields: (formId, fields) => {
+  mergeFields(formId, fields) {
     return {
       type: MERGE_FIELDS_ACTION_TYPE,
       formId: formId,
       fields: fields
     };
   },
-  setValue: (formId, fieldName, value) => {
+  setValue(formId, fieldName, value) {
     return {
       type: SET_VALUE_ACTION_TYPE,
       formId: formId,
@@ -64,21 +66,36 @@ const ACTION_CREATOR = {
       value: value
     };
   },
-  setValues: (formId, values) => {
+  setValues(formId, values) {
     return {
       type: SET_VALUES_ACTION_TYPE,
       formId: formId,
       values: values
     };
   },
-  clearField: (formId, fieldName) => {
+  setDefaultValue(formId, fieldName, value) {
+    return {
+      type: SET_DEFAULT_VALUE_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName,
+      value: value
+    }
+  },
+  setDefaultValues(formId, values) {
+    return {
+      type: SET_DEFAULT_VALUES_ACTION_TYPE,
+      formId: formId,
+      values: values
+    }
+  },
+  clearField(formId, fieldName) {
     return {
       type: CLEAR_FIELD_ACTION_TYPE,
       formId: formId,
       fieldName: fieldName
     };
   },
-  setErrorMessages: (formId, fieldName, errorMessages) => {
+  setErrorMessages(formId, fieldName, errorMessages) {
     return {
       type: SET_ERRORS_ACTION_TYPE,
       formId: formId,
@@ -86,21 +103,21 @@ const ACTION_CREATOR = {
       errorMessages: errorMessages
     };
   },
-  addErrorMessages: (formId, messages) => {
+  addErrorMessages(formId, messages) {
     return {
       type: ADD_ERRORS_ACTION_TYPE,
       formId: formId,
       messages: messages
     };
   },
-  clearErrorMessages: (formId, fieldNames) => {
+  clearErrorMessages(formId, fieldNames) {
     return {
       type: CLEAR_ERRORS_ACTION_TYPE,
       formId: formId,
       fieldNames: fieldNames
     }
   },
-  clear: (formId) => {
+  clear(formId) {
     return {
       type: CLEAR_FORM_ACTION_TYPE,
       formId: formId
@@ -108,7 +125,7 @@ const ACTION_CREATOR = {
   },
 
   // Repeatable field related action.
-  addListItem: (formId, fieldName, minLength, maxLength) => {
+  addListItem(formId, fieldName, minLength, maxLength) {
     return {
       type: ADD_LIST_ITEM_ACTION_TYPE,
       formId: formId,
@@ -118,7 +135,7 @@ const ACTION_CREATOR = {
     };
   },
   // Repeatable field related action.
-  addListItemWithValue: (formId, fieldName, values) => {
+  addListItemWithValue(formId, fieldName, values) {
     return {
       type: ADD_LIST_ITEM_WITH_VALUE_ACTION_TYPE,
       formId: formId,
@@ -126,7 +143,7 @@ const ACTION_CREATOR = {
       values : values
     };
   },
-  removeListItem: (formId, fieldName, index) => {
+  removeListItem(formId, fieldName, index) {
     return {
       type: REMOVE_LIST_ITEM_ACTION_TYPE,
       formId: formId,
@@ -134,7 +151,7 @@ const ACTION_CREATOR = {
       index: index
     };
   },
-  reorderListItemInc: (formId, fieldName, index, amount = 1) => {
+  reorderListItemInc(formId, fieldName, index, amount = 1) {
     return {
       type: REORDER_LIST_ITEM_INC_ACTION_TYPE,
       formId: formId,
@@ -143,7 +160,7 @@ const ACTION_CREATOR = {
       amount: amount
     };
   },
-  reorderListItemDec: (formId, fieldName, index, amount = 1) => {
+  reorderListItemDec(formId, fieldName, index, amount = 1) {
     return {
       type: REORDER_LIST_ITEM_DEC_ACTION_TYPE,
       formId: formId,
@@ -152,7 +169,7 @@ const ACTION_CREATOR = {
       amount: amount
     }
   },
-  reorderListItem: (formId, fieldName, index, targetIndex) => {
+  reorderListItem(formId, fieldName, index, targetIndex) {
     return {
       type: REORDER_LIST_ITEM_ACTION_TYPE,
       formId: formId,
@@ -171,6 +188,12 @@ const REDUCER = function(state, action) {
       break;
     case SET_IS_VALIDATION_ACTION_TYPE:
       return FormSegment._setIsValidating(state, action);
+      break;
+    case SET_DEFAULT_VALUE_ACTION_TYPE:
+      return FormSegment._setDefaultValue(state, action);
+      break;
+    case SET_DEFAULT_VALUES_ACTION_TYPE:
+      return FormSegment._setDefaultValues(state, action);
       break;
     case SET_VALUE_ACTION_TYPE:
       return FormSegment._setValue(state, action);
@@ -474,6 +497,30 @@ export default class FormSegment extends LocalSegment {
     return state;
   }
 
+  static _setDefaultValue(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
+    var result = FormSegment._extractField(state, action);
+    if (result.field != null) {
+      // If the field already exists no need to update the state.
+      return state;
+    }
+    state = result.state;
+    return this._setValue(state, ACTION_CREATOR.setValue(
+      action.formId, action.fieldName, action.value
+    ));
+  }
+
+  static _setDefaultValues(state, action) {
+    var i, value;
+    for (i = 0; i < action.values.length; i++) {
+      value = action.values[i];
+      state = FormSegment._setDefaultValue(state, ACTION_CREATOR.setDefaultValue(
+        action.formId, value.fieldName, value.value
+      ));
+    }
+    return state;
+  }
+
   static _setValue(state, action) {
     state = FormSegment._ensureFormExistence(state, action);
     var result = FormSegment._extractField(state, action);
@@ -495,7 +542,6 @@ export default class FormSegment extends LocalSegment {
   }
 
   static _setValues(state, action) {
-    state = FormSegment._ensureFormExistence(state, action);
     var i, value;
     for (i = 0; i < action.values.length; i++) {
       value = action.values[i];

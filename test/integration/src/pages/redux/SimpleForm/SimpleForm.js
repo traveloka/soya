@@ -19,12 +19,22 @@ class Component extends React.Component {
     this._kontakteForm = new Form(this.props.context.store, REUSE_FORM_ID);
   }
 
+  setDefaultValues() {
+    this.props.context.store.dispatch(this.actions.setDefaultValues(
+      FORM_ID, [
+        { fieldName: 'name', value: 'Default Value Rick' },
+        { fieldName: 'nickname', value: 'rik' }
+      ]
+    ));
+  }
+
   render() {
     return <div>
       <h1>Simple Form</h1>
       <h3>Basic Use Cases</h3>
       <ul>
         <li>Two way data binding. Data from each field should bind to redux state, and vice-versa.</li>
+        <li><a href="javascript:void(0)" onClick={this.setDefaultValues.bind(this)}>Click here</a> to set default values on name and nick name. It won't work twice, will only work on first try.</li>
         <li><a href="javascript:void(0)" onClick={this.replaceValues.bind(this)}>Click here</a> to set values to the redux store, form inputs should also update.</li>
         <li><a href="javascript:void(0)" onClick={this.clearValues.bind(this)}>Click here</a> to clear values in redux store, form inputs should also update.</li>
         <li>Sync validation should also work for each field, required/optional validation also works.</li>

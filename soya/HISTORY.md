@@ -1,5 +1,10 @@
 # Version 0.0.x
 
+## 0.0.58
+
+- FormSegment now has setDefaultValue() and setDefaultValues() action creator.
+- createField helper provides setDefaultValue() as props.
+
 ## 0.0.57
 
 - ReduxStore.getService(ServiceClass), use this method to get service instance.
