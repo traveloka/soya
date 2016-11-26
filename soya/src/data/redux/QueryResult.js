@@ -12,8 +12,8 @@ export default class QueryResult {
    */
   data;
 
-  static notLoaded() {
-    return new QueryResult(false, null);
+  static notLoaded(data) {
+    return new QueryResult(false, data);
   }
 
   static loaded(data) {

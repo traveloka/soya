@@ -1,5 +1,9 @@
 # Version 0.0.x
 
+## 0.0.59
+
+- QueryResult.notLoaded() can now provide data.
+
 ## 0.0.58
 
 - FormSegment now has setDefaultValue() and setDefaultValues() action creator.
