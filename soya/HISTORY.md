@@ -1,5 +1,9 @@
 # Version 0.0.x
 
+## 0.0.61
+
+- Nullability check in shallow equal helpers.
+
 ## 0.0.60
 
 - Helper methods in Form (it's more correct to have users access from Form
