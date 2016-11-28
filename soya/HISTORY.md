@@ -1,5 +1,10 @@
 # Version 0.0.x
 
+## 0.0.62
+
+- Fix inconsistent server and client side CSS class name when debug is set to
+  true and hot reload set to false.
+
 ## 0.0.61
 
 - Nullability check in shallow equal helpers.

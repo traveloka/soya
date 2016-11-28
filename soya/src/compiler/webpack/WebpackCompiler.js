@@ -293,6 +293,12 @@ export default class WebpackCompiler extends Compiler {
       ]
     };
 
+    var cssModuleArgs = JSON.stringify({
+      sourceMap: true,
+      modules: true,
+      localIdentName: this._frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+    });
+
     // Links you need to read to understand this CSS section:
     // - https://webpack.github.io/docs/stylesheets.html
     // - https://github.com/webpack/extract-text-webpack-plugin
@@ -301,11 +307,7 @@ export default class WebpackCompiler extends Compiler {
     // - https://github.com/webpack/style-loader
     var modulesCssLoader = {
       test: /\.mod\.css$/,
-      loader: 'style-loader!css-loader?' + JSON.stringify({
-        sourceMap: true,
-        modules: true,
-        localIdentName: this._frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
-      })
+      loader: 'style-loader!css-loader?' + cssModuleArgs
     };
     var normalCssLoader = {
       test: /\.css$/,
@@ -314,11 +316,7 @@ export default class WebpackCompiler extends Compiler {
     };
     var modulesScssLoader = {
       test: /\.mod\.scss$/,
-      loader: 'style-loader!css-loader?' + JSON.stringify({
-        sourceMap: true,
-        modules: true,
-        localIdentName: this._frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
-      }) + '!sass-loader'
+      loader: 'style-loader!css-loader?' + cssModuleArgs + '!sass-loader'
     };
     var normalSassLoader = {
       test: /\.scss$/,
@@ -329,7 +327,7 @@ export default class WebpackCompiler extends Compiler {
       // Enable loading CSS as files.
       modulesCssLoader.loader = ExtractTextPlugin.extract(
         "style-loader",
-        "css-loader?sourceMap&modules"
+        "css-loader?" + cssModuleArgs
       );
       normalCssLoader.loader = ExtractTextPlugin.extract(
         "style-loader",
@@ -337,7 +335,7 @@ export default class WebpackCompiler extends Compiler {
       );
       modulesScssLoader.loader = ExtractTextPlugin.extract(
         "style-loader",
-        "css-loader?sourceMap&modules!sass-loader"
+        "css-loader?" + cssModuleArgs + "!sass-loader"
       );
       normalSassLoader.loader = ExtractTextPlugin.extract(
         "style-loader",
