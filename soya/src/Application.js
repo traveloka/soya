@@ -309,7 +309,7 @@ export default class Application {
         runMiddleware();
       });
     }).listen(this._frameworkConfig.port, () => {
-      if (process && process.send) process.send('ready');
+      if (process && typeof process.send === 'function') process.send('ready');
       this._logger.info('Server listening at port: ' + this._frameworkConfig.port + '.');
     });
 
