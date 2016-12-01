@@ -1,5 +1,10 @@
 # Version 0.0.x
 
+## 0.0.63
+
+- Application now send 'ready' event to tell pm2 that it's online.
+  Add "--listen-timeout <delay in ms> --wait-ready" on pm2 start parameter to ask pm2 to wait for you app to be ready.
+
 ## 0.0.62
 
 - Fix inconsistent server and client side CSS class name when debug is set to

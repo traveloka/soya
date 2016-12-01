@@ -308,7 +308,10 @@ export default class Application {
         // Run the first middleware.
         runMiddleware();
       });
-    }).listen(this._frameworkConfig.port);
+    }).listen(this._frameworkConfig.port, () => {
+      process.send('ready');
+      this._logger.info('Server listening at port: ' + this._frameworkConfig.port + '.');
+    });
 
     if (this._frameworkConfig.webSocket.enabled === true) {
       // with socket.io
@@ -354,8 +357,6 @@ export default class Application {
         });
       }
     }
-
-    this._logger.info('Server listening at port: ' + this._frameworkConfig.port + '.');
   }
 
   /**
