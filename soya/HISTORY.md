@@ -3,6 +3,7 @@
 ## 0.0.64
 
 - Fix isEqualShallowArray helper bug.
+- Remove unnecessary logs.
 
 ## 0.0.63
 

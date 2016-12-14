@@ -415,7 +415,7 @@ export default class Application {
         store._endRender();
       }
 
-      this._logger.debug('Store requirements gathered, start hydration.', null, store);
+      //this._logger.debug('Store requirements gathered, start hydration.', null, store);
       promise = store.hydrate();
     }
 
@@ -429,7 +429,7 @@ export default class Application {
       var state = null;
       if (store) {
         state = store._getState();
-        this._logger.debug('Finish hydration.', null, state);
+        //this._logger.debug('Finish hydration.', null, state);
         store._startRender();
       }
 
