@@ -189,7 +189,7 @@ export default function connect(ReactComponent) {
       // Unsubscribe if already subscribed.
       this.unsubscribe(stateName);
 
-      console.log('[SUB] Subscribe', connectId, segmentId);
+      //console.log('[SUB] Subscribe', connectId, segmentId);
       var callback = (newState) => {
         this.setState({[stateName]: newState});
       };
@@ -207,7 +207,7 @@ export default function connect(ReactComponent) {
      */
     unsubscribe(stateName) {
       if (this.__soyaUnsubscribe[stateName]) {
-        console.log('[SUB] Un-subscribe', connectId, stateName);
+        //console.log('[SUB] Un-subscribe', connectId, stateName);
         this.__soyaUnsubscribe[stateName]();
         delete this.__soyaUnsubscribe[stateName];
       }
@@ -268,7 +268,7 @@ export default function connect(ReactComponent) {
     }
 
     componentWillUpdate(nextProps, nextState) {
-      console.log('[SUB] Will update', connectId, nextProps, nextState);
+      //console.log('[SUB] Will update', connectId, nextProps, nextState);
     }
 
     /**
@@ -291,7 +291,7 @@ export default function connect(ReactComponent) {
      * Registers the store. Run at both client and server side when rendering.
      */
     componentWillMount() {
-      console.log('[SUB] Mounting', connectId, this.props);
+      //console.log('[SUB] Mounting', connectId, this.props);
       var i, segmentClasses = getSegmentDependencies();
       for (i = 0; i < segmentClasses.length; i++) {
         this._register(segmentClasses[i]);
@@ -303,7 +303,7 @@ export default function connect(ReactComponent) {
      * Unsubscribe all segments.
      */
     componentWillUnmount() {
-      console.log('[SUB] Unmounting', connectId);
+      //console.log('[SUB] Unmounting', connectId);
       this.getReduxStore().unsubscribe(this);
     }
   }
