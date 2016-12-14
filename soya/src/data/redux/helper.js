@@ -60,6 +60,10 @@ export function isEqualShallow(objectA, objectB, customEqualComparators) {
  * @return {boolean}
  */
 export function isEqualShallowArray(arrayA, arrayB) {
+  if (arrayA == null && arrayB == null) {
+    return true;
+  }
+
   // Check nullability.
   if ((arrayA == null && arrayB != null) || (arrayA != null && arrayB == null)) {
     return false;
