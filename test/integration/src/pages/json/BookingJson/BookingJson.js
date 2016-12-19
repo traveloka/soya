@@ -1,6 +1,6 @@
 import Page from 'soya/lib/page/Page';
 import RenderResult from 'soya/lib/page/RenderResult';
-import JsonRenderer from 'soya/lib/page/json/JsonRenderer.js';
+import JsonRenderer from 'soya/lib/page/json/JsonRenderer';
 import register from 'soya/lib/client/Register';
 
 var bookingJson = {

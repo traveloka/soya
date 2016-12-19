@@ -1,17 +1,12 @@
 import React from 'react';
-import Page from 'soya/lib/page/Page';
+import ReduxPage from 'soya/lib/page/ReduxPage';
 import RenderResult from 'soya/lib/page/RenderResult';
 import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import register from 'soya/lib/client/Register';
-import ReduxStore from 'soya/lib/data/redux/ReduxStore';
-import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';
-import smokesignals from 'soya/lib/event/smokesignals';
 import Form from 'soya/lib/data/redux/form/Form';
 import FormSegment from 'soya/lib/data/redux/form/FormSegment';
 
 import ContactForm from '../../../components/contextual/ContactForm/ContactForm.js'
-
-// TODO: Figure out how to do promise polyfill.
 import style from '../../../shared/sitewide.css';
 
 const FORM_ID = 'contact';
@@ -24,12 +19,22 @@ class Component extends React.Component {
     this._kontakteForm = new Form(this.props.context.store, REUSE_FORM_ID);
   }
 
+  setDefaultValues() {
+    this.props.context.store.dispatch(this.actions.setDefaultValues(
+      FORM_ID, [
+        { fieldName: 'name', value: 'Default Value Rick' },
+        { fieldName: 'nickname', value: 'rik' }
+      ]
+    ));
+  }
+
   render() {
     return <div>
       <h1>Simple Form</h1>
       <h3>Basic Use Cases</h3>
       <ul>
         <li>Two way data binding. Data from each field should bind to redux state, and vice-versa.</li>
+        <li><a href="javascript:void(0)" onClick={this.setDefaultValues.bind(this)}>Click here</a> to set default values on name and nick name. It won't work twice, will only work on first try.</li>
         <li><a href="javascript:void(0)" onClick={this.replaceValues.bind(this)}>Click here</a> to set values to the redux store, form inputs should also update.</li>
         <li><a href="javascript:void(0)" onClick={this.clearValues.bind(this)}>Click here</a> to clear values in redux store, form inputs should also update.</li>
         <li>Sync validation should also work for each field, required/optional validation also works.</li>
@@ -47,9 +52,6 @@ class Component extends React.Component {
         <li><a href="javascript:void(0)" onClick={this.replaceKontakteForm.bind(this)}>Setting values to this form doesn't</a> set it to the first one.</li>
       </ul>
       <ContactForm form={this._kontakteForm} formName="Kontakte Form" context={this.props.context} />
-      <DebugPanel top right bottom>
-        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
-      </DebugPanel>
     </div>
   }
 
@@ -96,14 +98,9 @@ class Component extends React.Component {
   }
 }
 
-class SimpleForm extends Page {
+class SimpleForm extends ReduxPage {
   static get pageName() {
     return 'SimpleForm';
-  }
-
-  createStore(initialState) {
-    var reduxStore = new ReduxStore(Promise, initialState, this.config, this.cookieJar);
-    return reduxStore;
   }
 
   render(httpRequest, routeArgs, store, callback) {

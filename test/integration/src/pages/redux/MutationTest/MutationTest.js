@@ -1,17 +1,14 @@
 import React from 'react';
-import Page from 'soya/lib/page/Page';
+import ReduxPage from 'soya/lib/page/ReduxPage';
 import RenderResult from 'soya/lib/page/RenderResult';
-import ReactRenderer from 'soya/lib/page/react/ReactRenderer.js';
+import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import register from 'soya/lib/client/Register';
-import ReduxStore from 'soya/lib/data/redux/ReduxStore.js';
 import UserProfile from '../../../components/contextual/UserProfile/UserProfile.js';
 import BadgeList from '../../../components/contextual/BadgeList/BadgeList.js';
 import IncrementUserPostMutation from '../../../mutation/IncrementUserPostMutation.js';
 import ResetUserPostMutation from '../../../mutation/ResetUserPostMutation.js';
 import FlipBadgeMutation from '../../../mutation/FlipBadgeMutation.js';
-import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';
 
-// TODO: Figure out how to do promise polyfill.
 import style from '../../../shared/sitewide.css';
 
 const USERNAME_A = 'rickchristie';
@@ -36,9 +33,6 @@ class Component extends React.Component {
       <UserProfile context={this.props.context} username={USERNAME_C}></UserProfile>
       <h3>Badge Names</h3>
       <BadgeList context={this.props.context} />
-      <DebugPanel top right bottom>
-        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
-      </DebugPanel>
     </div>
   }
 
@@ -58,14 +52,9 @@ class Component extends React.Component {
   }
 }
 
-class MutationTest extends Page {
+class MutationTest extends ReduxPage {
   static get pageName() {
     return 'MutationTest';
-  }
-
-  createStore(initialState) {
-    var reduxStore = new ReduxStore(Promise, initialState, this.config, this.cookieJar);
-    return reduxStore;
   }
 
   render(httpRequest, routeArgs, store, callback) {

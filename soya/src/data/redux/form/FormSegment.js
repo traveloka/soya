@@ -1,6 +1,7 @@
 import LocalSegment from '../segment/local/LocalSegment';
 import ActionNameUtil from '../segment/ActionNameUtil';
-import { isStringDuckType, isArrayDuckType, isArray, isEqualShallow } from '../helper';
+import { isStringDuckType, isArray } from '../helper';
+import QueryResult from '../QueryResult.js';
 
 import update from 'react-addons-update';
 
@@ -10,6 +11,233 @@ const DEFAULT_FIELD = {
   errorMessages: [],
   isEnabled: true,
   isValidating: false
+};
+
+const ID = 'form';
+
+const SET_DEFAULT_VALUE_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_DEFAULT_VALUE');
+const SET_DEFAULT_VALUES_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_DEFAULT_VALUES');
+const SET_VALUE_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_VALUE');
+const SET_VALUES_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_VALUES');
+const CLEAR_FIELD_ACTION_TYPE = ActionNameUtil.generate(ID, 'CLEAR_FIELD');
+const MERGE_FIELDS_ACTION_TYPE = ActionNameUtil.generate(ID, 'MERGE_FIELDS');
+const SET_IS_VALIDATION_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_IS_VALIDATING');
+const SET_ERRORS_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_ERRORS');
+const ADD_ERRORS_ACTION_TYPE = ActionNameUtil.generate(ID, 'ADD_ERRORS');
+const SET_ENABLED_STATE_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_ENABLED_STATE');
+const CLEAR_FORM_ACTION_TYPE = ActionNameUtil.generate(ID, 'CLEAR_FORM');
+const CLEAR_ERRORS_ACTION_TYPE = ActionNameUtil.generate(ID, 'CLEAR_ERRORS');
+
+const ADD_LIST_ITEM_ACTION_TYPE = ActionNameUtil.generate(ID, 'ADD_ITEM');
+const ADD_LIST_ITEM_WITH_VALUE_ACTION_TYPE = ActionNameUtil.generate(ID,'ADD_ITEM_WITH_VALUE');
+const REMOVE_LIST_ITEM_ACTION_TYPE = ActionNameUtil.generate(ID, 'REMOVE_ITEM');
+const REORDER_LIST_ITEM_ACTION_TYPE = ActionNameUtil.generate(ID, 'REORDER_ITEM');
+const REORDER_LIST_ITEM_INC_ACTION_TYPE = ActionNameUtil.generate(ID, 'REORDER_ITEM_INC');
+const REORDER_LIST_ITEM_DEC_ACTION_TYPE = ActionNameUtil.generate(ID,'REORDER_ITEM_DEC');
+
+const ACTION_CREATOR = {
+  // Simple field related actions.
+  setFormEnabledState(formId, isEnabled) {
+    return {
+      type: SET_ENABLED_STATE_ACTION_TYPE,
+      formId: formId,
+      isEnabled: isEnabled
+    };
+  },
+  setIsValidating(formId, map) {
+    return {
+      type: SET_IS_VALIDATION_ACTION_TYPE,
+      formId: formId,
+      map: map
+    };
+  },
+  mergeFields(formId, fields) {
+    return {
+      type: MERGE_FIELDS_ACTION_TYPE,
+      formId: formId,
+      fields: fields
+    };
+  },
+  setValue(formId, fieldName, value) {
+    return {
+      type: SET_VALUE_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName,
+      value: value
+    };
+  },
+  setValues(formId, values) {
+    return {
+      type: SET_VALUES_ACTION_TYPE,
+      formId: formId,
+      values: values
+    };
+  },
+  setDefaultValue(formId, fieldName, value) {
+    return {
+      type: SET_DEFAULT_VALUE_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName,
+      value: value
+    }
+  },
+  setDefaultValues(formId, values) {
+    return {
+      type: SET_DEFAULT_VALUES_ACTION_TYPE,
+      formId: formId,
+      values: values
+    }
+  },
+  clearField(formId, fieldName) {
+    return {
+      type: CLEAR_FIELD_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName
+    };
+  },
+  setErrorMessages(formId, fieldName, errorMessages) {
+    return {
+      type: SET_ERRORS_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName,
+      errorMessages: errorMessages
+    };
+  },
+  addErrorMessages(formId, messages) {
+    return {
+      type: ADD_ERRORS_ACTION_TYPE,
+      formId: formId,
+      messages: messages
+    };
+  },
+  clearErrorMessages(formId, fieldNames) {
+    return {
+      type: CLEAR_ERRORS_ACTION_TYPE,
+      formId: formId,
+      fieldNames: fieldNames
+    }
+  },
+  clear(formId) {
+    return {
+      type: CLEAR_FORM_ACTION_TYPE,
+      formId: formId
+    };
+  },
+
+  // Repeatable field related action.
+  addListItem(formId, fieldName, minLength, maxLength) {
+    return {
+      type: ADD_LIST_ITEM_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName,
+      minLength: minLength,
+      maxLength: maxLength
+    };
+  },
+  // Repeatable field related action.
+  addListItemWithValue(formId, fieldName, values) {
+    return {
+      type: ADD_LIST_ITEM_WITH_VALUE_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName,
+      values : values
+    };
+  },
+  removeListItem(formId, fieldName, index) {
+    return {
+      type: REMOVE_LIST_ITEM_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName,
+      index: index
+    };
+  },
+  reorderListItemInc(formId, fieldName, index, amount = 1) {
+    return {
+      type: REORDER_LIST_ITEM_INC_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName,
+      index: index,
+      amount: amount
+    };
+  },
+  reorderListItemDec(formId, fieldName, index, amount = 1) {
+    return {
+      type: REORDER_LIST_ITEM_DEC_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName,
+      index: index,
+      amount: amount
+    }
+  },
+  reorderListItem(formId, fieldName, index, targetIndex) {
+    return {
+      type: REORDER_LIST_ITEM_ACTION_TYPE,
+      formId: formId,
+      fieldName: fieldName,
+      index: index,
+      targetIndex: targetIndex
+    };
+  }
+};
+
+const REDUCER = function(state, action) {
+  if (state == null) state = {};
+  switch (action.type) {
+    case SET_ENABLED_STATE_ACTION_TYPE:
+      return FormSegment._setFormEnabledState(state, action);
+      break;
+    case SET_IS_VALIDATION_ACTION_TYPE:
+      return FormSegment._setIsValidating(state, action);
+      break;
+    case SET_DEFAULT_VALUE_ACTION_TYPE:
+      return FormSegment._setDefaultValue(state, action);
+      break;
+    case SET_DEFAULT_VALUES_ACTION_TYPE:
+      return FormSegment._setDefaultValues(state, action);
+      break;
+    case SET_VALUE_ACTION_TYPE:
+      return FormSegment._setValue(state, action);
+      break;
+    case SET_VALUES_ACTION_TYPE:
+      return FormSegment._setValues(state, action);
+      break;
+    case CLEAR_FIELD_ACTION_TYPE:
+      return FormSegment._clearField(state, action);
+    case SET_ERRORS_ACTION_TYPE:
+      return FormSegment._setErrorMessages(state, action);
+      break;
+    case ADD_ERRORS_ACTION_TYPE:
+      return FormSegment._addErrorMessages(state, action);
+      break;
+    case MERGE_FIELDS_ACTION_TYPE:
+      return FormSegment._mergeFields(state, action);
+      break;
+    case CLEAR_FORM_ACTION_TYPE:
+      return FormSegment._clearForm(state, action);
+      break;
+    case CLEAR_ERRORS_ACTION_TYPE:
+      return FormSegment._clearErrorMessages(state, action);
+      break;
+    case ADD_LIST_ITEM_ACTION_TYPE:
+      return FormSegment._addListItem(state, action);
+      break;
+    case ADD_LIST_ITEM_WITH_VALUE_ACTION_TYPE:
+      return FormSegment._addListItemWithValue(state, action);
+      break;
+    case REMOVE_LIST_ITEM_ACTION_TYPE:
+      return FormSegment._removeListItem(state, action);
+      break;
+    case REORDER_LIST_ITEM_INC_ACTION_TYPE:
+      return FormSegment._reorderListItemInc(state, action);
+      break;
+    case REORDER_LIST_ITEM_DEC_ACTION_TYPE:
+      return FormSegment._reorderListItemDec(state, action);
+      break;
+    case REORDER_LIST_ITEM_ACTION_TYPE:
+      return FormSegment._reorderListItem(state, action);
+      break;
+  }
+  return state;
 };
 
 /**
@@ -49,213 +277,19 @@ const DEFAULT_FIELD = {
  * @CLIENT_SERVER
  */
 export default class FormSegment extends LocalSegment {
-  // Simple field related action.
-  _setValueActionType;
-  _setValuesActionType;
-  _clearFieldActionType;
-  _mergeFieldsActionType;
-  _setErrorMessagesActionType;
-  _addErrorMessagesActionType;
-  _setIsValidatingActionType;
-  _setFormEnabledStateActionType;
-  _clearErrorMessagesActionType;
-  _clearFormActionType;
-  _actionCreator;
-
-  // Repeatable field related action.
-  _addListItemActionType;
-  _addListItemWithValueActionType;
-  _removeListItemActionType;
-  _reorderListItemActionType;
-  _reorderListItemIncActionType;
-  _reorderListItemDecActionType;
-
-  _queryIdCache;
-  _pieceCustomEqualComparators;
-
   static id() {
-    return 'form';
+    return ID;
   }
 
-  static extractValues(fields) {
-    const isArray = fields instanceof Array;
-    const result = isArray ? [] : {};
-    for (let currentKey in fields) {
-      if (!fields.hasOwnProperty(currentKey)) continue;
-      currentKey = isArray ? Number(currentKey) : currentKey;
-      FormSegment.fetchValue(fields[currentKey], currentKey, result);
-    }
-    return result;
+  static getActionCreator() {
+    return ACTION_CREATOR;
   }
 
-  /**
-   * TODO: Remove the need for PromiseImpl.
-   *
-   * @param {Object} config
-   * @param {CookieJar} cookieJar
-   * @param {Promise} PromiseImpl
-   */
-  constructor(config, cookieJar, PromiseImpl) {
-    super(config, cookieJar, PromiseImpl);
-    var id = FormSegment.id();
-    this._queryIdCache = {};
-    this._setValueActionType = ActionNameUtil.generate(id, 'SET_VALUE');
-    this._setValuesActionType = ActionNameUtil.generate(id, 'SET_VALUES');
-    this._clearFieldActionType = ActionNameUtil.generate(id, 'CLEAR_FIELD');
-    this._mergeFieldsActionType = ActionNameUtil.generate(id, 'MERGE_FIELDS');
-    this._setIsValidatingActionType = ActionNameUtil.generate(id, 'SET_IS_VALIDATING');
-    this._setErrorMessagesActionType = ActionNameUtil.generate(id, 'SET_ERRORS');
-    this._addErrorMessagesActionType = ActionNameUtil.generate(id, 'ADD_ERRORS');
-    this._setFormEnabledStateActionType = ActionNameUtil.generate(id, 'SET_ENABLED_STATE');
-    this._clearFormActionType = ActionNameUtil.generate(id, 'CLEAR_FORM');
-    this._clearErrorMessagesActionType = ActionNameUtil.generate(id, 'CLEAR_ERROR_MESSAGES');
-
-    this._addListItemActionType = ActionNameUtil.generate(id, 'ADD_ITEM');
-    this._addListItemWithValueActionType = ActionNameUtil.generate(id,'ADD_ITEM_WITH_VALUE');
-    this._removeListItemActionType = ActionNameUtil.generate(id, 'REMOVE_ITEM');
-    this._reorderListItemActionType = ActionNameUtil.generate(id, 'REORDER_ITEM');
-    this._reorderListItemIncActionType = ActionNameUtil.generate(id, 'REORDER_ITEM_INC');
-    this._reorderListItemDecActionType = ActionNameUtil.generate(id, 'REORDER_ITEM_DEC');
-
-    this._pieceCustomEqualComparators = {
-      errorMessages: function(a, b) {
-        return a.length == 0 && b.length == 0;
-      }
-    };
-
-    this._actionCreator = {
-      // Simple field related actions.
-      setFormEnabledState: (formId, isEnabled) => {
-        return {
-          type: this._setFormEnabledStateActionType,
-          formId: formId,
-          isEnabled: isEnabled
-        };
-      },
-      setIsValidating: (formId, map) => {
-        return {
-          type: this._setIsValidatingActionType,
-          formId: formId,
-          map: map
-        };
-      },
-      mergeFields: (formId, fields) => {
-        return {
-          type: this._mergeFieldsActionType,
-          formId: formId,
-          fields: fields
-        };
-      },
-      setValue: (formId, fieldName, value) => {
-        return {
-          type: this._setValueActionType,
-          formId: formId,
-          fieldName: fieldName,
-          value: value
-        };
-      },
-      setValues: (formId, values) => {
-        return {
-          type: this._setValuesActionType,
-          formId: formId,
-          values: values
-        };
-      },
-      clearField: (formId, fieldName) => {
-        return {
-          type: this._clearFieldActionType,
-          formId: formId,
-          fieldName: fieldName
-        };
-      },
-      setErrorMessages: (formId, fieldName, errorMessages) => {
-        return {
-          type: this._setErrorMessagesActionType,
-          formId: formId,
-          fieldName: fieldName,
-          errorMessages: errorMessages
-        };
-      },
-      addErrorMessages: (formId, messages) => {
-        return {
-          type: this._addErrorMessagesActionType,
-          formId: formId,
-          messages: messages
-        };
-      },
-      clearErrorMessages: (formId, fieldNames) => {
-        return {
-          type: this._clearErrorMessagesActionType,
-          formId: formId,
-          fieldNames: fieldNames
-        }
-      },
-      clear: (formId) => {
-        return {
-          type: this._clearFormActionType,
-          formId: formId
-        };
-      },
-
-      // Repeatable field related action.
-      addListItem: (formId, fieldName, minLength, maxLength) => {
-        return {
-          type: this._addListItemActionType,
-          formId: formId,
-          fieldName: fieldName,
-          minLength: minLength,
-          maxLength: maxLength
-        };
-      },
-      // Repeatable field related action.
-      addListItemWithValue: (formId, fieldName, values) => {
-        return {
-          type: this._addListItemWithValueActionType,
-          formId: formId,
-          fieldName: fieldName,
-          values : values
-        };
-      },
-      removeListItem: (formId, fieldName, index) => {
-        return {
-          type: this._removeListItemActionType,
-          formId: formId,
-          fieldName: fieldName,
-          index: index
-        };
-      },
-      reorderListItemInc: (formId, fieldName, index, amount = 1) => {
-        return {
-          type: this._reorderListItemIncActionType,
-          formId: formId,
-          fieldName: fieldName,
-          index: index,
-          amount: amount
-        };
-      },
-      reorderListItemDec: (formId, fieldName, index, amount = 1) => {
-        return {
-          type: this._reorderListItemDecActionType,
-          formId: formId,
-          fieldName: fieldName,
-          index: index,
-          amount: amount
-        }
-      },
-      reorderListItem: (formId, fieldName, index, targetIndex) => {
-        return {
-          type: this._reorderListItemActionType,
-          formId: formId,
-          fieldName: fieldName,
-          index: index,
-          targetIndex: targetIndex
-        };
-      }
-    }
-    ;
+  static getReducer() {
+    return REDUCER;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     if (!query.hasOwnProperty('formId') || !query.hasOwnProperty('type')) {
       throw new Error('Query must contain formId and type properties.');
     }
@@ -265,20 +299,10 @@ export default class FormSegment extends LocalSegment {
     }
 
     if (query.fieldName) {
-      var stringifiedName = this._generateStringFieldName(query.fieldName);
+      var stringifiedName = FormSegment._generateStringFieldName(query.fieldName);
       queryId += '-' + stringifiedName;
     }
-    this._queryIdCache[queryId] = query;
     return queryId;
-  }
-
-  /**
-   * @param {Array<string|number>|string} fieldName
-   */
-  _generateStringFieldName(fieldName) {
-    // This should join all members if the field name is an array or leave it
-    // untouched if it's a string.
-    return fieldName.toString();
   }
 
   /**
@@ -298,26 +322,31 @@ export default class FormSegment extends LocalSegment {
    *   {formId: 'formId', type: 'length', fieldName: ['fieldName']}
    * </pre>
    */
-  _getPieceObject(state, queryId) {
-    var query = this._queryIdCache[queryId];
+  static queryState(query, queryId, segmentState) {
     switch (query.type) {
       case '*':
-        return this._getAllValues(state, query.formId);
+        if (segmentState == null) return QueryResult.loaded(null);
+        return QueryResult.loaded(FormSegment._getAllValues(segmentState, query.formId));
         break;
       case '**':
-        return state[query.formId] ? state[query.formId] : {};
+        if (segmentState == null) return QueryResult.loaded({});
+        return QueryResult.loaded(segmentState[query.formId] ? segmentState[query.formId] : {});
         break;
       case 'isEnabled':
-        return state[query.formId] ? state[query.formId].isEnabled : true;
+        if (segmentState == null) return QueryResult.loaded(true);
+        return QueryResult.loaded(segmentState[query.formId] ? segmentState[query.formId].isEnabled : true);
         break;
       case 'hasErrors':
-        return this._hasErrors(state, query.formId);
+        if (segmentState == null) return QueryResult.loaded(null);
+        return QueryResult.loaded(FormSegment._hasErrors(segmentState, query.formId));
         break;
       case 'field':
-        return this._getField(state, query.formId, query.fieldName);
+        if (segmentState == null) return QueryResult.loaded(null);
+        return QueryResult.loaded(FormSegment._getField(segmentState, query.formId, query.fieldName));
         break;
       case 'length':
-        return this._getLength(state, query.formId, query.fieldName, query.minLength);
+        if (segmentState == null) return QueryResult.loaded(null);
+        return QueryResult.loaded(FormSegment._getLength(segmentState, query.formId, query.fieldName, query.minLength));
         break;
       default:
         throw new Error('Unable to translate query: ' + queryId);
@@ -325,7 +354,16 @@ export default class FormSegment extends LocalSegment {
     }
   }
 
-  _getAllValues(state, formId) {
+  /**
+   * @param {Array<string|number>|string} fieldName
+   */
+  static _generateStringFieldName(fieldName) {
+    // This should join all members if the field name is an array or leave it
+    // untouched if it's a string.
+    return fieldName.toString();
+  }
+
+  static _getAllValues(state, formId) {
     var result = {}, currentKey;
     if (state[formId] == null || state[formId].fields == null) return result;
     var fields = state[formId].fields;
@@ -373,7 +411,7 @@ export default class FormSegment extends LocalSegment {
    * @param {?number} minLength
    * @return {number}
    */
-  _getLength(state, formId, fieldName, minLength) {
+  static _getLength(state, formId, fieldName, minLength) {
     minLength = minLength == null ? 0 : minLength;
     if (state[formId] == null || state[formId].fields == null) return minLength;
     if (isStringDuckType(fieldName)) {
@@ -391,29 +429,29 @@ export default class FormSegment extends LocalSegment {
     return ref.length;
   }
 
-  _hasErrors(state, formId) {
+  static _hasErrors(state, formId) {
     if (state[formId] == null || state[formId].fields == null) return false;
-    return this._fetchHasError(state[formId].fields);
+    return FormSegment._fetchHasError(state[formId].fields);
   }
 
-  _fetchHasError(fields) {
+  static _fetchHasError(fields) {
     var i;
     if (isArray(fields.errorMessages)) {
       return fields.errorMessages.length > 0;
     } else if (isArray(fields)) {
       for (i = 0; i < fields.length; i++) {
-        if (this._fetchHasError(fields[i])) return true;
+        if (FormSegment._fetchHasError(fields[i])) return true;
       }
     } else {
       for (i in fields) {
         if (!fields.hasOwnProperty(i)) continue;
-        if (this._fetchHasError(fields[i])) return true;
+        if (FormSegment._fetchHasError(fields[i])) return true;
       }
     }
     return false;
   }
 
-  _getField(state, formId, fieldName) {
+  static _getField(state, formId, fieldName) {
     if (state[formId] == null || state[formId].fields == null) {
       return null;
     }
@@ -433,68 +471,8 @@ export default class FormSegment extends LocalSegment {
     return ref;
   }
 
-  _getActionCreator() {
-    return this._actionCreator;
-  }
-
-  _getReducer() {
-    return (state, action) => {
-      if (state == null) return {};
-      switch (action.type) {
-        case this._setFormEnabledStateActionType:
-          return this._setFormEnabledState(state, action);
-          break;
-        case this._setIsValidatingActionType:
-          return this._setIsValidating(state, action);
-          break;
-        case this._setValueActionType:
-          return this._setValue(state, action);
-          break;
-        case this._setValuesActionType:
-          return this._setValues(state, action);
-          break;
-        case this._clearFieldActionType:
-          return this._clearField(state, action);
-        case this._setErrorMessagesActionType:
-          return this._setErrorMessages(state, action);
-          break;
-        case this._addErrorMessagesActionType:
-          return this._addErrorMessages(state, action);
-          break;
-        case this._mergeFieldsActionType:
-          return this._mergeFields(state, action);
-          break;
-        case this._clearFormActionType:
-          return this._clearForm(state, action);
-          break;
-        case this._clearErrorMessagesActionType:
-          return this._clearErrorMessages(state, action);
-          break;
-        case this._addListItemActionType:
-          return this._addListItem(state, action);
-          break;
-        case this._addListItemWithValueActionType:
-          return this._addListItemWithValue(state, action);
-          break;
-        case this._removeListItemActionType:
-          return this._removeListItem(state, action);
-          break;
-        case this._reorderListItemIncActionType:
-          return this._reorderListItemInc(state, action);
-          break;
-        case this._reorderListItemDecActionType:
-          return this._reorderListItemDec(state, action);
-          break;
-        case this._reorderListItemActionType:
-          return this._reorderListItem(state, action);
-          break;
-      }
-      return state;
-    }
-  }
-
-  _setFormEnabledState(state, action) {
-    state = this._ensureFormExistence(state, action);
+  static _setFormEnabledState(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
     state = update(state, {
       [action.formId]: {
         isEnabled: {$set: action.isEnabled}
@@ -503,14 +481,14 @@ export default class FormSegment extends LocalSegment {
     return state;
   }
 
-  _setIsValidating(state, action) {
-    state = this._ensureFormExistence(state, action);
+  static _setIsValidating(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
     var fieldName, updateObject, tempAction;
     for (fieldName in action.map) {
       if (!action.map.hasOwnProperty(fieldName)) continue;
       tempAction = {formId: action.formId, fieldName: fieldName};
-      state = this._extractField(state, tempAction).state;
-      updateObject = this._createFieldUpdateObject(tempAction, {
+      state = FormSegment._extractField(state, tempAction).state;
+      updateObject = FormSegment._createFieldUpdateObject(tempAction, {
         isValidating: {$set: action.map[fieldName]},
         touched: {$set: true}
       });
@@ -519,15 +497,39 @@ export default class FormSegment extends LocalSegment {
     return state;
   }
 
-  _setValue(state, action) {
-    state = this._ensureFormExistence(state, action);
-    var result = this._extractField(state, action);
+  static _setDefaultValue(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
+    var result = FormSegment._extractField(state, action);
+    if (result.field != null) {
+      // If the field already exists no need to update the state.
+      return state;
+    }
+    state = result.state;
+    return this._setValue(state, ACTION_CREATOR.setValue(
+      action.formId, action.fieldName, action.value
+    ));
+  }
+
+  static _setDefaultValues(state, action) {
+    var i, value;
+    for (i = 0; i < action.values.length; i++) {
+      value = action.values[i];
+      state = FormSegment._setDefaultValue(state, ACTION_CREATOR.setDefaultValue(
+        action.formId, value.fieldName, value.value
+      ));
+    }
+    return state;
+  }
+
+  static _setValue(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
+    var result = FormSegment._extractField(state, action);
     if (result.field != null && result.field.value === action.value) {
       // If we are setting the same value, no need to update the state.
       return state;
     }
     state = result.state;
-    var updateObject = this._createFieldUpdateObject(action, {
+    var updateObject = FormSegment._createFieldUpdateObject(action, {
       $set: {
         value: action.value,
         touched: true,
@@ -539,25 +541,24 @@ export default class FormSegment extends LocalSegment {
     return update(state, updateObject);
   }
 
-  _setValues(state, action) {
-    state = this._ensureFormExistence(state, action);
+  static _setValues(state, action) {
     var i, value;
     for (i = 0; i < action.values.length; i++) {
       value = action.values[i];
-      state = this._setValue(state, this._actionCreator.setValue(
+      state = FormSegment._setValue(state, ACTION_CREATOR.setValue(
         action.formId, value.fieldName, value.value
       ));
     }
     return state;
   }
 
-  _mergeFields(state, action) {
-    state = this._ensureFormExistence(state, action);
+  static _mergeFields(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
     var i, updateObject, tempAction = {formId: action.formId};
     for (i = 0; i < action.fields.length; i++) {
       tempAction.fieldName = action.fields[i].fieldName;
-      state = this._extractField(state, tempAction).state;
-      updateObject = this._createFieldUpdateObject(tempAction, {
+      state = FormSegment._extractField(state, tempAction).state;
+      updateObject = FormSegment._createFieldUpdateObject(tempAction, {
         $merge: action.fields[i].object
       });
       state = update(state, updateObject);
@@ -565,22 +566,22 @@ export default class FormSegment extends LocalSegment {
     return state;
   }
 
-  _setErrorMessages(state, action) {
-    state = this._ensureFormExistence(state, action);
-    state = this._extractField(state, action).state;
-    var updateObject = this._createFieldUpdateObject(action, {
+  static _setErrorMessages(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
+    state = FormSegment._extractField(state, action).state;
+    var updateObject = FormSegment._createFieldUpdateObject(action, {
       errorMessages: {$set: action.errorMessages}
     });
     return update(state, updateObject);
   }
 
-  _addErrorMessages(state, action) {
-    state = this._ensureFormExistence(state, action);
+  static _addErrorMessages(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
     var i, updateObject, tempAction = {formId: action.formId};
     for (i = 0; i < action.messages.length; i++) {
       tempAction.fieldName = action.messages[i].fieldName;
-      state = this._extractField(state, tempAction).state;
-      updateObject = this._createFieldUpdateObject(tempAction, {
+      state = FormSegment._extractField(state, tempAction).state;
+      updateObject = FormSegment._createFieldUpdateObject(tempAction, {
         errorMessages: {$push: action.messages[i].messages}
       });
       state = update(state, updateObject);
@@ -588,7 +589,7 @@ export default class FormSegment extends LocalSegment {
     return state;
   }
 
-  _clearForm(state, action) {
+  static _clearForm(state, action) {
     return update(state, {
       [action.formId]: {
         $set: {
@@ -599,18 +600,18 @@ export default class FormSegment extends LocalSegment {
     });
   }
 
-  _clearErrorMessages(state, action) {
-    state = this._ensureFormExistence(state, action);
+  static _clearErrorMessages(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
     var i, fieldName, field, result, updateObject,
         tempAction = {formId: action.formId};
     for (i = 0; i < action.fieldNames.length; i++) {
       fieldName = action.fieldNames[i];
       tempAction.fieldName = fieldName;
-      result = this._extractField(state, tempAction);
+      result = FormSegment._extractField(state, tempAction);
       state = result.state;
       field = result.field;
       if (field != null && field.errorMessages.length > 0) {
-        updateObject = this._createFieldUpdateObject(
+        updateObject = FormSegment._createFieldUpdateObject(
           {formId: action.formId, fieldName: fieldName},
           { errorMessages: { $set: [] } }
         );
@@ -620,19 +621,19 @@ export default class FormSegment extends LocalSegment {
     return state;
   }
 
-  _clearField(state, action) {
-    state = this._ensureFormExistence(state, action);
-    const result = this._extractField(state, action);
+  static _clearField(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
+    const result = FormSegment._extractField(state, action);
     state = result.state;
-    const updateObject = this._createFieldUpdateObject(action, {
+    const updateObject = FormSegment._createFieldUpdateObject(action, {
       $set: null
     });
     return update(state, updateObject);
   }
 
-  _addListItemWithValue(state, action){
-    state = this._ensureFormExistence(state, action);
-    var result = this._extractField(state, action, []);
+  static _addListItemWithValue(state, action){
+    state = FormSegment._ensureFormExistence(state, action);
+    var result = FormSegment._extractField(state, action, []);
     var fieldLength = result.field != null ? result.field.length : 0, fieldName = action.fieldName, value, i;
     var parentFieldName;
     if (fieldName instanceof Array) {
@@ -643,16 +644,16 @@ export default class FormSegment extends LocalSegment {
     state = result.state;
     for (i = 0; i < action.values.length; i++) {
       value = action.values[i];
-      state = this._setValue(state, this._actionCreator.setValue(
+      state = FormSegment._setValue(state, ACTION_CREATOR.setValue(
         action.formId, parentFieldName.concat(value.fieldName), value.value
       ));
     }
     return state;
   }
 
-  _addListItem(state, action) {
-    state = this._ensureFormExistence(state, action);
-    var result = this._extractField(state, action, []);
+  static _addListItem(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
+    var result = FormSegment._extractField(state, action, []);
     var fieldLength = result.field != null ? result.field.length : 0, addition = [], i,
         minLength = action.minLength == null ? 0 : action.minLength,
         maxLength = action.maxLength != null ? action.maxLength : null;
@@ -668,40 +669,40 @@ export default class FormSegment extends LocalSegment {
     for (i = 0; i < numberToAdd; i++) {
       addition.push(null);
     }
-    var updateObject = this._createFieldUpdateObject(action, {
+    var updateObject = FormSegment._createFieldUpdateObject(action, {
       $push: addition
     });
     return update(state, updateObject);
   }
 
-  _removeListItem(state, action) {
-    state = this._ensureFormExistence(state, action);
-    state = this._extractField(state, action, []).state;
-    var updateObject = this._createFieldUpdateObject(action, {
+  static _removeListItem(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
+    state = FormSegment._extractField(state, action, []).state;
+    var updateObject = FormSegment._createFieldUpdateObject(action, {
       $splice: [[action.index, 1]]
     });
     return update(state, updateObject);
   }
 
-  _reorderListItemInc(state, action) {
-    return this._reorderListItem(state, this._actionCreator.reorderListItem(
+  static _reorderListItemInc(state, action) {
+    return FormSegment._reorderListItem(state, ACTION_CREATOR.reorderListItem(
       action.formId, action.fieldName, action.index, action.index + action.amount
     ));
   }
 
-  _reorderListItemDec(state, action) {
-    return this._reorderListItem(state, this._actionCreator.reorderListItem(
+  static _reorderListItemDec(state, action) {
+    return FormSegment._reorderListItem(state, ACTION_CREATOR.reorderListItem(
       action.formId, action.fieldName, action.index, action.index - action.amount
     ));
   }
 
-  _reorderListItem(state, action) {
+  static _reorderListItem(state, action) {
     if (action.targetIndex < 0) {
       // No need to do anything
       return state;
     }
-    state = this._ensureFormExistence(state, action);
-    var item, result = this._extractField(state, action, []);
+    state = FormSegment._ensureFormExistence(state, action);
+    var item, result = FormSegment._extractField(state, action, []);
     state = result.state;
     if (result.field == null || !isArray(result.field)) {
       // If the field is non-existent or of the wrong type, there's no need to
@@ -712,7 +713,7 @@ export default class FormSegment extends LocalSegment {
 
     // First remove the item that we want to reorder, then we add the item
     // we just removed to the target index.
-    var updateObject = this._createFieldUpdateObject(action, {
+    var updateObject = FormSegment._createFieldUpdateObject(action, {
       $splice: [[action.index, 1], [action.targetIndex, 0, item]]
     });
     return update(state, updateObject);
@@ -726,7 +727,7 @@ export default class FormSegment extends LocalSegment {
    * @param {Object} action
    * @returns {Object}
    */
-  _ensureFormExistence(state, action) {
+  static _ensureFormExistence(state, action) {
     var form = state[action.formId];
     if (form == null) {
       state = update(state, {[action.formId]: {$set: {
@@ -749,7 +750,7 @@ export default class FormSegment extends LocalSegment {
    * @param {Object|Array|?} defaultFinalValue
    * @returns {{state: state, field: ?Object}}
    */
-  _extractField(state, action, defaultFinalValue) {
+  static _extractField(state, action, defaultFinalValue) {
     defaultFinalValue = defaultFinalValue || DEFAULT_FIELD;
     var fieldName = action.fieldName, result = state[action.formId].fields;
     if (isStringDuckType(fieldName)) {
@@ -796,7 +797,7 @@ export default class FormSegment extends LocalSegment {
           // If next name is number, current object must be an array. If next
           // name is string, current object must be an map.
           if (isNextFieldStr === isCurrentResultArray) {
-            var fieldNameStr = this._generateStringFieldName(fieldName);
+            var fieldNameStr = FormSegment._generateStringFieldName(fieldName);
             throw new Error('Inconsistency in field, some expected array, other expected map: \'' + fieldNameStr + '\'.');
           }
         }
@@ -875,7 +876,7 @@ export default class FormSegment extends LocalSegment {
    * @param {Object} updateObject
    * @returns {Object}
    */
-  _createFieldUpdateObject(action, updateObject) {
+  static _createFieldUpdateObject(action, updateObject) {
     var i, result = {}, ref = result, fieldName = action.fieldName;
     if (isStringDuckType(fieldName)) {
       return {[action.formId]: {fields: {[fieldName]: updateObject}}};

@@ -2,7 +2,6 @@ import React from 'react';
 
 import BadgeSegment from '../../../segments/BadgeSegment.js';
 import connect from 'soya/lib/data/redux/connect';
-import { SERVER } from 'soya/lib/data/RenderType';
 
 class BadgeList extends React.Component {
   static connectId() {
@@ -18,7 +17,7 @@ class BadgeList extends React.Component {
   }
 
   render() {
-    if (!this.props.result.badge.loaded) {
+    if (this.props.result.badge == null) {
       return <div>
         Badge list is loading....
       </div>

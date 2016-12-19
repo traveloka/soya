@@ -2,11 +2,11 @@ import React from 'react';
 
 import BookingSegment from '../../../segments/BookingSegment.js';
 import connect from 'soya/lib/data/redux/connect';
-import { SERVER } from 'soya/lib/data/RenderType';
+import Hydration from 'soya/lib/data/redux/Hydration';
 
 import style from './style.mod.css';
 
-class BookingBox {
+class BookingBox extends React.Component {
   static connectId() {
     return 'BookingBox';
   }
@@ -16,33 +16,32 @@ class BookingBox {
   }
 
   static subscribeQueries(nextProps, subscribe) {
-    var hydrationOption = null;
+    var hydration = null;
     if (nextProps.loadAtClient) {
-      hydrationOption = {
-        SERVER: false
-      };
+      hydration = Hydration.noopAtServer();
     }
 
     var query = {
       bookingId: nextProps.bookingId
     };
 
-    subscribe(BookingSegment.id(), query, 'booking', hydrationOption);
+    subscribe(BookingSegment.id(), query, 'booking', hydration);
   }
 
   render() {
     var title = `Booking Detail (${this.props.bookingId})`;
-    if (!this.props.result.booking.loaded) {
-      var loading;
-      if (this.props.result.booking.errors) {
-        loading = <p>Error: {this.props.result.booking.errors[0]}</p>;
-      } else {
-        loading = <p>Loading...</p>;
-      }
+    if (this.props.result.booking == null) {
       return <div className={style.container}>
         <h3>{title}</h3>
-        {loading}
+        <p>Loading...</p>
       </div>
+    }
+
+    if (this.props.result.booking.errors) {
+      return <div className={style.container}>
+        <h3>{title}</h3>
+        <p>Error: {this.props.result.booking.errors[0]}</p>
+      </div>;
     }
 
     return <div className={style.container}>
@@ -52,7 +51,7 @@ class BookingBox {
         <li>Status: {this.props.result.booking.data.status}</li>
         <li>Last Updated: {new Date(this.props.result.booking.data.timestamp).toGMTString()}</li>
       </ul>
-    </div>
+    </div>;
   }
 }
 

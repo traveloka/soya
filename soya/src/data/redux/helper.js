@@ -29,6 +29,11 @@ export function isEqualShallow(objectA, objectB, customEqualComparators) {
     return true;
   }
 
+  // Check nullability.
+  if ((objectA == null && objectB != null) || (objectA != null && objectB == null)) {
+    return false;
+  }
+
   var key;
   for (key in objectA) {
     if (!objectA.hasOwnProperty(key)) continue; // IE check.
@@ -55,6 +60,15 @@ export function isEqualShallow(objectA, objectB, customEqualComparators) {
  * @return {boolean}
  */
 export function isEqualShallowArray(arrayA, arrayB) {
+  if (arrayA == null && arrayB == null) {
+    return true;
+  }
+
+  // Check nullability.
+  if ((arrayA == null && arrayB != null) || (arrayA != null && arrayB == null)) {
+    return false;
+  }
+
   if (arrayA.length != arrayB.length) {
     return false;
   }

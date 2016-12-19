@@ -1,13 +1,12 @@
-import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment.js';
-import Thunk from 'soya/lib/data/redux/Thunk.js';
-import QueryDependencies from 'soya/lib/data/redux/QueryDependencies.js';
-
-// TODO: Figure out how to do polyfill.
-// TODO: Figure out how to load client-side libraries like jQuery!
-import request from 'superagent';
+import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment';
+import QueryDependencies from 'soya/lib/data/redux/QueryDependencies';
+import Load from 'soya/lib/data/redux/Load';
 
 import { BookingSegmentId } from './ids.js';
+import BookingService from '../services/BookingService.js';
 import LifetimeSessionSegment from './LifetimeSessionSegment.js';
+
+const CONTEXT = 'c';
 
 export default class BookingSegment extends MapSegment {
   static id() {
@@ -18,30 +17,35 @@ export default class BookingSegment extends MapSegment {
     return [LifetimeSessionSegment];
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.bookingId;
   }
 
-  _generateThunkFunction(thunk) {
-    var queryId = thunk.queryId;
-    var query = thunk.query;
+  static getServiceDependencies() {
+    return [BookingService];
+  }
+
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(BookingSegment.id());
     var dependencies = QueryDependencies.serial(Promise);
-    dependencies.add('context', LifetimeSessionSegment.id(), null);
-    thunk.dependencies = dependencies;
-    thunk.func = (dispatch) => {
-      var result = new Promise((resolve, reject) => {
-        // Note: can already use lifetime and session in this request.
-        request.get('http://localhost:8000/api/booking/' + encodeURIComponent(query.bookingId)).end((err, res) => {
-          var payload = JSON.parse(res.text);
-          if (res.ok) {
-            dispatch(this._createSyncLoadActionObject(queryId, payload));
+    dependencies.add(CONTEXT, LifetimeSessionSegment.id(), null);
+    load.dependencies = dependencies;
+    load.func = (dispatch, queryFunc, services) => {
+      var bookingService = services[BookingService.id()];
+      return new Promise((resolve, reject) => {
+        var context = dependencies.getResult(CONTEXT);
+        bookingService.fetchBooking(query.bookingId, context.lifetime, context.session)
+          .then((result) => {
+            if (result.success) {
+              dispatch(this.getActionCreator().set(queryId, result.payload));
+            } else {
+              dispatch(this.getActionCreator().set(queryId, null, [result.errorMessage]));
+            }
             resolve();
-          } else if (res.notFound) {
-            dispatch(this._createSyncLoadActionObject(queryId, null, [payload.error]));
-          }
-        });
+          })
+          .catch(reject);
       });
-      return result;
     };
+    return load;
   }
 }

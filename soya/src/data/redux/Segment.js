@@ -13,23 +13,13 @@
  *   };
  * </pre>
  *
- * IMPORTANT NOTE: All methods described here is considered non public and
- * should be overridden by child class.
+ * IMPORTANT NOTE: The entirety of this class is supposed to be stateless.
+ * The reason we use class is to make it easier to inherit some of the
+ * pre-defined methods, while also making the interface clear.
  *
  * @CLIENT_SERVER
  */
 export default class Segment {
-  /**
-   * @param {Object} config
-   * @param {CookieJar} cookieJar
-   * @param {Object} dependencyActionCreatorMap
-   */
-  constructor(config, cookieJar, dependencyActionCreatorMap) {
-    this._config = config;
-    this._cookieJar = cookieJar;
-    this._dependencyActionCreators = dependencyActionCreatorMap;
-  }
-
   /**
    * Returns an array of Segment classes that this Segment has dependencies to.
    * Child classes can override this static method to declare their Segment
@@ -42,13 +32,22 @@ export default class Segment {
   }
 
   /**
+   * Returns an array of Service classes that this Segment needs.
+   *
+   * @returns {Array<Class<Service>>}
+   */
+  static getServiceDependencies() {
+    return [];
+  }
+
+  /**
    * Get the segment name. Segment's name is hard-coded by each segment
    * implementation and must never change.
    *
    * @return {string}
    */
   static id() {
-    throw new Error('Segment implementation must provide ID!');
+    throw new Error('Must implement: ' + this);
   }
 
   /**
@@ -62,54 +61,14 @@ export default class Segment {
   }
 
   /**
-   * Returns true if the given piece is already loaded. Segments that do not
-   * load anything should always return true.
-   *
-   * @param {string} queryId
-   * @param {any} piece
-   * @return {boolean}
-   */
-  _isLoaded(queryId, piece) {
-    
-  }
-
-  /**
    * The generated query ID needs to be string since it'll be used by ReduxStore
    * to store query-related data.
    *
    * @param {any} query
    * @return {string}
    */
-  _generateQueryId(query) {
-
-  }
-
-  /**
-   * Returns a basic payload object to populate the segment piece with initial
-   * structure. Segment's reducer should ignore this action if the piece is
-   * already populated or loaded.
-   *
-   * TODO: Why the need for initialization? Remove? Make things simpler.
-   *
-   * @deprecated
-   * @param {string} queryId
-   * @return {Object}
-   */
-  _createSyncInitAction(queryId) {
-
-  }
-
-  /**
-   * Returns a basic payload object that nullifies the segment data. This is
-   * called when hot reloading a change in Segment.
-   *
-   * TODO: This has no use. If we hot reload with change in structure, just refresh.
-   *
-   * @deprecated
-   * @return {Object}
-   */
-  _createSyncCleanAction() {
-
+  static generateQueryId(query) {
+    throw new Error('Must implement: ' + this);
   }
 
   /**
@@ -117,21 +76,25 @@ export default class Segment {
    *
    * @param {any} query
    * @param {string} queryId
-   * @return {void | Object | Thunk}
+   * @param {any} segmentState
+   * @param {{[key: string]: Service}} services
+   * @return {void | Load}
    */
-  _createLoadAction(query, queryId) {
-
+  static createLoadFromQuery(query, queryId, segmentState, services) {
+    return null;
   }
 
   /**
-   * Returns an object containing data and errors.
-   *
-   * @param {any} state
+   * Returns an object that not only return the resulting data, but also whether
+   * or not the data is loaded.
+   * 
+   * @param {any} query
    * @param {string} queryId
-   * @return {any}
+   * @param {any} segmentState
+   * @return {QueryResult}
    */
-  _getPieceObject(state, queryId) {
-
+  static queryState(query, queryId, segmentState) {
+    throw new Error('Must implement: ' + this);
   }
 
   /**
@@ -142,7 +105,7 @@ export default class Segment {
    * @param {any} segmentStateB
    * @return {boolean}
    */
-  _isStateEqual(segmentStateA, segmentStateB) {
+  static isStateEqual(segmentStateA, segmentStateB) {
     return segmentStateA === segmentStateB;
   }
 
@@ -155,18 +118,25 @@ export default class Segment {
    *
    * @param prevSegmentState
    * @param segmentState
+   * @param query
    * @param queryId
    * @return {?Array<any>}
    */
-  _comparePiece(prevSegmentState, segmentState, queryId) {
+  static comparePiece(prevSegmentState, segmentState, query, queryId) {
     // If state is equal, nothing has changed, since our reducer always
     // re-creates the object.
-    if (this._isStateEqual(prevSegmentState, segmentState)) {
+    if (this.isStateEqual(prevSegmentState, segmentState)) {
       return null;
     }
 
-    var prevSegmentPiece = this._getPieceObject(prevSegmentState, queryId);
-    var segmentPiece = this._getPieceObject(segmentState, queryId);
+    var prevQueryResult = this.queryState(query, queryId, prevSegmentState);
+    var queryResult = this.queryState(query, queryId, segmentState);
+    if (prevQueryResult.loaded != queryResult.loaded) {
+      return [queryResult.data];
+    }
+
+    var prevSegmentPiece = prevQueryResult.data;
+    var segmentPiece = queryResult.data;
     if (segmentPiece === prevSegmentPiece) {
       return null;
     }
@@ -189,30 +159,31 @@ export default class Segment {
    *
    * @return {Function}
    */
-  _getReducer() {
-
+  static getReducer() {
+    throw new Error('Must implement: ' + this);
   }
 
   /**
-   * Returns an object containing action functions. Unlike reducer,
-   * ActionCreator can be stateful objects. This is allowed since ActionCreator
-   * has to deal with caching and AJAX requests.
+   * Returns an object containing action functions.
    *
    * @return {Object}
    */
-  _getActionCreator() {
-
+  static getActionCreator() {
+    throw new Error('Must implement: ' + this);
   }
 
   /**
    * Processes the refresh requests according to the given state and generates
    * list of queries that must be run with cache turned off.
    *
+   * We need to have this method because we only wanted to refresh states that
+   * are already loaded, not the
+   *
    * @param {?} segmentState
    * @param {?} refreshRequests
    * @returns {Array<?>}
    */
-  _processRefreshRequests(segmentState, refreshRequests) {
+  static processRefreshRequests(segmentState, refreshRequests) {
     return [];
   }
 }

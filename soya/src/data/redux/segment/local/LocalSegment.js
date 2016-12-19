@@ -1,5 +1,6 @@
 import Segment from '../../Segment.js';
 import ActionNameUtil from '../ActionNameUtil.js';
+import QueryResult from '../../QueryResult.js';
 
 import update from 'react-addons-update';
 
@@ -10,241 +11,86 @@ import update from 'react-addons-update';
  * @CLIENT_SERVER
  */
 export default class LocalSegment extends Segment {
-  /**
-   * @type {Object}
-   */
-  _config;
-
-  /**
-   * @type {CookieJar}
-   */
-  _cookieJar;
-
-  /**
-   * @type {string}
-   */
-  _initActionType;
-
-  /**
-   * @type {string}
-   */
-  _cleanActionType;
-
-  /**
-   * @type {string}
-   */
-  _updateActionType;
-
-  /**
-   * @param {Object} config
-   * @param {CookieJar} cookieJar
-   * @param {Object} dependencyActionCreatorMap
-   */
-  constructor(config, cookieJar, dependencyActionCreatorMap) {
-    super(config, cookieJar, dependencyActionCreatorMap);
-
-    // Since segment name is guaranteed never to clash by ReduxStore, we can
-    // safely use segment name as action type.
-    var id = this.constructor.id();
-    this._initActionType = ActionNameUtil.generate(id, 'INIT');
-    this._cleanActionType = ActionNameUtil.generate(id, 'CLEAN');
-    this._updateActionType = ActionNameUtil.generate(id, 'UPDATE');
+  // We'll cache something at the Segment class. This isn't state, since it's
+  // constant for all user Segment classes extending this class and won't
+  // ever change.
+  static __initialize() {
+    const segment = this;
+    if (segment.__INITIALIZED) return;
+    const id = segment.id();
+    const UPDATE_ACTION_TYPE = ActionNameUtil.generate(id, 'UPDATE');
+    const CLEAN_ACTION_TYPE = ActionNameUtil.generate(id, 'CLEAN');
+    segment.__ACTION_CREATOR = {
+      createUpdateAction(commands) {
+        return {
+          type: UPDATE_ACTION_TYPE,
+          commands: commands
+        }
+      }
+    };
+    segment.__REDUCER = function(state, action) {
+      if (state == null) state = segment.createInitialData();
+      switch (action.type) {
+        case CLEAN_ACTION_TYPE:
+          // Since there are no concept of loading in local segment, init and
+          // clean does the same thing, which is populating the segment with
+          // initial data.
+          return segment.createInitialData();
+          break;
+        case UPDATE_ACTION_TYPE:
+          // Update using react immutability helper.
+          return update(state, action.commands);
+          break;
+      }
+      return state;
+    };
+    segment.__INITIALIZED = true;
   }
 
-  /**
-   * @returns {boolean}
-   */
+  static getActionCreator() {
+    this.__initialize();
+    return this.__ACTION_CREATOR;
+  }
+
+  static getReducer() {
+    this.__initialize();
+    return this.__REDUCER;
+  }
+
   static shouldHydrate() {
+    // Since this is local segment, it shouldn't be hydrated at server.
     return false;
   }
 
   /**
-   * @returns {Object | Array | string | number | void}
+   * This is meant to be overridden by client.
+   *
+   * @returns {any}
    */
-  createInitialData() {
+  static createInitialData() {
     return {};
   }
 
-  /**
-   * @param {any} query
-   * @return {string}
-   */
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     if (typeof query != 'string') {
       throw new Error('Local segment query must be string. Found: \'' + query + '\'.');
     }
     return query;
   }
 
-  /**
-   * @param {string} queryId
-   * @param {any} piece
-   * @return {boolean}
-   */
-  _isLoaded(queryId, piece) {
-    // Since this is a local segment, all segment pieces are always already
-    // loaded and ready to be used.
-    return true;
-  }
-
-  /**
-   * @param {string} queryId
-   * @return {Object}
-   */
-  _createSyncInitAction(queryId) {
-    return {
-      type: this._initActionType,
-      queryId: queryId
-    };
-  }
-
-  /**
-   * @return {Object}
-   */
-  _createSyncCleanAction() {
-    return {
-      type: this._cleanActionType
-    };
-  }
-
-  /**
-   * No need for loading. This is local segment after all.
-   *
-   * @param {any} query
-   * @param {string} queryId
-   * @return {void | Object | Thunk}
-   */
-  _createLoadAction(query, queryId) {
-    return null;
-  }
-
-  /**
-   * Returns an object containing data and errors.
-   *
-   * @param {any} state
-   * @param {string} queryId
-   * @return {any}
-   */
-  _getPieceObject(state, queryId) {
-    if (typeof state == 'object' && typeof queryId == 'string' && queryId != '') {
-      var i, segment = state, splitQuery = queryId.split('.');
+  static queryState(query, queryId, segmentState) {
+    if (segmentState == null) return QueryResult.loaded(null);
+    if (typeof segmentState == 'object' && typeof queryId == 'string' && queryId != '') {
+      var i, segment = segmentState, splitQuery = queryId.split('.');
       for (i = 0; i < splitQuery.length; i++) {
         if (segment.hasOwnProperty(splitQuery[i])) {
           segment = segment[splitQuery[i]];
         } else {
-          return null;
+          return QueryResult.loaded(null);
         }
       }
-      return segment;
+      return QueryResult.loaded(segment);
     }
-    return state;
-  }
-
-  /**
-   * Compares two segment states, returns true if the segment state is
-   * different.
-   *
-   * @param {any} segmentStateA
-   * @param {any} segmentStateB
-   * @return {boolean}
-   */
-  _isStateEqual(segmentStateA, segmentStateB) {
-    // Since we use react immutability helper.
-    return segmentStateA === segmentStateB;
-  }
-
-  /**
-   * Compares pieces of two state. If they are equal return null, otherwise
-   * return piece of the current segment state.
-   *
-   * @param prevSegmentState
-   * @param segmentState
-   * @param queryId
-   * @return {any}
-   */
-  _comparePiece(prevSegmentState, segmentState, queryId) {
-    // If state is equal, nothing has changed, since our reducer always
-    // re-creates the object.
-    if (this._isStateEqual(prevSegmentState, segmentState)) {
-      return null;
-    }
-
-    var prevSegmentPiece = this._getPieceObject(prevSegmentState, queryId);
-    var segmentPiece = this._getPieceObject(segmentState, queryId);
-    if (segmentPiece === prevSegmentPiece) {
-      return null;
-    }
-
-    return [segmentPiece];
-  }
-
-  /**
-   * Creates default query result for the given queryId.
-   *
-   * @param {string} queryId
-   * @returns {?}
-   */
-  _createInitialQueriedData(queryId) {
-    return null;
-  }
-
-  /**
-   * Returns a reducer function. Called only once by Store, on registration
-   * of a new segment.
-   *
-   * Reducer is responsible for:
-   * 1) Initializing default segment state.
-   * 2) Handling changes to segment state.
-   *
-   * NOTE: We could easily convert this into reduce() method. However in the
-   * spirit of redux, reducers should be stateless functions. Let state of
-   * subscription, queries, etc. be handled by others. We're making it
-   * much simpler this way, methinks.
-   *
-   * @return {Function}
-   */
-  _getReducer() {
-    var initActionType = this._initActionType;
-    var cleanActionType = this._cleanActionType;
-    var updateActionType = this._updateActionType;
-    var initialData = this.createInitialData();
-    return (state, action) => {
-      if (state == null) return initialData;
-      switch (action.type) {
-        case initActionType:
-          return update(state, {[action.queryId]: { $set: this._createInitialQueriedData(action.queryId) }});
-          break;
-        case cleanActionType:
-          // Since there are no concept of loading in local segment, init and
-          // clean does the same thing, which is populating the segment with
-          // initial data.
-          return initialData;
-          break;
-        case updateActionType:
-          // Update using react immutability helper.
-          return update(state, action.commands);
-          break;
-      }
-      return state;
-    }
-  }
-
-  /**
-   * Returns an object containing action functions. Unlike reducer,
-   * ActionCreator can be stateful objects. This is allowed since ActionCreator
-   * has to deal with caching and AJAX requests.
-   *
-   * @return {Object}
-   */
-  _getActionCreator() {
-    var updateActionType = this._updateActionType;
-    return {
-      createUpdateAction(commands) {
-        return {
-          type: updateActionType,
-          commands: commands
-        }
-      }
-    };
+    return QueryResult.loaded(segmentState);
   }
 }

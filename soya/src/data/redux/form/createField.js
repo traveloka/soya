@@ -86,6 +86,7 @@ export default function createField(InputComponent) {
       this.__inputChangeValidators = [];
       this.__inputAsyncValidators = [];
       this.__submitValidators = [];
+      this.__setDefaultValue = this.setDefaultValue.bind(this);
       this.__handleChange = this.handleChange.bind(this);
       this.__handleAsyncValidation = this.handleAsyncValidation.bind(this);
       this.__registerAsyncValidators = this.registerAsyncValidators.bind(this);
@@ -140,6 +141,7 @@ export default function createField(InputComponent) {
       }
 
       props.isDisabled = props.isValidating || !props.isFormEnabled || !props.isFieldEnabled;
+      props.setDefaultValue = this.__setDefaultValue;
       props.handleChange = this.__handleChange;
       props.handleAsyncValidation = this.__handleAsyncValidation;
       props.registerChangeValidators = this.__registerChangeValidators;
@@ -172,10 +174,18 @@ export default function createField(InputComponent) {
       this.__submitValidators = this.__submitValidators.concat(funcArray);
     }
 
+    setDefaultValue(value) {
+      var actions = FormSegment.getActionCreator();
+      this.props.getReduxStore().dispatch(actions.setDefaultValue(
+        this.props.form.getFormId(), this.props.name, value
+      ));
+    }
+
     /**
      * @param {?} value
      */
     handleChange(value) {
+      // TODO: Change usage this.props.getActionCreator() to FormSegment.getActionCreator().
       var i, errorMessages = this.validateSync(value);
       var actions = this.props.getActionCreator(FormSegment.id());
       if (errorMessages.length == 0) {

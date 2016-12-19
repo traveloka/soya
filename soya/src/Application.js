@@ -6,8 +6,8 @@ import ServerWsRequest from './websocket/ServerWSRequest';
 import Provider from './Provider.js';
 import CookieJar from './http/CookieJar.js';
 import ServerCookieJar from './http/ServerCookieJar.js';
-import { SERVER } from './data/RenderType';
 import SocketIO from 'socket.io';
+import fs from 'fs';
 import SocketIORedis from 'socket.io-redis';
 
 var path = require('path');
@@ -287,6 +287,15 @@ export default class Application {
 
     // TODO: Config can set timeout for http requests.
     http.createServer((request, response) => {
+      // Control for favicon
+      if (request.method === 'GET' && request.url === '/favicon.ico') {
+        var faviconPath = path.join(this._frameworkConfig.absoluteProjectDir, 'favicon.ico');
+        if (fs.existsSync(faviconPath)) {
+          response.writeHead(200, {'Content-Type': 'image/x-icon'});
+          response.end(fs.readFileSync(faviconPath), 'binary');
+          return;
+        }
+      }
       var d = domain.create().on('error', (error) => {
         this.handleError(error, request, response);
       });
@@ -301,13 +310,14 @@ export default class Application {
         // Run the first middleware.
         runMiddleware();
       });
-    }).listen(this._frameworkConfig.port);
+    }).listen(this._frameworkConfig.port, () => {
+      if (process && typeof process.send === 'function') process.send('ready');
+      this._logger.info('Server listening at port: ' + this._frameworkConfig.port + '.');
+    });
 
     if (this._frameworkConfig.webSocket.enabled === true) {
       this._createWebsocketeServer();
     }
-
-    this._logger.info('Server listening at port: ' + this._frameworkConfig.port + '.');
   }
 
   /**
@@ -331,9 +341,6 @@ export default class Application {
     var cookieJar = new ServerCookieJar(request);
     var page = new pageClass(this._provider, cookieJar, true);
     var store = page.createStore(null);
-    if (store) {
-      store._setRenderType(SERVER);
-    }
 
     this._logger.debug('Rendering page: ' + routeResult.pageName + '.', null);
     page.render(httpRequest, routeResult.routeArgs, store,
@@ -369,8 +376,8 @@ export default class Application {
         store._endRender();
       }
 
-      this._logger.debug('Store requirements gathered, start hydration.', null, store);
-      promise = store.hydrate(SERVER);
+      //this._logger.debug('Store requirements gathered, start hydration.', null, store);
+      promise = store.hydrate();
     }
 
     var handlePromiseError = (error) => {
@@ -383,7 +390,7 @@ export default class Application {
       var state = null;
       if (store) {
         state = store._getState();
-        this._logger.debug('Finish hydration.', null, state);
+        //this._logger.debug('Finish hydration.', null, state);
         store._startRender();
       }
 

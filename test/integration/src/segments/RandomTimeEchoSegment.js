@@ -1,37 +1,33 @@
-import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment.js';
-import Thunk from 'soya/lib/data/redux/Thunk.js';
+import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment';
+import Load from 'soya/lib/data/redux/Load';
 
+import RandomTimeEchoService from '../services/RandomTimeEchoService.js';
 import { RandomTimeEchoSegmentId } from './ids.js';
-
-// TODO: Figure out how to do polyfill.
-// TODO: Figure out how to load client-side libraries like jQuery!
-import request from 'superagent';
 
 export default class RandomTimeEchoSegment extends MapSegment {
   static id() {
     return RandomTimeEchoSegmentId;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.value;
   }
 
-  _generateThunkFunction(thunk) {
-    var query = thunk.query;
-    var queryId = thunk.queryId;
-    thunk.func = (dispatch) => {
-      var result = new Promise((resolve, reject) => {
-        request.get('http://localhost:8000/api/random-time-echo/' + encodeURIComponent(query.value)).end((err, res) => {
-          if (res.ok) {
-            var payload = JSON.parse(res.text);
-            dispatch(this._createSyncLoadActionObject(queryId, payload));
-            resolve();
-          } else {
-            reject(new Error('Unable to fetch user data!'));
-          }
-        });
+  static getServiceDependencies() {
+    return [RandomTimeEchoService];
+  }
+
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(RandomTimeEchoSegment.id());
+    load.func = (dispatch, queryFunc, services) => {
+      var randomTimeEchoService = services[RandomTimeEchoService.id()];
+      return new Promise((resolve, reject) => {
+        randomTimeEchoService.echoInRandomTime(query.value).then((payload) => {
+          dispatch(this.getActionCreator().set(queryId, payload));
+          resolve();
+        }).catch(reject);
       });
-      return result;
     };
+    return load;
   }
 }

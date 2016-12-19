@@ -55,6 +55,72 @@ export default class Form {
   }
 
   /**
+   * Disables the form by setting isEnabled to false.
+   */
+  disable() {
+    this._reduxStore.dispatch(this._actionCreator.setFormEnabledState(
+      this._formId, false
+    ));
+  }
+
+  /**
+   * Enables the form by setting isEnabled to true.
+   */
+  enable() {
+    this._reduxStore.dispatch(this._actionCreator.setFormEnabledState(
+      this._formId, true
+    ));
+  }
+
+  setValue(fieldName, value) {
+    this._reduxStore.dispatch(this._actionCreator.setValue(
+      this._formId, fieldName, value
+    ));
+  }
+
+  setValues(values) {
+    this._reduxStore.dispatch(this._actionCreator.setValues(
+      this._formId, values
+    ));
+  }
+
+  setDefaultValue(fieldName, value) {
+    this._reduxStore.dispatch(this._actionCreator.setDefaultValue(
+      this._formId, fieldName, value
+    ));
+  }
+
+  setDefaultValues(values) {
+    this._reduxStore.dispatch(this._actionCreator.setDefaultValues(
+      this._formId, values
+    ));
+  }
+
+  setErrors(fieldName, errorMessages) {
+    this._reduxStore.dispatch(this._actionCreator.setErrorMessages(
+      this._formId, fieldName, errorMessages
+    ));
+  }
+
+  addErrors(errorMessages) {
+    this._reduxStore.dispatch(this._actionCreator.addErrorMessages(
+      this._formId, errorMessages
+    ));
+  }
+
+  clearForm() {
+    this._reduxStore.dispatch(this._actionCreator.clear(
+      this._formId
+    ));
+  }
+
+  clearErrors(fieldNames) {
+    this._reduxStore.dispatch(this._actionCreator.clearErrorMessages(
+      this._formId, fieldNames
+    ));
+  }
+
+  /**
    * @param {Array<string>|string} fieldName
    * @param {Function} validateAll
    */
@@ -85,24 +151,6 @@ export default class Form {
       this._fieldNames.splice(i, 1);
     }
     delete this._fields[fieldName.toString()];
-  }
-
-  /**
-   * Disables the form by setting isEnabled to false.
-   */
-  disable() {
-    this._reduxStore.dispatch(this._actionCreator.setFormEnabledState(
-      this._formId, false
-    ));
-  }
-
-  /**
-   * Enables the form by setting isEnabled to true.
-   */
-  enable() {
-    this._reduxStore.dispatch(this._actionCreator.setFormEnabledState(
-      this._formId, true
-    ));
   }
 
   /**

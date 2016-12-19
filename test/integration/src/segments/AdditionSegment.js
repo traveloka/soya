@@ -1,10 +1,7 @@
-import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment.js';
-import Thunk from 'soya/lib/data/redux/Thunk.js';
+import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment';
+import Load from 'soya/lib/data/redux/Load';
 
-// TODO: Figure out how to do polyfill.
-// TODO: Figure out how to load client-side libraries like jQuery!
-import request from 'superagent';
-
+import AdditionService from '../services/AdditionService.js';
 import { AdditionSegmentId } from './ids.js';
 
 export default class AdditionSegment extends MapSegment {
@@ -12,26 +9,26 @@ export default class AdditionSegment extends MapSegment {
     return AdditionSegmentId;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return query.a + '+' + query.b;
   }
+  
+  static getServiceDependencies() {
+    return [AdditionService];
+  }
 
-  _generateThunkFunction(thunk) {
-    var query = thunk.query;
-    var queryId = thunk.queryId;
-    thunk.func = (dispatch) => {
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(AdditionSegment.id());
+    load.func = (dispatch, queryFunc, services) => {
+      var additionService = services[AdditionService.id()];
       var result = new Promise((resolve, reject) => {
-        request.get('http://localhost:8000/api/addition/' + encodeURIComponent(query.a) + '/' + encodeURIComponent(query.b)).end((err, res) => {
-          if (res.ok) {
-            var payload = JSON.parse(res.text);
-            dispatch(this._createSyncLoadActionObject(queryId, payload));
-            resolve();
-          } else {
-            reject(new Error('Unable to fetch user data!'));
-          }
-        });
+        additionService.calculateAddition(query.a, query.b).then((result) => {
+          dispatch(this.getActionCreator().set(queryId, result));
+          resolve();
+        }).catch(reject);
       });
       return result;
     };
+    return load;
   }
 }

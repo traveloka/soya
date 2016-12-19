@@ -145,18 +145,27 @@ export default class WebpackCompiler extends Compiler {
         loaders: [
           WebpackCompiler.getBabelLoaderConfig(),
           WebpackCompiler.getFileLoaderConfig(frameworkConfig),
-          { test: /\.css$/, loader: 'css-loader', exclude: /\.mod\.css/ },
-          { test: /\.mod\.css$/, loader: 'css-loader?sourceMap&modules' },
-          { test: /\.scss$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader!sass-loader'), exclude: /\.mod\.scss/ },
-          { test: /\.mod\.scss$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap&modules!sass-loader') },
+          { test: /\.css$/, loader: 'css-loader/locals', exclude: /\.mod\.css/ },
+          { test: /\.mod\.css$/,
+            loader: 'css-loader/locals?' + JSON.stringify({
+              sourceMap: true,
+              modules: true,
+              localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+            })
+          },
+          { test: /\.scss$/, loader: 'css-loader/locals!sass-loader', exclude: /\.mod\.scss/ },
+          { test: /\.mod\.scss$/, loader: 'css-loader/locals?' + JSON.stringify({
+            sourceMap: true,
+            modules: true,
+            localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+          }) + '!sass-loader' }
         ]
       },
       plugins: [
         new webpack.BannerPlugin('require("source-map-support").install();',
           { raw: true, entryOnly: false }),
         new webpack.optimize.OccurenceOrderPlugin(),
-        new webpack.NoErrorsPlugin(),
-        new ExtractTextPlugin('css/[name]-[contenthash].css')
+        new webpack.NoErrorsPlugin()
       ],
       resolve: WebpackCompiler.generateResolveConfig(frameworkConfig),
       externals: nodeModules
@@ -284,6 +293,12 @@ export default class WebpackCompiler extends Compiler {
       ]
     };
 
+    var cssModuleArgs = JSON.stringify({
+      sourceMap: true,
+      modules: true,
+      localIdentName: this._frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+    });
+
     // Links you need to read to understand this CSS section:
     // - https://webpack.github.io/docs/stylesheets.html
     // - https://github.com/webpack/extract-text-webpack-plugin
@@ -292,7 +307,7 @@ export default class WebpackCompiler extends Compiler {
     // - https://github.com/webpack/style-loader
     var modulesCssLoader = {
       test: /\.mod\.css$/,
-      loader: 'style-loader!css-loader?sourceMap&modules'
+      loader: 'style-loader!css-loader?' + cssModuleArgs
     };
     var normalCssLoader = {
       test: /\.css$/,
@@ -301,7 +316,7 @@ export default class WebpackCompiler extends Compiler {
     };
     var modulesScssLoader = {
       test: /\.mod\.scss$/,
-      loader: 'style-loader!css-loader?sourceMap&modules!sass-loader'
+      loader: 'style-loader!css-loader?' + cssModuleArgs + '!sass-loader'
     };
     var normalSassLoader = {
       test: /\.scss$/,
@@ -312,7 +327,7 @@ export default class WebpackCompiler extends Compiler {
       // Enable loading CSS as files.
       modulesCssLoader.loader = ExtractTextPlugin.extract(
         "style-loader",
-        "css-loader?sourceMap&modules"
+        "css-loader?" + cssModuleArgs
       );
       normalCssLoader.loader = ExtractTextPlugin.extract(
         "style-loader",
@@ -320,7 +335,7 @@ export default class WebpackCompiler extends Compiler {
       );
       modulesScssLoader.loader = ExtractTextPlugin.extract(
         "style-loader",
-        "css-loader?sourceMap&modules!sass-loader"
+        "css-loader?" + cssModuleArgs + "!sass-loader"
       );
       normalSassLoader.loader = ExtractTextPlugin.extract(
         "style-loader",

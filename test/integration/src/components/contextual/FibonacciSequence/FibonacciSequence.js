@@ -2,11 +2,11 @@ import React from 'react';
 
 import FibonacciSegment from '../../../segments/FibonacciSegment.js';
 import connect from 'soya/lib/data/redux/connect';
-import { SERVER } from 'soya/lib/data/RenderType';
+import Hydration from 'soya/lib/data/redux/Hydration';
 
 import style from './style.mod.css';
 
-class FibonacciSequence {
+class FibonacciSequence extends React.Component {
   static connectId() {
     return 'FibonacciSequence';
   }
@@ -16,23 +16,21 @@ class FibonacciSequence {
   }
 
   static subscribeQueries(nextProps, subscribe) {
-    var hydrationOption = null;
+    var hydration = null;
     if (nextProps.loadAtClient) {
-      hydrationOption = {
-        SERVER: false
-      };
+      hydration = Hydration.noopAtServer();
     }
 
     var query = {
       number: nextProps.number
     };
 
-    subscribe(FibonacciSegment.id(), query, 'fib', hydrationOption);
+    subscribe(FibonacciSegment.id(), query, 'fib', hydration);
   }
 
   render() {
     var title = `Fibonacci Sequence (${this.props.number})`;
-    if (!this.props.result.fib.loaded) {
+    if (this.props.result.fib == null) {
       return <div className={style.container}>
         <h3>{title}</h3>
         <p>Loading...</p>

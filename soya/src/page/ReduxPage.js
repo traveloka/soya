@@ -6,9 +6,9 @@ import ReduxStore from '../data/redux/ReduxStore.js';
  *
  * @CLIENT_SERVER
  */
-export default class ReactReduxPage extends Page {
+export default class ReduxPage extends Page {
   createStore(initialState) {
-    var reduxStore = new ReduxStore(Promise, initialState, this.config, this.cookieJar);
+    var reduxStore = new ReduxStore(initialState, this.config, this.cookieJar);
     return reduxStore;
   }
 }

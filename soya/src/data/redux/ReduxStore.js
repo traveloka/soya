@@ -1,11 +1,12 @@
 /* @flow */
 
 import Store from '../Store.js';
-import { SERVER, CLIENT } from '../RenderType.js';
 import PromiseUtil from './PromiseUtil.js';
-import Thunk from './Thunk.js';
+import Load from './Load.js';
 import QueryDependencies from './QueryDependencies.js';
+import Hydration from './Hydration.js';
 
+import QueryResult from './QueryResult.js';
 import { compose, createStore, applyMiddleware } from 'redux';
 import { devTools, persistState } from 'redux-devtools';
 import thunk from 'redux-thunk';
@@ -26,31 +27,24 @@ const REPLACE_STATE = '__soyaReplaceState';
 /**
  * Creates and wraps redux store. Responsibilities:
  *
- * TODO: Fix this comment!
- *
- * 1. Creates appropriate redux store, with redux-thunk as middlewares.
- * 1. Wraps redux store's subscribe and dispatch.
- * 2. Listen to store changes, then ask each segment to decides whether to
- *
- *
- *
- * The store's responsibilities are:
- *
- * 1. Accepts Store and Query requirements from components.
- * 2. Does initial state hydration from requirements given by components.
- * 3. Allows contextual components to get state.
- * 4. Allows contextual components to subscribe to state changes.
- * 5. Allows contextual components to dispatch actions.
- * 6. Allows contextual components to get action creators.
- * 7. Orchestrates batching of requests.
+ * 1. Wraps redux store's dispatch, reads special Load object and executes its
+ *    associated query dependencies.
+ * 2. Wraps redux store's subscribe to makes it easier for components to
+ *    'connect' or listen to changes to just a specific part of the state instead
+ *    of the entire state.
+ * 3. Listen to store changes, then asks each segment to decide whether or not
+ *    the state has changed considerably to trigger re-rendering on each
+ *    subscription.
+ * 4. By separating regular actions and load actions performed during query,
+ *    makes it easier to perform server side hydration.
  *
  * @CLIENT_SERVER
  */
 export default class ReduxStore extends Store {
   /**
-   * @type {string}
+   * @type {boolean}
    */
-  _renderType;
+  _inHydration;
 
   /**
    * @type {number}
@@ -58,14 +52,24 @@ export default class ReduxStore extends Store {
   _nextSubscriberId;
 
   /**
-   * @type {{[key: string}: Class<Segment>}
+   * @type {{[key: string]: Class<Segment>}}
    */
   _segmentClasses;
 
   /**
-   * @type {{[key: string]: Segment}}
+   * @type {{[key: string]: Service}}
    */
-  _segments;
+  _services;
+
+  /**
+   * @type {{[key: string]: Class<Service>}}
+   */
+  _serviceClasses;
+
+  /**
+   * @type {{[key: string]: Array<Service>}}
+   */
+  _serviceDependencies;
 
   /**
    * <pre>
@@ -88,26 +92,8 @@ export default class ReduxStore extends Store {
    *   {
    *     segmentId: {
    *       queryId: {
-   *         [SERVER]: true/false
-   *       },
-   *       ...
-   *     },
-   *     ...
-   *   }
-   * </pre>
-   *
-   *
-   * @type {{[key: string]: {[key: string]: boolean}}}
-   */
-  _hydrationOptions;
-
-  /**
-   * <pre>
-   *   {
-   *     segmentId: {
-   *       queryId: {
-   *         subscriberId: subscribeFunc,
-   *         subscriberId: subscribeFunc
+   *         subscriberId: callbackFunc,
+   *         subscriberId: callbackFunc
    *       }
    *     }
    *   }
@@ -171,7 +157,7 @@ export default class ReduxStore extends Store {
   /**
    * @type {Object}
    */
-  _config;
+  _clientConfig;
 
   /**
    * @type {CookieJar}
@@ -179,31 +165,36 @@ export default class ReduxStore extends Store {
   _cookieJar;
 
   /**
+   * @type {Function}
+   */
+  _boundDispatch;
+
+  /**
+   * @type {Function}
+   */
+  _boundQuery;
+
+  /**
    * @type {boolean}
    */
   __isReduxStore;
 
   /**
-   * Receives Promises/A+ implementation. We don't want to load more than 1
-   * promise library, so we'll have the user supply it to us. This should be
-   * the same library, or a library compatible with the one used at
-   * ActionCreator implementations.
-   *
-   * TODO: Deprecate PromiseImpl
-   *
-   * @param {Function} PromiseImpl
    * @param {any} initialState
-   * @param {Object} config
+   * @param {Object} clientConfig
    * @param {CookieJar} cookieJar
    */
-  constructor(PromiseImpl, initialState, config, cookieJar) {
+  constructor(initialState, clientConfig, cookieJar) {
     super();
     this.__isReduxStore = true;
+    this._inHydration = false;
     this._allowRegisterSegment = false;
-    this._config = config;
-    this._segments = {};
+    this._clientConfig = clientConfig;
     this._segmentClasses = {};
     this._queries = {};
+    this._services = {};
+    this._serviceClasses = {};
+    this._serviceDependencies = {};
     this._registeredQueries = {};
     this._reducers = {};
     this._subscribers = {};
@@ -214,17 +205,11 @@ export default class ReduxStore extends Store {
       timestamp: this._getTimestamp()
     };
     this._store.subscribe(this._handleChange.bind(this));
-    this._hydrationOptions = {};
     this._actionCreators = {};
     this._allowOverwriteSegment = {};
     this._cookieJar = cookieJar;
-  }
-
-  /**
-   * @param {RenderType} renderType
-   */
-  _setRenderType(renderType) {
-    this._renderType = renderType;
+    this._boundDispatch = this.dispatch.bind(this);
+    this._boundQuery = this.query.bind(this);
   }
 
   /**
@@ -246,24 +231,23 @@ export default class ReduxStore extends Store {
    * @returns {Object}
    */
   _createStore(initialState) {
-    // TODO: Disable devTools with configuration.
-    // TODO: Hot reload reducer/segments?
-    let devTool = devTools();
-    if (scope.client) {
-      // If the user has devTools plugin installed, use it.
-      if (window !== null && window.devToolsExtension) {
-        devTool = window.devToolsExtension();
-      }
+    // https://github.com/zalmoxisus/redux-devtools-extension
+    // TODO: Probably should be framework config instead of client config?
+    let composeEnhancers = compose;
+    if (this._clientConfig.enableDevTools && scope.client) {
+      composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
     }
-    var composedCreateStore = compose(
-      applyMiddleware(thunk),
-      devTool
+
+    var composedCreateStore = composeEnhancers(
+      applyMiddleware(thunk)
     )(createStore);
     return composedCreateStore(this._rootReducer.bind(this), initialState);
   }
 
   /**
    * Root reducer.
+   *
+   * TODO: Don't run action on reducers that are not associated with the segment, should be faster, since there'll be less string comparison.
    *
    * @param {void | Object} state
    * @param {any} action
@@ -286,12 +270,12 @@ export default class ReduxStore extends Store {
 
     for (segmentName in this._reducers) {
       if (!this._reducers.hasOwnProperty(segmentName)) continue;
-      if (!this._segments.hasOwnProperty(segmentName)) continue;
+      if (!this._segmentClasses.hasOwnProperty(segmentName)) continue;
       reducer = this._reducers[segmentName];
-      segment = this._segments[segmentName];
+      segment = this._segmentClasses[segmentName];
       segmentState = state[segmentName];
       nextSegmentState = reducer(segmentState, action);
-      isChanged = isChanged || !segment._isStateEqual(segmentState, nextSegmentState);
+      isChanged = isChanged || !segment.isStateEqual(segmentState, nextSegmentState);
       nextState[segmentName] = nextSegmentState;
     }
     return isChanged ? nextState : state;
@@ -304,7 +288,7 @@ export default class ReduxStore extends Store {
    * @private
    */
   _handleChange() {
-    if (this._renderType == SERVER) {
+    if (scope.server) {
       // We don't need to trigger any subscription callback at server. We'll
       // render twice and we're only interested in the HTML string.
       return;
@@ -321,14 +305,14 @@ export default class ReduxStore extends Store {
     // Assume comparison is cheaper than re-rendering. We do way more comparison
     // when we compare each piece, with the benefits of not doing unnecessary
     // re-rendering.
-    var segmentName, segment, segmentState, prevSegmentState, segmentSubscribers,
-        queryId, querySubscribers, subscriberId, segmentPiece, shouldUpdate;
-    for (segmentName in this._segments) {
-      if (!this._segments.hasOwnProperty(segmentName)) continue;
-      segment = this._segments[segmentName];
-      segmentSubscribers = this._subscribers[segmentName];
-      segmentState = state[segmentName];
-      prevSegmentState = this._previousState.state[segmentName];
+    var segmentId, segment, segmentState, prevSegmentState, segmentSubscribers,
+        queryId, querySubscribers, subscriberId, segmentPiece, shouldUpdate, query;
+    for (segmentId in this._segmentClasses) {
+      if (!this._segmentClasses.hasOwnProperty(segmentId)) continue;
+      segment = this._segmentClasses[segmentId];
+      segmentSubscribers = this._subscribers[segmentId];
+      segmentState = state[segmentId];
+      prevSegmentState = this._previousState.state[segmentId];
       for (queryId in segmentSubscribers) {
         if (!segmentSubscribers.hasOwnProperty(queryId)) continue;
         querySubscribers = segmentSubscribers[queryId];
@@ -337,10 +321,9 @@ export default class ReduxStore extends Store {
         // object, so we don't need to call update.
         // TODO: This assumption/design seems to be flawed, null to existence is a change, and we should notify listeners.
         shouldUpdate = false;
-        if (prevSegmentState != null) {
-          segmentPiece = segment._comparePiece(prevSegmentState, segmentState, queryId);
-          shouldUpdate = segmentPiece != null;
-        }
+        query = this._queries[segmentId][queryId].query;
+        segmentPiece = segment.comparePiece(prevSegmentState, segmentState, query, queryId);
+        shouldUpdate = segmentPiece != null;
         if (shouldUpdate) {
           // Segment piece has changed, call all registered subscribers.
           for (subscriberId in querySubscribers) {
@@ -367,7 +350,8 @@ export default class ReduxStore extends Store {
    *
    * Recursive handleChange() doesn't seem to have any negative effects,
    * only that we should be careful when setting previous state. It might
-   * be that the previous state is already stale.
+   * be that when we are done with handling the change and wish to set previous
+   * state, the previous state we own is already stale.
    *
    * @param {Object} newState
    * @param {number} timestamp
@@ -383,41 +367,37 @@ export default class ReduxStore extends Store {
   }
 
   /**
-   * @param {?Object} hydrationOption
-   * @return {Object}
+   * @param {?Hydration} hydration
+   * @return {Hydration}
    */
-  _initHydrationOption(hydrationOption) {
-    hydrationOption = hydrationOption ? hydrationOption : {};
-    if (hydrationOption[SERVER] === null || hydrationOption[SERVER] === undefined) {
-      hydrationOption[SERVER] = true;
-    }
-    return hydrationOption;
+  _initHydrationOption(hydration) {
+    if (hydration == null) return Hydration.hydrateAtServer(0);
+    return hydration;
   }
 
   /**
    * @param {string} segmentId
    * @param {any} query
-   * @return {Object}
+   * @param {string} queryId
+   * @returns {Object}
    */
-  _getSegmentPieceWithQuery(segmentId, query) {
-    var segment = this._segments[segmentId];
-    var queryId = segment._generateQueryId(query);
-    return this._getSegmentPiece(segmentId, queryId);
+  _getSegmentPiece(segmentId, query, queryId) {
+    var queryResult = this._queryState(segmentId, query, queryId);
+    return queryResult.data;
   }
 
   /**
    * @param {string} segmentId
+   * @param {any} query
    * @param {string} queryId
-   * @returns {Object}
+   * @returns {QueryResult}
    */
-  _getSegmentPiece(segmentId, queryId) {
+  _queryState(segmentId, query, queryId) {
     var state = this._store.getState();
     var segmentState = state[segmentId];
-    if (!segmentState) return null;
-    var pieceObject = this._segments[segmentId]._getPieceObject(segmentState, queryId);
-    // We return the real object so that users can do simple equality check to
-    // see if the object has changed or not.
-    return pieceObject;
+    var queryResult = this._segmentClasses[segmentId].queryState(query, queryId, segmentState);
+    if (queryResult.constructor != QueryResult) throw new Error('Segment.queryState must return instance of QueryResult! queryId: ' + queryId);
+    return queryResult;
   }
 
   /**
@@ -426,7 +406,6 @@ export default class ReduxStore extends Store {
    * @param {string} subscriberId
    */
   _unsubscribe(segmentName, queryId, subscriberId) {
-    // TODO: Might want to keep track of query/segment subscriber count, we might want to call Segment.deactivate().
     delete this._subscribers[segmentName][queryId][subscriberId];
   }
 
@@ -438,8 +417,8 @@ export default class ReduxStore extends Store {
   _mayHotReloadSegments() {
     this._allowOverwriteSegment = {};
     var segmentName;
-    for (segmentName in this._segments) {
-      if (!this._segments.hasOwnProperty(segmentName)) continue;
+    for (segmentName in this._segmentClasses) {
+      if (!this._segmentClasses.hasOwnProperty(segmentName)) continue;
       this._allowOverwriteSegment[segmentName] = true;
     }
   }
@@ -453,43 +432,46 @@ export default class ReduxStore extends Store {
   }
 
   /**
-   * Runs hydration, depending on rendering type.
+   * Runs hydration, depending on rendering type and hydration option. This
+   * method is run twice, at server and at client side. Server side hydration
+   * carries over to client side, so when we reinitialize everything at client
+   * side, we'll run this method again to load queries that was specified to
+   * only not to hydrate at server side.
    *
-   * NOTE: Hydration is only done once per Segment piece (query). It's safe to
-   * call this method more than once, anytime - to make sure that all registered
-   * state is hydrated.
+   * NOTE: Hydration is only done once per subscription. It's safe to call this
+   * method more than once, anytime - to make sure that all registered state is
+   * hydrated.
    *
    * @return {Promise}
    */
   hydrate() {
-    var action, segment, segmentClass, segmentId, queryId, queries, hydrationOption;
+    this._inHydration = true;
+    var segment, segmentId, queryId, queries, hydration;
     var hydrationPromises = [], promise, query;
-    for (segmentId in this._hydrationOptions) {
-      if (!this._hydrationOptions.hasOwnProperty(segmentId)) continue;
-      segmentClass = this._segmentClasses[segmentId];
-      if (!segmentClass.shouldHydrate()) {
+    for (segmentId in this._queries) {
+      if (!this._queries.hasOwnProperty(segmentId)) continue;
+      segment = this._segmentClasses[segmentId];
+      if (!segment.shouldHydrate()) {
         // No need to hydrate local segments.
         continue;
       }
-      segment = this._segments[segmentId];
-      queries = this._hydrationOptions[segmentId];
+      queries = this._queries[segmentId];
       for (queryId in queries) {
         if (!queries.hasOwnProperty(queryId)) continue;
-        hydrationOption = queries[queryId];
-        query = this._queries[segmentId][queryId].query;
+        hydration = queries[queryId].hydration;
+        query = queries[queryId].query;
 
         // Don't need to do anything if it's already loaded.
-        var segmentPiece = this._getSegmentPiece(segmentId, queryId);
-        if (segment._isLoaded(queryId, segmentPiece)) continue;
+        var queryResult = this._queryState(segmentId, query, queryId);
+        if (queryResult.loaded) continue;
 
         var shouldLoad = (
-          this._renderType == CLIENT ||
-          (this._renderType == SERVER && hydrationOption[SERVER])
+          scope.client ||
+          (scope.server && hydration.shouldHydrateAtServer())
         );
 
         if (shouldLoad) {
-          action = segment._createLoadAction(query, queryId);
-          promise = this.dispatch(action);
+          promise = this._query(segment, segmentId, query, queryId, false);
           hydrationPromises.push(promise);
         }
       }
@@ -498,104 +480,63 @@ export default class ReduxStore extends Store {
   }
 
   /**
-   * Registers all Segment instances required by the given DataComponent class.
+   * Registers Segment to ReduxStore. ReduxStore splits the single state of
+   * redux into multiple 'segments', each with their own action creator and
+   * reducer. This is because when you use an action creator to create actions,
+   * almost all of the time you also need the reducer that can process that
+   * action. Since Segment encompasses both action creator and reducer of a
+   * specific part of the state, you can say that one Segment is responsible for
+   * a part, or a 'segment' of the state, and nothing else.
    *
-   * @param {Function} DataComponentConstructor
-   */
-  registerDataComponent(DataComponentConstructor) {
-    var i, segments = DataComponentConstructor.getSegmentDependencies();
-    for (i = 0; i < segments.length; i++) {
-      this.register(segments[i]);
-    }
-  }
-
-  /**
-   * TODO: Update comment!
+   * In this method, we:
    *
-   * Accepts a segment, specific query, and a subscriber. Each of these elements
-   * can be anything depending on the Store implementation.
-   *
-   * In this method, ReduxStore instance is responsible for:
-   *
-   * 1) Making sure that only one Segment instance is responsible for
-   *    maintaining a top-level key of the store. This means no segment name
-   *    clashes, but multiple registrations of the _same_ Segment class is
-   *    allowed. If a Segment instance with the same class is already
-   *    registered, ReduxStore will ask Segment to *absorb* the other instance.
-   *    How each Segment implementation deal with merging queries is their
-   *    responsibility.
-   * 2) Creating StoreReference, to be used by components.
-   *    a) ActionCreator should be the same for each Segment instance.
-   *    b) Individual getState() function should be created for each query.
-   *       Segment instance can cache getState
-   *
-   * Only hydrationOption is typed. It determines hydration behavior at server
-   * and client render. Default is blocking on server and non-blocking at
-   * client.
-   *
-   * Returns StoreReference, which contains function to get queried state and
-   * action creators.
-   *
-   * The getState() function will only return state queried by the component.
-   *
-   * Returns a function that can be used to get queried state. It will only
-   * return the queried state, this makes it easier to separate concerns and
-   * not have one component asking for a state queried by another component.
-   *
-   * TODO: Handle Segment dependencies!
+   * 1) Make sure that there's no Segment id clash. We split redux state using
+   *    the segment id as keys, so if there are clashes of segment names we
+   *    can end up having corrupt state because two reducers will be trying to
+   *    update the same object.
+   * 2) Allow multiple registration of the same Segment class. Since we enforce
+   *    subscribing components to declare their segment dependencies, we'll have
+   *    multiple components registering the same segments.
+   * 3) Returning a StoreReference object that can be used by components. It
+   *    contains the action creator for this Segment.
+   * 4) Since Segment can have dependencies, this method will also registers
+   *    the dependencies of the given Segment recursively.
    *
    * @param {Class<Segment>} SegmentClass
-   * @param {?Class<Segment>} SegmentDependencyOwner
    * @return {Object<string, Function>} Action creator.
    */
   register(SegmentClass) {
     // First let's register all dependencies that this Segment class has.
-    var i, dependencies = SegmentClass.getSegmentDependencies(),
-        dependencyActionCreatorMap = {}, actionCreator;
+    var i, dependencies = SegmentClass.getSegmentDependencies();
     for (i = 0; i < dependencies.length; i++) {
-      actionCreator = this.register(dependencies[i]);
-      dependencyActionCreatorMap[dependencies[i].id()] = actionCreator;
+      this.register(dependencies[i]);
     }
 
     // Get the segment ID to see if we already have registered the segment.
     var id = SegmentClass.id();
-    var registeredSegment = this._segments[id];
     var RegisteredSegmentClass = this._segmentClasses[id];
 
     if (this._segmentClasses.hasOwnProperty(id)) {
       if (RegisteredSegmentClass === SegmentClass) {
         // Segment already registered.
-        return registeredSegment._getActionCreator();
-      }  else {
+        return RegisteredSegmentClass.getActionCreator();
+      } else {
         throw new Error('Segment name clash: ' + id + '.', RegisteredSegmentClass, SegmentClass);
       }
     }
 
-    //if (!this._allowRegisterSegment) {
-    //  var isNewSegment = !registeredSegment || SegmentClass !== RegisteredSegmentClass;
-    //  if (isNewSegment) {
-    //    // We only throw error if it's an attempt to register a new Segment.
-    //    throw new Error('Segment registration is only allowed at render process!');
-    //  }
-    //  // Otherwise, it's a no-op.
-    //  return registeredSegment._getActionCreator();
-    //}
-
     // Register segment.
-    if (!registeredSegment) {
-      registeredSegment = this._initSegment(SegmentClass, dependencyActionCreatorMap);
+    if (!RegisteredSegmentClass) {
+      this._initSegment(SegmentClass);
+      RegisteredSegmentClass = SegmentClass;
     }
     else if (SegmentClass !== RegisteredSegmentClass) {
       if (this._allowOverwriteSegment[id]) {
         // TODO: Create a DEBUG flag using webpack so that we can silent logging in production? or..
         // TODO: Make two logger implementation, client and server, then use clientReplace accordingly.
         console.log('Replacing segment.. (this should not happen in production!)', RegisteredSegmentClass, SegmentClass);
-        registeredSegment = this._initSegment(SegmentClass, dependencyActionCreatorMap);
-
-        // Nullifies the current segment data. Because we are replacing Segment
-        // implementation, state data may differ.
-        //var cleanAction = registeredSegment._createSyncCleanAction();
-        //this.dispatch(cleanAction);
+        this._initSegment(SegmentClass);
+        RegisteredSegmentClass = SegmentClass;
       } else {
         throw new Error('Segment id clash! Claimed by ' + RegisteredSegmentClass + ' and ' + SegmentClass + ', with id: ' + id + '.');
       }
@@ -605,76 +546,72 @@ export default class ReduxStore extends Store {
     // We only allow segment overwrites for *first* registration.
     delete this._allowOverwriteSegment[id];
 
-    return registeredSegment._getActionCreator();
+    return RegisteredSegmentClass.getActionCreator();
   }
 
   /**
-   * Returns the instantiated segment.
-   *
    * @param {Class<Segment>} SegmentClass
-   * @param {Object} dependencyActionCreatorMap
-   * @return {Segment}
    */
-  _initSegment(SegmentClass, dependencyActionCreatorMap) {
+  _initSegment(SegmentClass) {
     var id = SegmentClass.id();
-    var segment = new SegmentClass(this._config, this._cookieJar, dependencyActionCreatorMap);
-    this._segments[id] = segment;
     this._segmentClasses[id] = SegmentClass;
-    this._reducers[id] = segment._getReducer();
-    this._hydrationOptions[id] = {};
+    this._reducers[id] = SegmentClass.getReducer();
     this._subscribers[id] = {};
-    this._actionCreators[id] = segment._getActionCreator();
+    this._actionCreators[id] = SegmentClass.getActionCreator();
     this._registeredQueries[id] = {};
-    return segment;
+    this._serviceDependencies[id] = {};
+
+    var i, serviceId, serviceClass, service,
+      serviceDeps = SegmentClass.getServiceDependencies();
+    for (i = 0; i < serviceDeps.length; i++) {
+      serviceClass = serviceDeps[i];
+      serviceId = serviceClass.id();
+      if (typeof serviceId != 'string') {
+        throw new Error('Service dependencies must extend Service:' + serviceClass);
+      }
+      service = this.getService(serviceClass);
+      this._serviceDependencies[id][serviceId] = service;
+    }
   }
 
   /**
-   * Returns true if the prototypes of Segment and its ActionCreator is the
-   * same. Segment implementations are not allowed to have configurations that
-   * changes its behavior, so we only need to check implementation.
-   *
-   * Segment dependencies equality are handled independently, since all of them
-   * are going to be registered in the same way.
-   *
-   * We ensure that no Segment clash will happen without an exception being
-   * thrown at server side as long as these assumptions are true:
-   *
-   * 1) This method is executed at server-side, where we have guaranteed access
-   *    to Object.getPrototypeOf().
-   * 2) All segment registration is made explicit, even the conditional ones,
-   *    and they are all registered at server-side.
-   *    a) Segment registration is only allowed at ContentRenderer.render().
-   *    b) ContentRenderer.render() is a sync method.
-   *
-   * @param {Segment} registeredSegment
-   * @param {Segment} segment
-   * @return {boolean}
+   * @param {string} segmentId
+   * @return {{[key: string]: Service}}
    */
-  _isSegmentEqual(registeredSegment, segment) {
-    if (registeredSegment === segment) {
-      return true;
+  getServiceDependencies(segmentId) {
+    return this._serviceDependencies[segmentId];
+  }
+
+  /**
+   * Instantiate Service if not yet ready, return cache if already exists.
+   *
+   * @param {Service} ServiceClass
+   */
+  getService(ServiceClass) {
+    var id = ServiceClass.id(), service;
+    if (this._serviceClasses.hasOwnProperty(id)) {
+      if (this._serviceClasses[id] === ServiceClass) {
+        return this._services[id];
+      }
+      // TODO: Find a way to make this hot-reload-able.
+      throw new Error(`Service id clash: ${serviceId}, between classes: ${serviceClass} and ${this._serviceClasses[serviceId]}`);
     }
 
-    if (Object.getPrototypeOf) {
-      return (
-        Object.getPrototypeOf(registeredSegment) === Object.getPrototypeOf(segment) &&
-        Object.getPrototypeOf(registeredSegment._getActionCreator()) === Object.getPrototypeOf(segment._getActionCreator())
-      );
-    }
-
-    // Since everything is already checked at server-side, safely assume
-    // that the given Segment implementation is the same. All possible Segment
-    // clashes would have already triggered an error at server-side.
-    return true;
+    // If not available yet, instantiate.
+    service = new ServiceClass(this._clientConfig, this._cookieJar);
+    this._serviceClasses[id] = ServiceClass;
+    this._services[id] = service;
+    return service;
   }
 
   /**
    * @param {string} segmentId
    * @param {string} queryId
    * @param {any} query
-   * @private
+   * @param {Hydration} hydration
    */
-  _initQuery(segmentId, queryId, query) {
+  _initQuery(segmentId, queryId, query, hydration) {
+    hydration = this._initHydrationOption(hydration);
     if (!this._queries.hasOwnProperty(segmentId)) {
       this._queries[segmentId] = {};
     }
@@ -684,12 +621,23 @@ export default class ReduxStore extends Store {
     if (!this._queries[segmentId][queryId].hasOwnProperty('query')) {
       this._queries[segmentId][queryId].query = query;
     }
+    if (this._queries[segmentId][queryId].hasOwnProperty('hydration')) {
+      hydration = this._queries[segmentId][queryId].hydration.clash(hydration);
+    }
+    this._queries[segmentId][queryId].hydration = hydration;
   }
 
   /**
    * Executes the mutation, returns an object containing the original Mutation
    * promise, and another promise that resolves when all refresh requests is
    * done.
+   *
+   * Mutation works by having each Segment define their own refresh requests.
+   * Since we don't want to refresh anything if there's nothing loaded in the
+   * segment state, we ask the Segment, providing their current segment state,
+   * to tell us which query we need to re-run.
+   *
+   * TODO: Need to figure out how to handle mutation at server side.
    *
    * @param {Mutation} mutation
    * @return {{mutation: Promise; refresh: Promise}}
@@ -703,12 +651,12 @@ export default class ReduxStore extends Store {
         var promiseList = [];
         for (segmentId in refreshRequestMap) {
           if (!refreshRequestMap.hasOwnProperty(segmentId) ||
-              !this._segments.hasOwnProperty(segmentId)) {
+              !this._segmentClasses.hasOwnProperty(segmentId)) {
             continue;
           }
-          segment = this._segments[segmentId];
+          segment = this._segmentClasses[segmentId];
           segmentState = state[segmentId];
-          queryList = segment._processRefreshRequests(
+          queryList = segment.processRefreshRequests(
             segmentState, refreshRequestMap[segmentId]);
           for (i = 0; i < queryList.length; i++) {
             promiseList.push(this.query(segmentId, queryList[i], true));
@@ -730,14 +678,21 @@ export default class ReduxStore extends Store {
   }
 
   /**
+   * Subscribes the given callback against the a specific query to a specific
+   * segment. When the state changes, ReduxStore will ask the Segment to
+   * determine if the query result has changed. If the query result has changed,
+   * the callback will be run.
+   *
+   * Hydration option
+   *
    * @param {string} segmentId
    * @param {any} query
    * @param {Function} callback
    * @param {any} component
-   * @param {?{[key: RenderType]: HydrationType}} hydrationOption
+   * @param {?Hydration} hydration
    * @return {StoreReference}
    */
-  subscribe(segmentId, query, callback, component, hydrationOption) {
+  subscribe(segmentId, query, callback, component, hydration) {
     // Determine subscriber ID.
     var subscriberId = component[SUBSCRIBER_ID];
     if (!subscriberId) {
@@ -746,39 +701,25 @@ export default class ReduxStore extends Store {
       component[SUBSCRIBER_ID] = subscriberId;
     }
 
-    var registeredSegment = this._segments[segmentId];
-    if (!registeredSegment) {
+    var segment = this._segmentClasses[segmentId];
+    if (!segment) {
       throw new Error('Cannot subscribe, Segment is not registered: ' + segmentId + '.');
     }
 
-    // Initialize hydration option.
-    hydrationOption = this._initHydrationOption(hydrationOption);
+    // TODO: We call generateQueryId twice on subscribe, fix.
+    var queryId = segment.generateQueryId(query);
 
-    // Register query.
-    var queryId = registeredSegment._generateQueryId(query);
-    this._initQuery(segmentId, queryId, query);
-
-    // TODO: Move hydration option to _queries property.
-    if (!this._hydrationOptions[segmentId][queryId]) {
-      this._hydrationOptions[segmentId][queryId] = hydrationOption;
-    } else {
-      // Merge hydration option. If one of the queries ask for it to be loaded
-      // at server-side, load at server-side.
-      if (hydrationOption[SERVER]) {
-        this._hydrationOptions[segmentId][queryId][SERVER] = hydrationOption[SERVER];
-      }
-    }
-
-    // Query but ignore if we are at server (we'll use hydrate).
-    var subscribePromise = this.query(segmentId, query, false, true);
+    // Runs the query (if we're at server, the query won't actually be run).
+    // Server side queries will be run through hydrate() method.
+    var subscribePromise = this.query(segmentId, query, false, hydration);
     subscribePromise.catch(PromiseUtil.throwError);
 
-    // Register subscriber, previous init action is sync, so don't have to worry.
+    // Register subscriber.
     if (!this._subscribers[segmentId][queryId]) this._subscribers[segmentId][queryId] = {};
     this._subscribers[segmentId][queryId][subscriberId] = callback;
 
     var result = {
-      getState: this._getSegmentPiece.bind(this, segmentId, queryId),
+      getState: this._getSegmentPiece.bind(this, segmentId, query, queryId),
       unsubscribe: this._unsubscribe.bind(this, segmentId, queryId, subscriberId)
     };
     return result;
@@ -791,57 +732,42 @@ export default class ReduxStore extends Store {
    * @param {string} segmentId
    * @param {any} query
    * @param {?boolean} forceLoad
-   * @param {?boolean} ignoreAtServer
+   * @param {?Hydration} hydration
    * @return {Promise}
    */
-  query(segmentId, query, forceLoad, ignoreAtServer) {
-    var segment = this._segments[segmentId];
+  query(segmentId, query, forceLoad, hydration) {
+    var segment = this._segmentClasses[segmentId];
     if (!segment) {
       throw new Error('Cannot query, Segment is not registered: ' + segmentId + '.');
     }
 
-    var queryId = segment._generateQueryId(query);
-    this._initQuery(segmentId, queryId, query);
+    // TODO: When we turn on history navigation, this._queries map will pile up, causing memory leak. Fix.
+    var queryId = segment.generateQueryId(query);
+    this._initQuery(segmentId, queryId, query, hydration);
+    hydration = this._queries[segmentId][queryId].hydration;
 
-    // Get the piece (data might already be loaded). Since getSegmentPiece() is
-    // supposed to be a fast operation anyway, we can just grab segment piece
-    // directly.
-    var segmentPiece = this._getSegmentPiece(segmentId, queryId);
-
-    if (segmentPiece == null) {
-      // We can't know if the segment piece is supposed to be null or not.
-
-      // This will mean loads and loads of sync init actions even though the
-      // stuff has already been loaded.
-      // TODO: Remove at a later date.
-
-      // Populate with initial data if not already populated.
-      var initAction = segment._createSyncInitAction(queryId);
-      if (initAction != null) {
-        if (typeof initAction == 'function') {
-          throw new Error('Init action must be sync! Please return an action object instead!');
-        }
-        this.dispatch(initAction);
-      }
-    }
-
-    // If we are at server, and is told to ignore, return a promise that
-    // never resolves.
-    // TODO: Why?? Isn't this dangerous?
-    if (ignoreAtServer && this._renderType == SERVER) {
+    if ((scope.server && !this._inHydration) ||
+        (scope.server && !hydration.shouldHydrateAtServer())) {
+      // If at server, returns a promise that never resolves. Querying in server
+      // will be done via an explicit hydrate() method. This reduces unnecessary
+      // execution of code at our server, ensuring no surprises when dealing
+      // with configuration option.
       return new Promise(function() {});
     }
 
-    // Up until this point, segment piece will never be empty.
+    return this._query(segment, segmentId, query, queryId, forceLoad);
+  }
+
+  _query(segment, segmentId, query, queryId, forceLoad) {
     // If already loaded, return immediately.
-    segmentPiece = this._getSegmentPiece(segmentId, queryId);
-    if (segment._isLoaded(queryId, segmentPiece) && !forceLoad) {
-      return Promise.resolve(segmentPiece);
+    var queryResult = this._queryState(segmentId, query, queryId);
+    if (queryResult.loaded && !forceLoad) {
+      return Promise.resolve(queryResult.data);
     }
 
     // TODO: We should be able to reuse this get segment piece function.
     var getSegmentPiece = () => {
-      return this._getSegmentPiece(segmentId, queryId);
+      return this._getSegmentPiece(segmentId, query, queryId);
     };
 
     // Re-use promise from another dispatch to prevent double fetching.
@@ -850,13 +776,26 @@ export default class ReduxStore extends Store {
     }
 
     // Right now either segment isn't loaded yet or this is a force load.
-    var loadAction = segment._createLoadAction(query, queryId);
+    // So we ask Segment to load the query.
+    var state = this._store.getState();
+    var segmentState = state[segmentId];
+    var services = this.getServiceDependencies(segmentId);
+    var loadAction = segment.createLoadFromQuery(query, queryId, segmentState, services);
     if (loadAction == null) {
       // If load action is null, then this segment doesn't need to do load
       // actions. We return immediately with previously fetched segment piece.
-      return Promise.resolve(segmentPiece);
+      return Promise.resolve(queryResult.data);
     }
-    return this.dispatch(loadAction).then(getSegmentPiece);
+
+    // Cache the load promise so multiple same queries will only result in
+    // one load action, saving user's bandwidth. If the user dispatches the
+    // load action directly, the promise won't get cached, so make sure to
+    // mention to the user to use query to load data whenever possible.
+    var loadPromise = this.dispatch(loadAction);
+    this._queries[segmentId][queryId].promise = loadPromise;
+
+    // Return a promise that resolves with the segment piece.
+    return loadPromise.then(getSegmentPiece);
   }
 
   /**
@@ -896,7 +835,7 @@ export default class ReduxStore extends Store {
    * returns a Promise or not. If not, it will throw an error. Otherwise the
    * Promise is returned.
    *
-   * @param {Thunk | Object} action
+   * @param {Load | Object} action
    * @return {Promise}
    */
   dispatch(action) {
@@ -907,13 +846,10 @@ export default class ReduxStore extends Store {
     }
 
     var result;
-    if (action instanceof Thunk) {
-      // We initialize the query just in case the user calls dispatch directly
-      // using action creator.
-      this._initQuery(action.segmentId, action.queryId, action.query);
+    if (action instanceof Load) {
       // Immediately create a promise so we can ensure no identical fetching
       // can happen at the same time with query() or subscribe().
-      return this._queries[action.segmentId][action.queryId].promise = new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         // Resolve dependencies first.
         var depResolvedPromise = Promise.resolve(null);
         if (action.dependencies instanceof QueryDependencies) {
@@ -924,8 +860,10 @@ export default class ReduxStore extends Store {
         // function should still have reference to QueryDependencies, allowing
         // it to access its dependencies' query results.
         depResolvedPromise.then(() => {
-          // TODO: Cache the bound store dispatch.
-          result = action.func(this.dispatch.bind(this));
+          result = action.func(
+            this._boundDispatch, this._boundQuery,
+            this.getServiceDependencies(action.segmentId)
+          );
           this._ensurePromise(result);
           result.then(resolve).catch(reject);
         }).catch(reject);

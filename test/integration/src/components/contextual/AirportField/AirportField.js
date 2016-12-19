@@ -1,9 +1,8 @@
 import React from 'react';
 import connect from 'soya/lib/data/redux/connect';
 import createField from 'soya/lib/data/redux/form/createField';
-import { SERVER } from 'soya/lib/data/RenderType';
+import Hydration from 'soya/lib/data/redux/Hydration';
 
-import Autocomplete from '../../common/Autocomplete/Autocomplete';
 import AutocompleteDisplay from '../../common/Autocomplete/AutocompleteDisplay';
 import AirportListSegment from '../../../segments/AirportListSegment';
 
@@ -17,8 +16,7 @@ class AirportInputBase extends React.Component {
   }
 
   static subscribeQueries(nextProps, subscribe) {
-    var hydrationOption = { SERVER: false };
-    subscribe(AirportListSegment.id(), '*', 'airports', hydrationOption);
+    subscribe(AirportListSegment.id(), '*', 'airports', Hydration.noopAtServer());
   }
 
   componentWillMount() {
@@ -32,20 +30,18 @@ class AirportInputBase extends React.Component {
 
   generateItemList(props) {
     var itemList = [], valueMap = {};
-    if (props.result.airports.loaded) {
-      if (props.result.airports.loaded) {
-        var key, airport;
-        for (key in props.result.airports.data) {
-          if (!props.result.airports.data.hasOwnProperty(key)) continue;
-          airport = props.result.airports.data[key];
-          itemList.push({
-            label: `${airport.name} (${airport.code}) - ${airport.location}`,
-            inputLabel: `${airport.location} (${airport.code})`,
-            searchStr: `${airport.name} ${airport.location} ${airport.code}`,
-            value: `${airport.location} (${airport.code})`
-          });
-          valueMap[`${airport.location} (${airport.code})`] = null;
-        }
+    if (props.result.airports != null) {
+      var key, airport;
+      for (key in props.result.airports.data) {
+        if (!props.result.airports.data.hasOwnProperty(key)) continue;
+        airport = props.result.airports.data[key];
+        itemList.push({
+          label: `${airport.name} (${airport.code}) - ${airport.location}`,
+          inputLabel: `${airport.location} (${airport.code})`,
+          searchStr: `${airport.name} ${airport.location} ${airport.code}`,
+          value: `${airport.location} (${airport.code})`
+        });
+        valueMap[`${airport.location} (${airport.code})`] = null;
       }
     }
     this.setState({

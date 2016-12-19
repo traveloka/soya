@@ -1,10 +1,7 @@
 import MapSegment from 'soya/lib/data/redux/segment/map/MapSegment';
-import Thunk from 'soya/lib/data/redux/Thunk';
+import Load from 'soya/lib/data/redux/Load';
 
-// TODO: Figure out how to do polyfill.
-// TODO: Figure out how to load client-side libraries like jQuery!
-import request from 'superagent';
-
+import BadgeService from '../services/BadgeService.js';
 import { BadgeSegmentId } from './ids.js';
 
 export default class BadgeSegment extends MapSegment {
@@ -12,29 +9,29 @@ export default class BadgeSegment extends MapSegment {
     return BadgeSegmentId;
   }
 
-  _generateQueryId(query) {
+  static generateQueryId(query) {
     return '*';
   }
 
-  _generateThunkFunction(thunk) {
-    var queryId = thunk.queryId;
-    thunk.func = (dispatch) => {
-      var result = new Promise((resolve, reject) => {
-        request.get('http://localhost:8000/api/user/badge/list').end((err, res) => {
-          if (res.ok) {
-            var payload = JSON.parse(res.text);
-            dispatch(this._createSyncLoadActionObject(queryId, payload));
-            resolve();
-          } else {
-            reject(new Error('Unable to fetch badge data!'));
-          }
-        });
-      });
-      return result;
-    };
+  static getServiceDependencies() {
+    return [BadgeService];
   }
 
-  _processRefreshRequests(segmentState, refreshRequests) {
+  static createLoadFromQuery(query, queryId, segmentState) {
+    var load = new Load(BadgeSegment.id())
+    load.func = (dispatch, queryFunc, services) => {
+      var badgeService = services[BadgeService.id()];
+      return new Promise((resolve, reject) => {
+        badgeService.fetchBadges().then((payload) => {
+          dispatch(this.getActionCreator().set(queryId, payload));
+          resolve();
+        }).catch(reject);
+      });
+    };
+    return load;
+  }
+
+  static processRefreshRequests(segmentState, refreshRequests) {
     // Since there is only one API that updates this segment, we can go crazy.
     return ['*']
   }

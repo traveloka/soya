@@ -1,19 +1,16 @@
 import React from 'react';
-import Page from 'soya/lib/page/Page';
+import ReduxPage from 'soya/lib/page/ReduxPage';
 import RenderResult from 'soya/lib/page/RenderResult';
-import ReactRenderer from 'soya/lib/page/react/ReactRenderer.js'
-import ReduxStore from 'soya/lib/data/redux/ReduxStore.js';
+import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import register from 'soya/lib/client/Register';
 import UserProfile from '../../../components/contextual/UserProfile/UserProfile.js';
 import UserSegment from '../../../segments/UserSegment.js';
-import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';  
 
-// TODO: Figure out how to do promise polyfill.
 import style from '../../../shared/sitewide.css';
 
 class Component extends React.Component {
   componentWillMount() {
-    this.props.context.store.registerDataComponent(UserProfile);
+    this.autoIncrementKey = 0;
     this.props.context.store.register(UserSegment);
     this.setState({
       index: 0,
@@ -34,9 +31,6 @@ class Component extends React.Component {
         <li>You can <a href="javascript:void(0)" onClick={this.addProfile.bind(this, true)}>add a component and force re-load</a> the query.</li>
       </ul>
       {this.state.components}
-      <DebugPanel top right bottom>
-        <DevTools store={this.props.context.store._store} monitor={LogMonitor} />
-      </DebugPanel>
     </div>;
   }
 
@@ -59,8 +53,8 @@ class Component extends React.Component {
     }
     var query = this.props.queries[this.state.index];
     var components = this.state.components;
-    components.push(<h3>Profile {this.state.index}</h3>);
-    components.push(<UserProfile context={this.props.context} username={query} />);
+    components.push(<h3 key={'h' + this.autoIncrementKey++}>Profile {this.state.index}</h3>);
+    components.push(<UserProfile key={'up' + this.autoIncrementKey++} context={this.props.context} username={query} />);
     this.setState({
       index: nextIndex,
       components: components
@@ -72,14 +66,9 @@ class Component extends React.Component {
   }
 }
 
-class RuntimeComponent extends Page {
+class RuntimeComponent extends ReduxPage {
   static get pageName() {
     return 'RuntimeComponent';
-  }
-
-  createStore(initialState) {
-    var reduxStore = new ReduxStore(Promise, initialState, this.config, this.cookieJar);
-    return reduxStore;
   }
 
   render(httpRequest, routeArgs, store, callback) {

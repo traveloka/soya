@@ -2,11 +2,11 @@ import React from 'react';
 
 import ConcatRandomTimeEchoSegment from '../../../segments/ConcatRandomTimeEchoSegment.js';
 import connect from 'soya/lib/data/redux/connect';
-import { SERVER } from 'soya/lib/data/RenderType';
+import Hydration from 'soya/lib/data/redux/Hydration';
 
 import style from './style.mod.css';
 
-class RandomTimeEchoString {
+class RandomTimeEchoString extends React.Component {
   static connectId() {
     return 'RandomTimeEchoString';
   }
@@ -16,11 +16,9 @@ class RandomTimeEchoString {
   }
 
   static subscribeQueries(nextProps, subscribe) {
-    var hydrationOption = null;
+    var hydration = null;
     if (nextProps.loadAtClient) {
-      hydrationOption = {
-        SERVER: false
-      };
+      hydration = Hydration.noopAtServer();
     }
 
     var query = {
@@ -31,14 +29,14 @@ class RandomTimeEchoString {
     };
 
     subscribe(ConcatRandomTimeEchoSegment.id(), query, 'concatVal',
-      hydrationOption);
+      hydration);
   }
 
   render() {
     var title = 'String: \'' + this.props.value + '\'';
     title += this.props.isParallel ? ', Parallel' : ', Serial' ;
 
-    if (!this.props.result.concatVal.loaded) {
+    if (this.props.result.concatVal == null) {
       return <div className={style.container}>
         <h3>{title}</h3>
         <p>Loading...</p>

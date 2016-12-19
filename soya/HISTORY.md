@@ -1,5 +1,175 @@
 # Version 0.0.x
 
+## 0.0.64
+
+- Fix isEqualShallowArray helper bug.
+- Remove unnecessary logs.
+
+## 0.0.63
+
+- Application now send 'ready' event to tell pm2 that it's online.
+  Add "--listen-timeout <delay in ms> --wait-ready" on pm2 start parameter to
+  ask pm2 to wait for you app to be ready.
+
+## 0.0.62
+
+- Fix inconsistent server and client side CSS class name when debug is set to
+  true and hot reload set to false.
+
+## 0.0.61
+
+- Nullability check in shallow equal helpers.
+
+## 0.0.60
+
+- Helper methods in Form (it's more correct to have users access from Form
+  instead of giving them FormSegment's action creator, it should be an
+  implementation detail).
+  - Form.setValue
+  - Form.setValues
+  - Form.setDefaultValue
+  - Form.setDefaultValues
+  - Form.setErrors
+  - Form.addErrors
+  - Form.clearForm
+  - Form.clearErrors
+
+## 0.0.59
+
+- QueryResult.notLoaded() can now provide data.
+- ReduxStore will not pass null if QueryResult is not loaded.
+
+## 0.0.58
+
+- FormSegment now has setDefaultValue() and setDefaultValues() action creator.
+- createField helper provides setDefaultValue() as props.
+
+## 0.0.57
+
+- ReduxStore.getService(ServiceClass), use this method to get service instance.
+
+## 0.0.56
+
+- Load.func is called with dispatch, query, and service dependencies as
+  arguments. This is more natural, since action creators are the ones that need
+  services.
+- How to update:
+  - When instantiating Load(), pass segment ID into the constructor. For
+    example:
+    ```
+    let load = new Load(UserSegment.id());
+    ```
+
+## 0.0.55
+
+- Load.func is called with both dispatch and query as arguments.
+
+## 0.0.54
+
+- ReduxStore.getServiceDependencies() is made public.
+- If debug flag is set to true, CSS module classes will have identifiers that
+  hold hints to the actual file and class name.
+
+## 0.0.53
+
+- Change segment method names and make them static.
+- Added Service classes and the concept of service dependencies, allowing
+  development of component testing scenarios by mocking services.
+- Remove PromiseImpl from ReduxStore constructor.
+- How to update:
+  - All your pages:
+    - Change all pages that uses ReduxStore to extend from ReduxPage instead.
+      You'll no longer need to override Page.createStore(), so remove that
+      method. If you don't do this all your pages will throw an error.
+    - If you instantiate ReduxStore directly, remove the first constructor
+      argument (Promise).
+    - Use Page.createContext() to create context object instead of creating it
+      directly. Please see integration test pages for example.
+  - This applies to all your segment classes:
+    - Change _generateQueryId() to static generateQueryId().
+    - Change _createLoadFromQuery() to static createLoadFromQuery().
+    - Change _queryState() to static queryState().
+    - Change _isStateEqual() to static isStateEqual().
+    - Change _comparePiece() to static comparePiece().
+    - Change _getReducer() to static getReducer().
+    - Change _getActionCreator() to static getActionCreator().
+    - Change _processRefreshRequests() to static processRefreshRequests().
+    - Change the usage of _dependencyActionCreatorMap, use
+      Segment.getActionCreator() instead.
+    - Remove constructor on all of your segments.
+      - Move initialization of action types to const declarations above.
+      - Move action creator and reducer above the class definitions.
+  - Change usage of MapSegment:
+    - this._createSetResultAction(...) needs to change into
+      this.getActionCreator().set(...).
+  - Change usage of LocalSegment:
+    - If getActionCreator() is overridden, make sure that getReducer() is also
+      overridden.
+
+## 0.0.52
+
+- Fix CookieJar read returning inconsistent return values on server side
+  (undefined) and client side (null). Changed server side to return null.
+- Fix integration with Redux Dev Tools chrome extension
+  (https://github.com/zalmoxisus/redux-devtools-extension).
+- ReduxStore now doesn't assume query is not loaded if the segment state is
+  null.
+
+## 0.0.51
+
+- Fix ReduxStore not updating component if previous segment state is null.
+
+## 0.0.50
+
+- Fix fetching on server side of non hydrated queries.
+- Fix CSS modules resolving as undefined in server.
+- Added extra check to ensure that the return value of _queryState() is
+  QueryResult, should make it easier to build segment that way.
+
+## 0.0.49
+
+- Fix FormSegment bug.
+
+## 0.0.48
+
+- Rename _createSyncLoadActionObject() to _createSetResultAction().
+- How to update:
+  - Rename usage of the above method to the new name. Signatures does not
+    change.
+
+## 0.0.47
+
+- Rename Thunk object name to Load.
+- Remove the need for query, queryId in Load.
+- Rename _createLoadAction to _createLoadFromQuery() to make it clearer that
+  Load actions can be created without any connection with queries.
+- Remove _generateThunkFunction() from MapSegment.
+- How to update:
+  - Update _generateThunkFunction() into _createLoadFromQuery() method.
+
+## 0.0.46
+
+- Update Thunk constructor to follow (query, queryId) arg convention.
+
+## 0.0.45
+
+- Update MapSegment._generateThunkFunction() interface.
+
+## 0.0.44
+
+- Replace Segment.isLoaded() and Segment.getPieceObject() with
+  Segment.queryState().
+- Add the passing of segmentState on Segment.createLoadAction() to enable
+  saving of states that changes the way we load data from external sources
+  in our own segment.
+- Redux devTools() now must be enabled with client configuration.
+- Better semantics for Query, Load, Hydration, Subscribe.
+- How to update:
+  - Find '.loaded' string for the usage of MapSegment, instead of checking
+    loaded variable, change it into null checking.
+  - Create _isLoadQuery() implementation that always returns true.
+  - Replace hydration configuration object with new Hydration instance.
+
 ## 0.0.43
 
 - Fix MapSegment bug in getting piece directly.
@@ -36,6 +206,9 @@
 - Added root resolve configuration on webpack so that we can resolve components
   from $SOYA_PROJECT_DIR.
 - Auto generation of component browser list page.
+- How to update:
+  - Change routes.yml to use relative path instead.
+  - Update webpack.config.js.
 
 ## 0.0.36
 
