@@ -1,5 +1,10 @@
 # Version 0.0.x
 
+## 0.0.65
+
+- Add Form.enableField(), Form.enableFields() helper.
+- Add Form.disableField(), Form.disableFields() helper.
+
 ## 0.0.64
 
 - Fix isEqualShallowArray helper bug.
