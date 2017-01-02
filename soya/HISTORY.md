@@ -1,5 +1,12 @@
 # Version 0.0.x
 
+## 0.0.66
+
+- Updated logic of handleChange(), fixed bug recursive handleChange() bug. The
+  new implementation should no longer have inconsistency between redux state
+  and view state.
+- Added simple test case for recursive handleChange().
+
 ## 0.0.65
 
 - Add Form.enableField(), Form.enableFields() helper.

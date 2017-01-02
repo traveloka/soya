@@ -77,7 +77,7 @@ class Component extends React.Component {
   }
 
   replaceKontakteForm() {
-    this._form.setValues([
+    this._kontakteForm.setValues([
       { fieldName: 'name', value: '' },
       { fieldName: 'phoneNumber', value: '' },
       { fieldName: 'nickname', value: 'Long Winded Man' },

@@ -55,12 +55,14 @@ export function isEqualShallow(objectA, objectB, customEqualComparators) {
 }
 
 /**
+ * Useful only for objects that are immutable.
+ *
  * @param {Array} arrayA
  * @param {Array} arrayB
  * @return {boolean}
  */
 export function isEqualShallowArray(arrayA, arrayB) {
-  if (arrayA == null && arrayB == null) {
+  if (arrayA === arrayB) {
     return true;
   }
 
