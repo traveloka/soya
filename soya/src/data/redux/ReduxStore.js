@@ -92,8 +92,14 @@ export default class ReduxStore extends Store {
    *   {
    *     segmentId: {
    *       queryId: {
-   *         subscriberId: callbackFunc,
-   *         subscriberId: callbackFunc
+   *         subscriberId: {
+   *           callback: callbackFunc,
+   *           curSegmentState: {...}
+   *         },
+   *         subscriberId: {
+   *           callback: callbackFunc,
+   *           curSegmentState: {...}
+   *         }
    *       }
    *     }
    *   }
@@ -135,11 +141,6 @@ export default class ReduxStore extends Store {
   _store;
 
   /**
-   * @type {{state: any; timestamp: number}}
-   */
-  _previousState;
-
-  /**
    * @type {{[key: string]: boolean}}
    */
   _registeredQueries;
@@ -175,6 +176,11 @@ export default class ReduxStore extends Store {
   _boundQuery;
 
   /**
+   * @type {number}
+   */
+  _handleChangeCallId;
+
+  /**
    * @type {boolean}
    */
   __isReduxStore;
@@ -186,7 +192,11 @@ export default class ReduxStore extends Store {
    */
   constructor(initialState, clientConfig, cookieJar) {
     super();
+    if (initialState == null) {
+      initialState = {};
+    }
     this.__isReduxStore = true;
+    this._handleChangeCallId = 0;
     this._inHydration = false;
     this._allowRegisterSegment = false;
     this._clientConfig = clientConfig;
@@ -200,10 +210,6 @@ export default class ReduxStore extends Store {
     this._subscribers = {};
     this._nextSubscriberId = 1;
     this._store = this._createStore(initialState);
-    this._previousState = {
-      state: initialState,
-      timestamp: this._getTimestamp()
-    };
     this._store.subscribe(this._handleChange.bind(this));
     this._actionCreators = {};
     this._allowOverwriteSegment = {};
@@ -288,82 +294,78 @@ export default class ReduxStore extends Store {
    * @private
    */
   _handleChange() {
+    var handleChangeCallId = this._handleChangeCallId;
     if (scope.server) {
       // We don't need to trigger any subscription callback at server. We'll
       // render twice and we're only interested in the HTML string.
       return;
     }
 
-    var timestamp = this._getTimestamp();
-    var state = this._store.getState();
-    if (this._previousState.state == null) {
-      // If no change, no need to trigger callbacks.
-      this._setPreviousState(state, timestamp);
-      return;
-    }
+    var state = this._getState();
 
     // Assume comparison is cheaper than re-rendering. We do way more comparison
     // when we compare each piece, with the benefits of not doing unnecessary
     // re-rendering.
-    var segmentId, segment, segmentState, prevSegmentState, segmentSubscribers,
-        queryId, querySubscribers, subscriberId, segmentPiece, shouldUpdate, query;
+    var segmentId, segment, segmentState, segmentSubscribers, queryId,
+      querySubscribers, subscriberId, queryResult, segmentPiece, query, callback,
+      curSegmentState, curQueryResult, cacheCurSegmentState,
+      cacheShouldUpdate;
     for (segmentId in this._segmentClasses) {
       if (!this._segmentClasses.hasOwnProperty(segmentId)) continue;
       segment = this._segmentClasses[segmentId];
       segmentSubscribers = this._subscribers[segmentId];
-      segmentState = state[segmentId];
-      prevSegmentState = this._previousState.state[segmentId];
       for (queryId in segmentSubscribers) {
         if (!segmentSubscribers.hasOwnProperty(queryId)) continue;
-        querySubscribers = segmentSubscribers[queryId];
-        // If segmentState is previously null, then this is a new query call.
-        // First getState() method call should already return the initialized
-        // object, so we don't need to call update.
-        // TODO: This assumption/design seems to be flawed, null to existence is a change, and we should notify listeners.
-        shouldUpdate = false;
         query = this._queries[segmentId][queryId].query;
-        segmentPiece = segment.comparePiece(prevSegmentState, segmentState, query, queryId);
-        shouldUpdate = segmentPiece != null;
-        if (shouldUpdate) {
-          // Segment piece has changed, call all registered subscribers.
-          for (subscriberId in querySubscribers) {
-            if (!querySubscribers.hasOwnProperty(subscriberId)) continue;
-            querySubscribers[subscriberId](segmentPiece[0]);
+        querySubscribers = segmentSubscribers[queryId];
+
+        // Latest segment piece.
+        segmentState = state[segmentId];
+        queryResult = this._queryStateWithSegment(segmentId, query, queryId, segmentState);
+        segmentPiece = queryResult.data;
+
+        // Prepare cache in iterating subscribers. We cache to prevent
+        // unnecessary querying of segment piece and comparison. Even though
+        // order isn't guaranteed in objects, we assume that most
+        // implementations should have consistent ordering when iterating so
+        // that caching result from previous iteration would be useful.
+        cacheCurSegmentState = null;
+        cacheShouldUpdate = null;
+
+        for (subscriberId in querySubscribers) {
+          if (!querySubscribers.hasOwnProperty(subscriberId)) continue;
+          callback = querySubscribers[subscriberId].callback;
+          curSegmentState = querySubscribers[subscriberId].curSegmentState;
+
+          // Don't need to query segment piece and compare if segment state of previous
+          // iteration is the same.
+          if (cacheShouldUpdate === null || cacheCurSegmentState !== curSegmentState) {
+            cacheCurSegmentState = curSegmentState;
+            curQueryResult = segment.queryState(query, queryId, curSegmentState);
+            cacheShouldUpdate = curQueryResult.data !== segmentPiece;
+          }
+
+          this._subscribers[segmentId][queryId][subscriberId].curSegmentState =
+            segmentState;
+
+          if (cacheShouldUpdate) {
+            callback(segmentPiece);
+            // Stop if recursive handleChange() call has happened.
+            if (handleChangeCallId != this._handleChangeCallId) {
+              // TODO: Only log when debug is set to true!
+              console.log('Recursive handleChange() detected, cancelling update..', state);
+              return;
+            }
           }
         }
       }
     }
 
-    // Update previous state.
-    this._setPreviousState(state, timestamp);
-  }
-
-  /**
-   * Sets previous state for future comparison on _handleChange(). We need
-   * to compare timestamp of each state because of these chain of events:
-   *
-   * 1) _handleChange() is called, it triggers listeners for appropriate
-   *    components.
-   * 2) One of those components (or its children), upon updating needs to
-   *    dispatch another action. This triggers another _handleChange()
-   *    before the first one is finished.
-   *
-   * Recursive handleChange() doesn't seem to have any negative effects,
-   * only that we should be careful when setting previous state. It might
-   * be that when we are done with handling the change and wish to set previous
-   * state, the previous state we own is already stale.
-   *
-   * @param {Object} newState
-   * @param {number} timestamp
-   * @private
-   */
-  _setPreviousState(newState, timestamp) {
-    if (this._previousState.timestamp < timestamp) {
-      this._previousState = {
-        state: newState,
-        timestamp: timestamp
-      };
-    }
+    // Increase ID so that recursive handleChange() can stop itself from
+    // updating. One cycle of handleChange() call will iterate through all
+    // subscribers so we no longer need previous handleChange() in stack
+    // to continue.
+    ++this._handleChangeCallId;
   }
 
   /**
@@ -395,6 +397,10 @@ export default class ReduxStore extends Store {
   _queryState(segmentId, query, queryId) {
     var state = this._store.getState();
     var segmentState = state[segmentId];
+    return this._queryStateWithSegment(segmentId, query, queryId, segmentState);
+  }
+
+  _queryStateWithSegment(segmentId, query, queryId, segmentState) {
     var queryResult = this._segmentClasses[segmentId].queryState(query, queryId, segmentState);
     if (queryResult.constructor != QueryResult) throw new Error('Segment.queryState must return instance of QueryResult! queryId: ' + queryId);
     return queryResult;
@@ -713,10 +719,14 @@ export default class ReduxStore extends Store {
     // Server side queries will be run through hydrate() method.
     var subscribePromise = this.query(segmentId, query, false, hydration);
     subscribePromise.catch(PromiseUtil.throwError);
+    var segmentState = this._getState()[segmentId];
 
     // Register subscriber.
     if (!this._subscribers[segmentId][queryId]) this._subscribers[segmentId][queryId] = {};
-    this._subscribers[segmentId][queryId][subscriberId] = callback;
+    this._subscribers[segmentId][queryId][subscriberId] = {
+      callback: callback,
+      curSegmentState: segmentState
+    };
 
     var result = {
       getState: this._getSegmentPiece.bind(this, segmentId, query, queryId),

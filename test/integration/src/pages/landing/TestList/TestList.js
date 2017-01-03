@@ -27,6 +27,7 @@ class Component extends React.Component {
       <ul>
         <li><a href={this.props.context.router.reverseRoute('HYDRATION')}>Hydration Test</a> (~3 seconds)</li>
         <li><a href={this.props.context.router.reverseRoute('RUNTIME_COMPONENT')}>Runtime Components</a></li>
+        <li><a href={this.props.context.router.reverseRoute('RECURSIVE_HANDLE_CHANGE')}>Recursive change handler</a></li>
         <li><a href={this.props.context.router.reverseRoute('SERVER_SEGMENT_DEPENDENCIES')}>Segment Dependencies (Server-Side)</a> (~5 seconds).</li>
         <li><a href={this.props.context.router.reverseRoute('CLIENT_SEGMENT_DEPENDENCIES')}>Segment Dependencies (Client-Side)</a>.</li>
         <li><a href={this.props.context.router.reverseRoute('CLIENT_INSTANT_SEGMENT_DEPENDENCIES')}>Segment Dependencies (Client-Side, Instant Load)</a></li>
@@ -63,7 +64,8 @@ class TestList extends Page {
       'SIMPLE_FORM',
       'REPEATABLE_FORM',
       'COOKIE_SET',
-      'MUTATION_TEST'
+      'MUTATION_TEST',
+      'RECURSIVE_HANDLE_CHANGE'
     ];
   }
 

@@ -52,6 +52,12 @@ SEGMENT_COOKIE_CLIENT:
     - [method, GET]
     - [path, /data/redux/segment-cookie-client]
 
+RECURSIVE_HANDLE_CHANGE:
+  page: src/pages/redux/RecursiveHandleChange/RecursiveHandleChange.js
+  nodes:
+    - [method, GET]
+    - [path, /data/redux/recursive-handle-change]
+
 TEST_LOCAL_SEGMENT:
   page: src/pages/redux/TestLocalSegment/TestLocalSegment.js
   nodes:

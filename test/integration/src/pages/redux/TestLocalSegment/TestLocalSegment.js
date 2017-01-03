@@ -22,16 +22,16 @@ class Component extends React.Component {
     this.modalEmitter = {};
     smokesignals.convert(this.modalEmitter);
 
-    this.setState({
-      number: 0
-    });
-
     // Subscribe to lying segment.
-    this.props.context.store.subscribe(LyingSegment.id(), '', (newState) => {
+    this.storeRef = this.props.context.store.subscribe(LyingSegment.id(), '', (newState) => {
       this.setState({
         number: newState
       });
     }, this);
+
+    this.setState({
+      number: this.storeRef.getState()
+    });
 
     this.modalActions = this.props.context.store.register(ModalSegment);
     this.modalEmitter.on(ConfirmModal.getConfirmEvent(INCREMENT_MODAL_ID), () => {
@@ -47,6 +47,10 @@ class Component extends React.Component {
     for (i = 1; i < 6; i++) {
       this.modalEmitter.on(ConfirmModal.getConfirmEvent(MULTIPLE_MODAL_ID + i), createRemovalFunc(i));
     }
+  }
+
+  componentWillUnmount() {
+    this.storeRef.unsubscribe();
   }
 
   render() {

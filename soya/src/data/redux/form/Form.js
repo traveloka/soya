@@ -72,6 +72,40 @@ export default class Form {
     ));
   }
 
+  disableField(fieldName) {
+    this.disableFields([fieldName]);
+  }
+
+  enableField(fieldName) {
+    this.enableFields([fieldName]);
+  }
+
+  disableFields(fieldNameList) {
+    var i, data = [];
+    for (i = 0; i < fieldNameList.length; i++) {
+      data.push({
+        fieldName: fieldNameList[i],
+        object: { isEnabled: false }
+      });
+    }
+    this._reduxStore.dispatch(this._actionCreator.mergeFields(
+      this._formId, data
+    ));
+  }
+
+  enableFields(fieldNameList) {
+    var i, data = [];
+    for (i = 0; i < fieldNameList.length; i++) {
+      data.push({
+        fieldName: fieldNameList[i],
+        object: { isEnabled: true }
+      });
+    }
+    this._reduxStore.dispatch(this._actionCreator.mergeFields(
+      this._formId, data
+    ));
+  }
+
   setValue(fieldName, value) {
     this._reduxStore.dispatch(this._actionCreator.setValue(
       this._formId, fieldName, value

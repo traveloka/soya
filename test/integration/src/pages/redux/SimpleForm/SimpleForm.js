@@ -4,7 +4,6 @@ import RenderResult from 'soya/lib/page/RenderResult';
 import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import register from 'soya/lib/client/Register';
 import Form from 'soya/lib/data/redux/form/Form';
-import FormSegment from 'soya/lib/data/redux/form/FormSegment';
 
 import ContactForm from '../../../components/contextual/ContactForm/ContactForm.js'
 import style from '../../../shared/sitewide.css';
@@ -14,18 +13,15 @@ const REUSE_FORM_ID = 'kontakte';
 
 class Component extends React.Component {
   componentWillMount() {
-    this.actions = this.props.context.store.register(FormSegment);
     this._form = new Form(this.props.context.store, FORM_ID);
     this._kontakteForm = new Form(this.props.context.store, REUSE_FORM_ID);
   }
 
   setDefaultValues() {
-    this.props.context.store.dispatch(this.actions.setDefaultValues(
-      FORM_ID, [
-        { fieldName: 'name', value: 'Default Value Rick' },
-        { fieldName: 'nickname', value: 'rik' }
-      ]
-    ));
+    this._form.setDefaultValues([
+      { fieldName: 'name', value: 'Default Value Rick' },
+      { fieldName: 'nickname', value: 'rik' }
+    ]);
   }
 
   render() {
@@ -41,6 +37,7 @@ class Component extends React.Component {
         <li>Per-field submit validation should work on <i>Base City</i> (set values first, then click submit button).</li>
         <li>Async validation should also work for phone number field (value must contain 021).</li>
         <li>Form can be <a href="javascript:void(0)" onClick={this.enableForm.bind(this)}>enabled</a> and <a href="javascript:void(0)" onClick={this.disableForm.bind(this)}>disabled</a>, input fields listen to changes in enabled/disabled state.</li>
+        <li>Individual fields can be <a href="javascript:void(0)" onClick={this.enableFields.bind(this)}>enabled</a> and <a href="javascript:void(0)" onClick={this.disableFields.bind(this)}>disabled</a> using the <code>Form</code> instance.</li>
         <li>Form-wide validation (acquaintance cannot borrow money) will be run on submit, only when other validation passes.</li>
         <li>On submission, all per-field sync, async and submit validation should be run, along with custom form-wide validation.</li>
       </ul>
@@ -55,8 +52,16 @@ class Component extends React.Component {
     </div>
   }
 
+  disableFields() {
+    this._form.disableFields(['name', 'phoneNumber']);
+  }
+
+  enableFields() {
+    this._form.enableFields(['name', 'phoneNumber']);
+  }
+
   replaceValues() {
-    this.props.context.store.dispatch(this.actions.setValues(FORM_ID, [
+    this._form.setValues([
       { fieldName: 'name', value: 'Rick Christie' },
       { fieldName: 'phoneNumber', value: '123 456 789'},
       { fieldName: 'message', value: 'Bring me back that Meteora LP that you borrowed!' },
@@ -68,11 +73,11 @@ class Component extends React.Component {
         email: true
       }},
       { fieldName: 'type', value: 'borrowing' }
-    ]));
+    ]);
   }
 
   replaceKontakteForm() {
-    this.props.context.store.dispatch(this.actions.setValues(REUSE_FORM_ID, [
+    this._kontakteForm.setValues([
       { fieldName: 'name', value: '' },
       { fieldName: 'phoneNumber', value: '' },
       { fieldName: 'nickname', value: 'Long Winded Man' },
@@ -82,7 +87,7 @@ class Component extends React.Component {
       { fieldName: 'from', value: 'Surabaya (SUB)' },
       { fieldName: 'target', value: { email: true } },
       { fieldName: 'type', value: 'friend' }
-    ]));
+    ]);
   }
 
   enableForm() {
@@ -94,7 +99,7 @@ class Component extends React.Component {
   }
 
   clearValues() {
-    this.props.context.store.dispatch(this.actions.clear(FORM_ID));
+    this._form.clearForm();
   }
 }
 
