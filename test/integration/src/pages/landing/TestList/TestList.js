@@ -4,7 +4,7 @@ import RenderResult from 'soya/lib/page/RenderResult';
 import register from 'soya/lib/client/Register';
 import ReactRenderer from 'soya/lib/page/react/ReactRenderer.js';
 
-import style from '../../../shared/sitewide.css';
+import style from 'shared/sitewide.css';
 
 class Component extends React.Component {
   render() {

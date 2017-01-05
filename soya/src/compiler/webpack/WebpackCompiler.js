@@ -173,12 +173,25 @@ export default class WebpackCompiler extends Compiler {
   }
 
   static generateResolveConfig(frameworkConfig) {
+    let {
+      absoluteProjectDir,
+      defaultImportBase
+    } = frameworkConfig;
+
+    if (defaultImportBase) {
+      defaultImportBase = path.resolve(absoluteProjectDir, defaultImportBase);
+    }
+    
+    // Removes undefined config if any
+    const rootResolves = [
+      absoluteProjectDir,
+      defaultImportBase
+    ].filter((config) => !!config);
+
     return {
       alias: {},
-      root: [
-        frameworkConfig.absoluteProjectDir
-      ]
-    }
+      root: rootResolves
+    };
   }
 
   /**
