@@ -1,5 +1,10 @@
 # Version 0.0.x
 
+## 0.0.67
+
+- Expose webpack root resolve alias into frameworkConfig.defaultImportBase.
+- Add fieldValue query to FormSegment.
+
 ## 0.0.66
 
 - Updated logic of handleChange(), fixed bug recursive handleChange() bug. The

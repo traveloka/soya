@@ -4,6 +4,7 @@ import RenderResult from 'soya/lib/page/RenderResult';
 import ReactRenderer from 'soya/lib/page/react/ReactRenderer';
 import register from 'soya/lib/client/Register';
 import Form from 'soya/lib/data/redux/form/Form';
+import FormSegment from 'soya/lib/data/redux/form/FormSegment';
 
 import ContactForm from '../../../components/contextual/ContactForm/ContactForm.js'
 import style from '../../../shared/sitewide.css';
@@ -15,6 +16,19 @@ class Component extends React.Component {
   componentWillMount() {
     this._form = new Form(this.props.context.store, FORM_ID);
     this._kontakteForm = new Form(this.props.context.store, REUSE_FORM_ID);
+    this.props.context.store.register(FormSegment);
+    var storeRef = this.props.context.store.subscribe(
+      FormSegment.id(),
+      {type: 'fieldValue', formId: FORM_ID, fieldName: 'name'},
+      (value) => {
+        this.setState({name: value});
+      },
+      this);
+    this.setState({name: storeRef.getState()});
+  }
+
+  componentWillUnmount() {
+    this.props.context.store.unsubscribe(this);
   }
 
   setDefaultValues() {
@@ -41,6 +55,7 @@ class Component extends React.Component {
         <li>Form-wide validation (acquaintance cannot borrow money) will be run on submit, only when other validation passes.</li>
         <li>On submission, all per-field sync, async and submit validation should be run, along with custom form-wide validation.</li>
       </ul>
+      <h4>Name: {this.state.name}</h4>
       <ContactForm form={this._form} formName="Contact Us" context={this.props.context} />
       <h3>Reusing Form</h3>
       <ul>
