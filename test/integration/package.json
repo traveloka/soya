@@ -29,7 +29,7 @@
     "sass-loader": "^4.0.2",
     "socket.io": "^1.5.0",
     "source-map-support": "^0.3.2",
-    "soya": "0.0.67",
+    "soya": "0.0.68",
     "style-loader": "^0.12.4",
     "superagent": "^1.4.0",
     "webpack": "^1.12.2"
@@ -39,7 +39,6 @@
     "babel-plugin-react-transform": "^1.1.1",
     "react-transform-catch-errors": "^1.0.0",
     "react-transform-hmr": "^1.0.1",
-    "redux-devtools": "^2.1.5",
     "webpack-dev-middleware": "^1.2.0",
     "webpack-hot-middleware": "^2.2.0"
   }
