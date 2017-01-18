@@ -71,14 +71,18 @@ export default function createField(InputComponent) {
 
     static subscribeQueries(props, subscribe) {
       subscribe(FormSegment.id(), {
-        formId: props.form._formId,
+        formId: props.form.getFormId(),
         type: type,
         fieldName: props.name
       }, 'field');
       subscribe(FormSegment.id(), {
-        formId: props.form._formId,
+        formId: props.form.getFormId(),
         type: 'isEnabled'
       }, 'isEnabled');
+      subscribe(FormSegment.id(), {
+        formId: props.form.getFormId(),
+        type: 'isSubmitting'
+      }, 'isSubmitting');
     }
 
     constructor(props, context) {
@@ -140,7 +144,13 @@ export default function createField(InputComponent) {
         props.isFormEnabled = true;
       }
 
-      props.isDisabled = props.isValidating || !props.isFormEnabled || !props.isFieldEnabled;
+      if (this.props.result.hasOwnProperty('isSubmitting')) {
+        props.isFormSubmitting = this.props.result.isSubmitting;
+      } else {
+        props.isFormSubmitting = false;
+      }
+
+      props.isDisabled = props.isValidating || !props.isFormEnabled || !props.isFieldEnabled || props.isFormSubmitting;
       props.setDefaultValue = this.__setDefaultValue;
       props.handleChange = this.__handleChange;
       props.handleAsyncValidation = this.__handleAsyncValidation;
@@ -190,11 +200,11 @@ export default function createField(InputComponent) {
       var actions = this.props.getActionCreator(FormSegment.id());
       if (errorMessages.length == 0) {
         this.props.getReduxStore().dispatch(actions.setValue(
-          this.props.form._formId, this.props.name, value
+          this.props.form.getFormId(), this.props.name, value
         ));
       } else {
         this.props.getReduxStore().dispatch(actions.mergeFields(
-          this.props.form._formId, [{
+          this.props.form.getFormId(), [{
             fieldName: this.props.name,
             object: {
               value: value,
@@ -236,7 +246,7 @@ export default function createField(InputComponent) {
       if (errorMessages.length > 0) {
         var actions = this.props.getActionCreator(FormSegment.id());
         this.props.getReduxStore().dispatch(actions.mergeFields(
-          this.props.form._formId, [{
+          this.props.form.getFormId(), [{
             fieldName: this.props.name,
             object: {
               errorMessages: errorMessages
@@ -394,7 +404,7 @@ export default function createField(InputComponent) {
               if (typeof result[i] == 'string') errorMessages.push(result[i]);
             }
             this.props.getReduxStore().dispatch(actions.addErrorMessages(
-              this.props.form._formId, [{
+              this.props.form.getFormId(), [{
                 fieldName: this.props.name,
                 messages: errorMessages
               }]
@@ -434,7 +444,7 @@ export default function createField(InputComponent) {
     lock() {
       var actions = this.props.getActionCreator(FormSegment.id());
       this.props.getReduxStore().dispatch(actions.setIsValidating(
-        this.props.form._formId, { [this.props.name] : true }
+        this.props.form.getFormId(), { [this.props.name] : true }
       ));
     }
 
@@ -444,7 +454,7 @@ export default function createField(InputComponent) {
     unlock() {
       var actions = this.props.getActionCreator(FormSegment.id());
       this.props.getReduxStore().dispatch(actions.setIsValidating(
-        this.props.form._formId, { [this.props.name]: false }
+        this.props.form.getFormId(), { [this.props.name]: false }
       ));
     }
 

@@ -1,5 +1,4 @@
 import LocalSegment from '../segment/local/LocalSegment';
-import ActionNameUtil from '../segment/ActionNameUtil';
 import { isStringDuckType, isArray } from '../helper';
 import QueryResult from '../QueryResult.js';
 
@@ -15,25 +14,26 @@ const DEFAULT_FIELD = {
 
 const ID = 'form';
 
-const SET_DEFAULT_VALUE_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_DEFAULT_VALUE');
-const SET_DEFAULT_VALUES_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_DEFAULT_VALUES');
-const SET_VALUE_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_VALUE');
-const SET_VALUES_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_VALUES');
-const CLEAR_FIELD_ACTION_TYPE = ActionNameUtil.generate(ID, 'CLEAR_FIELD');
-const MERGE_FIELDS_ACTION_TYPE = ActionNameUtil.generate(ID, 'MERGE_FIELDS');
-const SET_IS_VALIDATION_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_IS_VALIDATING');
-const SET_ERRORS_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_ERRORS');
-const ADD_ERRORS_ACTION_TYPE = ActionNameUtil.generate(ID, 'ADD_ERRORS');
-const SET_ENABLED_STATE_ACTION_TYPE = ActionNameUtil.generate(ID, 'SET_ENABLED_STATE');
-const CLEAR_FORM_ACTION_TYPE = ActionNameUtil.generate(ID, 'CLEAR_FORM');
-const CLEAR_ERRORS_ACTION_TYPE = ActionNameUtil.generate(ID, 'CLEAR_ERRORS');
+const SET_DEFAULT_VALUE_ACTION_TYPE = `${ID}.setDefaultValue`;
+const SET_DEFAULT_VALUES_ACTION_TYPE = `${ID}.setDefaultValues`;
+const SET_VALUE_ACTION_TYPE = `${ID}.setValue`;
+const SET_VALUES_ACTION_TYPE = `${ID}.setValues`;
+const CLEAR_FIELD_ACTION_TYPE = `${ID}.clearField`;
+const MERGE_FIELDS_ACTION_TYPE = `${ID}.mergeFields`;
+const SET_IS_VALIDATING_ACTION_TYPE = `${ID}.setIsValidating`;
+const SET_IS_SUBMITTING_ACTION_TYPE = `${ID}.setIsSubmitting`;
+const SET_ERRORS_ACTION_TYPE = `${ID}.setErrors`;
+const ADD_ERRORS_ACTION_TYPE = `${ID}.addErrors`;
+const SET_ENABLED_STATE_ACTION_TYPE = `${ID}.setEnabledState`;
+const CLEAR_FORM_ACTION_TYPE = `${ID}.clearForm`;
+const CLEAR_ERRORS_ACTION_TYPE = `${ID}.clearErrors`;
 
-const ADD_LIST_ITEM_ACTION_TYPE = ActionNameUtil.generate(ID, 'ADD_ITEM');
-const ADD_LIST_ITEM_WITH_VALUE_ACTION_TYPE = ActionNameUtil.generate(ID,'ADD_ITEM_WITH_VALUE');
-const REMOVE_LIST_ITEM_ACTION_TYPE = ActionNameUtil.generate(ID, 'REMOVE_ITEM');
-const REORDER_LIST_ITEM_ACTION_TYPE = ActionNameUtil.generate(ID, 'REORDER_ITEM');
-const REORDER_LIST_ITEM_INC_ACTION_TYPE = ActionNameUtil.generate(ID, 'REORDER_ITEM_INC');
-const REORDER_LIST_ITEM_DEC_ACTION_TYPE = ActionNameUtil.generate(ID,'REORDER_ITEM_DEC');
+const ADD_LIST_ITEM_ACTION_TYPE = `${ID}.addListItem`;
+const ADD_LIST_ITEM_WITH_VALUE_ACTION_TYPE = `${ID}.addListItemWithValue`;
+const REMOVE_LIST_ITEM_ACTION_TYPE = `${ID}.removeListItem`;
+const REORDER_LIST_ITEM_ACTION_TYPE = `${ID}.reorderListItem`;
+const REORDER_LIST_ITEM_INC_ACTION_TYPE = `${ID}.reorderItemInc`;
+const REORDER_LIST_ITEM_DEC_ACTION_TYPE = `${ID}.reorderItemDec`;
 
 const ACTION_CREATOR = {
   // Simple field related actions.
@@ -44,9 +44,16 @@ const ACTION_CREATOR = {
       isEnabled: isEnabled
     };
   },
+  setFormIsSubmittingState(formId, isSubmitting) {
+    return {
+      type: SET_IS_SUBMITTING_ACTION_TYPE,
+      formId: formId,
+      isSubmitting: isSubmitting
+    };
+  },
   setIsValidating(formId, map) {
     return {
-      type: SET_IS_VALIDATION_ACTION_TYPE,
+      type: SET_IS_VALIDATING_ACTION_TYPE,
       formId: formId,
       map: map
     };
@@ -186,8 +193,11 @@ const REDUCER = function(state, action) {
     case SET_ENABLED_STATE_ACTION_TYPE:
       return FormSegment._setFormEnabledState(state, action);
       break;
-    case SET_IS_VALIDATION_ACTION_TYPE:
+    case SET_IS_VALIDATING_ACTION_TYPE:
       return FormSegment._setIsValidating(state, action);
+      break;
+    case SET_IS_SUBMITTING_ACTION_TYPE:
+      return FormSegment._setIsSubmitting(state, action);
       break;
     case SET_DEFAULT_VALUE_ACTION_TYPE:
       return FormSegment._setDefaultValue(state, action);
@@ -310,6 +320,7 @@ export default class FormSegment extends LocalSegment {
    *
    * <pre>
    *   {formId: 'formId', type: 'isEnabled'} --> true if form is enabled, false otherwise.
+   *   {formId: 'formId', type: 'isSubmitting'} --> true if form is running submission, false otherwise.
    *   {formId: 'formId', type: '*'} --> get all values as map, but without the error messages.
    *   {formId: 'formId', type: '**'} --> get all values as map with error messages.
    *   {formId: 'formId', type: 'hasErrors'} --> returns true if has errors, false otherwise.
@@ -336,6 +347,10 @@ export default class FormSegment extends LocalSegment {
       case 'isEnabled':
         if (segmentState == null) return QueryResult.loaded(true);
         return QueryResult.loaded(segmentState[query.formId] ? segmentState[query.formId].isEnabled : true);
+        break;
+      case 'isSubmitting':
+        if (segmentState == null) return QueryResult.loaded(false);
+        return QueryResult.loaded(segmentState[query.formId] ? segmentState[query.formId].isSubmitting : false);
         break;
       case 'hasErrors':
         if (segmentState == null) return QueryResult.loaded(null);
@@ -505,6 +520,16 @@ export default class FormSegment extends LocalSegment {
       });
       state = update(state, updateObject);
     }
+    return state;
+  }
+
+  static _setIsSubmitting(state, action) {
+    state = FormSegment._ensureFormExistence(state, action);
+    state = update(state, {
+      [action.formId]: {
+        isSubmitting: {$set: action.isSubmitting}
+      }
+    });
     return state;
   }
 
@@ -743,7 +768,8 @@ export default class FormSegment extends LocalSegment {
     if (form == null) {
       state = update(state, {[action.formId]: {$set: {
         fields: {},
-        isEnabled: true
+        isEnabled: true,
+        isSubmitting: false
       }}});
     }
     return state;

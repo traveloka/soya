@@ -1,5 +1,13 @@
 # Version 0.0.x
 
+## 0.0.69
+
+- Form submission now doesn't assume that the user wants to disable and
+  re-enable the form on submission.
+- Users can use `Form.lockSubmission()` and `Form.unlockSubmission()` if they
+  would like to lock the form when submitting. User can create buttons that
+  listens to this state so it can auto-disable when form is in submission.
+
 ## 0.0.68
 
 - Remove unnecessary import to redux-devtools.
