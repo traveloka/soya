@@ -9,7 +9,7 @@ var frameworkConfig = {
   assetHostPath: 'localhost:8000/assets/',
   absoluteProjectDir: dirname,
   componentBrowser: true,
-  hotReload: false,
+  hotReload: true,
   clientResolve: [],
   clientReplace: {},
   debug: true,
