@@ -24,7 +24,7 @@
   - Still in package.json, add the following Babel configuration (you may
     modify them if you wish):
     
-        ```
+        
         "babel": {
             "presets": [
             "es2015",
@@ -36,12 +36,12 @@
             "transform-object-assign"
           ]
         }
-        ```
+        
         
   - Change the contents of `webpack.config.js` into this (you can also copy
     and paste from integration test):
     
-        ```
+        
         var webpack = require('webpack');
         var Precompiler = require('soya/lib/precompile/Precompiler').default;
         var WebpackCompiler = require('soya/lib/compiler/webpack/WebpackCompiler').default;
@@ -52,7 +52,7 @@
 
         var webpackConfig = WebpackCompiler.createServerBuildConfig(webpack, config.frameworkConfig);
         module.exports = webpackConfig;
-        ```
+        
   
   - Remove `node_modules` folder and do a fresh `npm install`.
 - If you're contributing to soya:
