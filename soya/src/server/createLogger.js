@@ -6,7 +6,7 @@
  * @SERVER
  */
 
-var Logger = require('../logger/Logger');
+import Logger from '../logger/Logger';
 
 /**
  * @param {Object} serverConfig Server-side configuration.

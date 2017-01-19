@@ -1,5 +1,5 @@
-var url = require('url');
-var path = require('path');
+import url from 'url';
+import path from 'path';
 
 /**
  * @SERVER

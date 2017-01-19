@@ -1,5 +1,5 @@
-var fs = require('fs');
-var path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 /**
  * @type {RegExp}

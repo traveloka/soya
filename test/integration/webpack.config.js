@@ -8,8 +8,8 @@
  */
 
 var webpack = require('webpack');
-var Precompiler = require('soya/lib/precompile/Precompiler');
-var WebpackCompiler = require('soya/lib/compiler/webpack/WebpackCompiler');
+var Precompiler = require('soya/lib/precompile/Precompiler').default;
+var WebpackCompiler = require('soya/lib/compiler/webpack/WebpackCompiler').default;
 var config = require('./config');
 
 var precompiler = new Precompiler(config.frameworkConfig);

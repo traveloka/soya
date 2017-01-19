@@ -11,9 +11,9 @@ if (module.hot && !window.__hotReload) {
  */
 export default function register(pageClass) {
   // TODO: This won't work on older IEs? Logger for client? Log only when debug framework config is set to true?
-  console.log('[REGISTER] Page register', pageClass);
+  //console.log('[REGISTER] Page register', pageClass);
   if (!window.__soyaClient) {
-    console.log('[REGISTER] Initializing SoyaClient');
+    //console.log('[REGISTER] Initializing SoyaClient');
     // This follows an implicit contract between renderer and client runtime.
     // Config and RouteArgs must be present as a global variable.
     // Haven't found the better way to do this yet.

@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 
-export default class Helper {
+export class Helper {
   static join() {
     
   }

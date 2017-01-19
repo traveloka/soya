@@ -5,12 +5,12 @@ import ServerHttpRequest from './http/ServerHttpRequest';
 import Provider from './Provider.js';
 import CookieJar from './http/CookieJar.js';
 import ServerCookieJar from './http/ServerCookieJar.js';
+
 import SocketIO from 'socket.io';
 import fs from 'fs';
-
-var path = require('path');
-var http = require('http');
-var domain = require('domain');
+import path from 'path';
+import http from 'http';
+import domain from 'domain';
 
 /**
  * Orchestrates all the things that makes the application server run:
