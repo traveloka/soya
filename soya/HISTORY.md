@@ -10,44 +10,50 @@
   will update them as soon as there's a need).
 - How to update:
   - Remove all Babel related lines in your package.json into these:
-    ```
-    "babel-core": "^6.4.5",
-    "babel-loader": "^6.2.1",
-    "babel-preset-es2015": "^6.3.13",
-    "babel-preset-react": "^6.3.13",
-    "babel-preset-stage-2": "^6.18.0",
-    "babel-plugin-transform-export-extensions": "^6.8.0",
-    "babel-plugin-transform-object-assign": "^6.8.0",
-    ```
+        
+        ```
+        "babel-core": "^6.4.5",
+        "babel-loader": "^6.2.1",
+        "babel-preset-es2015": "^6.3.13",
+        "babel-preset-react": "^6.3.13",
+        "babel-preset-stage-2": "^6.18.0",
+        "babel-plugin-transform-export-extensions": "^6.8.0",
+        "babel-plugin-transform-object-assign": "^6.8.0",
+        ```
+        
   - Still in package.json, add the following Babel configuration (you may
     modify them if you wish):
-    ```
-    "babel": {
-      "presets": [
-        "es2015",
-        "react",
-        "stage-2"
-      ],
-      "plugins": [
-        "transform-export-extensions",
-        "transform-object-assign"
-      ]
-    }
-    ```
+    
+        ```
+        "babel": {
+            "presets": [
+            "es2015",
+            "react",
+            "stage-2"
+          ],
+          "plugins": [
+            "transform-export-extensions",
+            "transform-object-assign"
+          ]
+        }
+        ```
+        
   - Change the contents of `webpack.config.js` into this (you can also copy
     and paste from integration test):
-    ```
-    var webpack = require('webpack');
-    var Precompiler = require('soya/lib/precompile/Precompiler').default;
-    var WebpackCompiler = require('soya/lib/compiler/webpack/WebpackCompiler').default;
-    var config = require('./config');
+    
+        ```
+        var webpack = require('webpack');
+        var Precompiler = require('soya/lib/precompile/Precompiler').default;
+        var WebpackCompiler = require('soya/lib/compiler/webpack/WebpackCompiler').default;
+        var config = require('./config');
 
-    var precompiler = new Precompiler(config.frameworkConfig);
-    precompiler.precompile();
+        var precompiler = new Precompiler(config.frameworkConfig);
+        precompiler.precompile();
 
-    var webpackConfig = WebpackCompiler.createServerBuildConfig(webpack, config.frameworkConfig);
-    module.exports = webpackConfig;
-    ```
+        var webpackConfig = WebpackCompiler.createServerBuildConfig(webpack, config.frameworkConfig);
+        module.exports = webpackConfig;
+        ```
+  
   - Remove `node_modules` folder and do a fresh `npm install`.
 - If you're contributing to soya:
   - Fetch the updates.
