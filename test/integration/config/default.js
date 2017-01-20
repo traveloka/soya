@@ -13,7 +13,8 @@ var frameworkConfig = {
   clientResolve: [],
   clientReplace: {},
   debug: true,
-  minifyJs: false
+  minifyJs: false,
+  defaultImportBase: 'src'
 };
 
 /**

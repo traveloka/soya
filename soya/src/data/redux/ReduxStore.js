@@ -8,7 +8,6 @@ import Hydration from './Hydration.js';
 
 import QueryResult from './QueryResult.js';
 import { compose, createStore, applyMiddleware } from 'redux';
-import { devTools, persistState } from 'redux-devtools';
 import thunk from 'redux-thunk';
 import scope from 'soya/lib/scope';
 

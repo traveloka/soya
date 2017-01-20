@@ -313,7 +313,8 @@ export default class FormSegment extends LocalSegment {
    *   {formId: 'formId', type: '*'} --> get all values as map, but without the error messages.
    *   {formId: 'formId', type: '**'} --> get all values as map with error messages.
    *   {formId: 'formId', type: 'hasErrors'} --> returns true if has errors, false otherwise.
-   *   {formId: 'formId', type: 'field', fieldName: 'fieldName'} --> get all values of field.
+   *   {formId: 'formId', type: 'field', fieldName: 'fieldName'} --> get all properties of field.
+   *   {formId: 'formId', type: 'fieldValue', fieldName: 'fieldName'} --> get only the field's value.
    * </pre>
    *
    * Repeatable specific queries:
@@ -343,6 +344,10 @@ export default class FormSegment extends LocalSegment {
       case 'field':
         if (segmentState == null) return QueryResult.loaded(null);
         return QueryResult.loaded(FormSegment._getField(segmentState, query.formId, query.fieldName));
+        break;
+      case 'fieldValue':
+        if (segmentState == null) return QueryResult.loaded(null);
+        return QueryResult.loaded(FormSegment._getFieldValue(segmentState, query.formId, query.fieldName));
         break;
       case 'length':
         if (segmentState == null) return QueryResult.loaded(null);
@@ -469,6 +474,12 @@ export default class FormSegment extends LocalSegment {
       ref = ref[fieldName[i]];
     }
     return ref;
+  }
+
+  static _getFieldValue(state, formId, fieldName) {
+    var field = this._getField(state, formId, fieldName);
+    if (field == null) return null;
+    return field.value;
   }
 
   static _setFormEnabledState(state, action) {
