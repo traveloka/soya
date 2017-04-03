@@ -74,6 +74,13 @@ export default class ClientHttpRequest {
   }
 
   /**
+   * @returns {string}
+   */
+  getQuery() {
+    return this._element.search.substring(1);
+  }
+
+  /**
    * @return {string}
    */
   getHash() {
