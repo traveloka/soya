@@ -26,7 +26,7 @@ export default class ServerHttpRequest {
    */
   constructor(httpRequest, maxRequestBodyLength) {
     this._httpRequest = httpRequest;
-    this._parsedUrl = url.parse(httpRequest.url);
+    this._parsedUrl = url.parse(httpRequest.url, true);
     this._maxRequestBodyLength = maxRequestBodyLength;
   }
 
@@ -95,6 +95,13 @@ export default class ServerHttpRequest {
    * @return {string}
    */
   getQuery() {
+    return this._parsedUrl.search;
+  }
+
+  /**
+   * @returns {Object}
+   */
+  getQueryParams() {
     return this._parsedUrl.query;
   }
 

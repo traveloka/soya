@@ -9,6 +9,11 @@ export default class ClientHttpRequest {
    */
   _element;
 
+  /**
+   * @type {?Object}
+   */
+  _parsedQs;
+
   constructor() {
     this._element = document.createElement('A');
     this._element.href = window.location.href;
@@ -77,7 +82,32 @@ export default class ClientHttpRequest {
    * @returns {string}
    */
   getQuery() {
-    return this._element.search.substring(1);
+    return this._element.search;
+  }
+
+  /**
+   * @returns {Object}
+   */
+  getQueryParams() {
+    // Parse query string.
+    if (this._parsedQs == null) {
+      var i, parsedQs = {}, segment, idx, key, val, qsArray = this.getQuery().substring(1).split('&');
+      for (i = 0; i < qsArray.length; i++) {
+        segment = qsArray[i];
+        if (segment == '') continue;
+        idx = segment.indexOf('=');
+        if (idx < 0) {
+          key = segment;
+          val = '';
+        } else {
+          key = segment.substring(0, idx);
+          val = segment.substring(idx + 1);
+        }
+        parsedQs[decodeURIComponent(key)] = decodeURIComponent(val);
+      }
+      this._parsedQs = parsedQs;
+    }
+    return this._parsedQs;
   }
 
   /**

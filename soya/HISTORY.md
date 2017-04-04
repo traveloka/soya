@@ -1,5 +1,10 @@
 # Version 0.0.x
 
+## 0.0.72
+
+- Update `ServerHttpRequest` and `ClientHttpRequest` to have both `getQuery()`
+  and `getQueryParams()`.
+
 ## 0.0.70
 
 - Upgrade to Babel 6.
