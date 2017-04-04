@@ -1,5 +1,10 @@
 # Version 0.0.x
 
+## 0.0.75
+
+- Fix `CookieJar.remove()` and `Cookie.createRemoval()` bug, made `secure` a
+  required parameter in removing cookie.
+
 ## 0.0.74
 
 - Update `ServerHttpRequest` and `ClientHttpRequest` to have both `getQuery()`
