@@ -1,3 +1,5 @@
+import parseQueryString from './parseQueryString.js';
+
 /**
  * TODO: A better abstraction for HttpRequest.
  *
@@ -91,21 +93,7 @@ export default class ClientHttpRequest {
   getQueryParams() {
     // Parse query string.
     if (this._parsedQs == null) {
-      var i, parsedQs = {}, segment, idx, key, val, qsArray = this.getQuery().substring(1).split('&');
-      for (i = 0; i < qsArray.length; i++) {
-        segment = qsArray[i];
-        if (segment == '') continue;
-        idx = segment.indexOf('=');
-        if (idx < 0) {
-          key = segment;
-          val = '';
-        } else {
-          key = segment.substring(0, idx);
-          val = segment.substring(idx + 1);
-        }
-        parsedQs[decodeURIComponent(key)] = decodeURIComponent(val);
-      }
-      this._parsedQs = parsedQs;
+      this._parsedQs = parseQueryString(this.getQuery());
     }
     return this._parsedQs;
   }

@@ -1,9 +1,10 @@
 # Version 0.0.x
 
-## 0.0.73
+## 0.0.74
 
 - Update `ServerHttpRequest` and `ClientHttpRequest` to have both `getQuery()`
   and `getQueryParams()`.
+- Extract query string parser for outside usage.
 
 ## 0.0.70
 

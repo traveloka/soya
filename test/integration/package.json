@@ -14,7 +14,7 @@
     "babel-plugin-transform-export-extensions": "^6.8.0",
     "babel-plugin-transform-object-assign": "^6.8.0",
 
-    "soya": "0.0.73",
+    "soya": "0.0.74",
     "react": "^0.14.6",
     "react-addons-update": "^0.14.6",
     "react-dom": "^0.14.6",
