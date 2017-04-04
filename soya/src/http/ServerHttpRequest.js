@@ -102,7 +102,11 @@ export default class ServerHttpRequest {
    * @returns {Object}
    */
   getQueryParams() {
-    return this._parsedUrl.query;
+    let result = {}, key;
+    for (key in this._parsedUrl.query) {
+      result[key] = this._parsedUrl.query[key];
+    }
+    return result;
   }
 
   /**
