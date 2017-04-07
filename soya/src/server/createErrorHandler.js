@@ -6,7 +6,7 @@
  * @SERVER
  */
 
-var ErrorHandler = require('../ErrorHandler');
+import ErrorHandler from '../ErrorHandler';
 
 /**
  * @param {Object} config Server-side configuration.

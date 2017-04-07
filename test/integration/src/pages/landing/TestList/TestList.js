@@ -73,7 +73,9 @@ class TestList extends Page {
     var reactRenderer = new ReactRenderer();
     reactRenderer.head = '<title>Integration Tests</title>';
     reactRenderer.body = React.createElement(Component, {
-      context: this.createContext(store)
+      context: this.createContext(store),
+      search: httpRequest.getQuery(),
+      qp: httpRequest.getQueryParams()
     });
     var renderResult = new RenderResult(reactRenderer);
     callback(renderResult);

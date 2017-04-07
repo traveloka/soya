@@ -123,12 +123,14 @@ export default class ContactForm extends React.Component {
     console.log('VALIDATION RESULT', result);
     if (!result.isValid) {
       alert("Error in form!\n" + resultStr);
-      return;
+    } else {
+      alert("Form submitted!\n" + resultStr);
     }
-    alert("Form submitted!\n" + resultStr);
+    this.props.form.unlockSubmission();
   }
 
   handleSubmit() {
+    this.props.form.lockSubmission();
     this.props.form.submit(
       this.submit.bind(this), this.validateFormWide.bind(this));
   }

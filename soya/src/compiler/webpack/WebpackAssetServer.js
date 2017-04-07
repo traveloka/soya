@@ -1,9 +1,9 @@
 import AssetServer from '../AssetServer';
 import ServerHttpRequest from '../../http/ServerHttpRequest.js';
 
-var fs = require('fs');
-var path = require('path');
-var mime = require('mime');
+import fs from 'fs';
+import path from 'path';
+import mime from 'mime';
 
 /**
  * Reads asset from the webpack output directory.

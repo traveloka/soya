@@ -65,10 +65,11 @@ export default class ServerCookieJar extends CookieJar {
   /**
    * @param {string} name
    * @param {string} domain
+   * @param {boolean} secure
    * @param {?string} path
    */
-  remove(name, domain, path) {
-    var removalCookie = Cookie.createRemoval(name, domain, path);
+  remove(name, domain, secure, path) {
+    var removalCookie = Cookie.createRemoval(name, domain, secure, path);
     this.set(removalCookie);
   }
 

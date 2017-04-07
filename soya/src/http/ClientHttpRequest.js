@@ -1,3 +1,5 @@
+import parseQueryString from './parseQueryString.js';
+
 /**
  * TODO: A better abstraction for HttpRequest.
  *
@@ -8,6 +10,11 @@ export default class ClientHttpRequest {
    * @type {Element}
    */
   _element;
+
+  /**
+   * @type {?Object}
+   */
+  _parsedQs;
 
   constructor() {
     this._element = document.createElement('A');
@@ -79,6 +86,24 @@ export default class ClientHttpRequest {
    */
   getUrl() {
     return this._element.href;
+  }
+
+  /**
+   * @returns {string}
+   */
+  getQuery() {
+    return this._element.search;
+  }
+
+  /**
+   * @returns {Object}
+   */
+  getQueryParams() {
+    // Parse query string.
+    if (this._parsedQs == null) {
+      this._parsedQs = parseQueryString(this.getQuery());
+    }
+    return this._parsedQs;
   }
 
   /**

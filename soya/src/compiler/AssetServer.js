@@ -1,5 +1,5 @@
-var url = require('url');
-var nodePath = require('path');
+import url from 'url';
+import nodePath from 'path';
 
 /**
  * Stores asset in memory. Other implementations may store in file system, etc.

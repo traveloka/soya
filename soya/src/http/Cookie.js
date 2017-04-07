@@ -86,12 +86,13 @@ export default class Cookie {
   /**
    * @param {string} cookieName
    * @param {?string} domain
+   * @param {boolean} secure
    * @param {?string} path
    * @returns {Cookie}
    */
-  static createRemoval(cookieName, domain, path) {
+  static createRemoval(cookieName, domain, secure, path) {
     if (!path) path = '/';
-    return new Cookie(cookieName, '', -1, domain, path);
+    return new Cookie(cookieName, '', -1, domain, secure, path);
   }
 
   /**

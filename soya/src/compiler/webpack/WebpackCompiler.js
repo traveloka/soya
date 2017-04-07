@@ -4,11 +4,12 @@ import EntryPoint from '../../EntryPoint';
 import WebpackAssetServer from './WebpackAssetServer';
 import { DEFAULT_FRAMEWORK_CONFIG } from '../../defaultFrameworkConfig.js';
 
-var path = require('path');
-var fs = require('fs');
-var rimraf = require('rimraf');
+import path from 'path';
+import fs from 'fs';
+import rimraf from 'rimraf';
+import ExtractTextPlugin from 'extract-text-webpack-plugin';
+
 var COMMONS_ENTRY_NAME = '__commons';
-var ExtractTextPlugin  = require("extract-text-webpack-plugin");
 
 const SOURCE_MAP_FILE_REGEX = /\.[a-zA-Z0-9]{1,4}\.map/;
 const CSS_FILE_REGEX = /\.css[\?#]?/;
@@ -201,13 +202,7 @@ export default class WebpackCompiler extends Compiler {
     var result = {
       test: /\.jsx?$/,
       exclude: /(node_modules|bower_components)/,
-      loader: 'babel',
-      query: {
-        optional: ['runtime', 'es7.decorators'],
-        blacklist: [],
-        retainLines: true,
-        comments: false
-      }
+      loader: 'babel-loader'
     };
     return result;
   };
@@ -221,37 +216,25 @@ export default class WebpackCompiler extends Compiler {
    */
   getBabelLoaderExtras(entryPointAbsolutePathMap) {
     var result = {
-      plugins: [],
-      extra: {}
+      plugins: []
     };
 
     if (this._frameworkConfig.hotReload) {
-      result.plugins.push({
-        transformer: this._createHotModuleAcceptPlugin(entryPointAbsolutePathMap, this._frameworkConfig),
-        position: 'before'
-      });
+      result.plugins.push([
+        'soya/lib/compiler/webpack/hotModuleAcceptPlugin.js', {
+          hotReload: this._frameworkConfig.hotReload,
+          entryPointAbsolutePathMap: entryPointAbsolutePathMap
+        }
+      ]);
     }
 
-    result.plugins.push({
-      transformer: this._createResolvePlugin(),
-      position: 'after'
-    });
+    // Plugin no longer working, since Babel 6 runs plugins before presets.
+    // result.plugins.push(['./hotModuleAcceptPlugin.js', {
+    //  clientResolve: this._clientResolve
+    // }]);
 
     if (this._frameworkConfig.hotReload) {
-      result.plugins.push('react-transform');
-      result.extra['react-transform'] = {
-        transforms: [
-          //{
-          //  'transform': 'react-transform-hmr',
-          //  'imports': ['react'],
-          //  'locals':  ['module']
-          //},
-          //{
-          //  'transform': 'react-transform-catch-errors',
-          //  'imports': ['react', 'redbox-react']
-          //}
-        ]
-      };
+      // result.plugins.push('react-transform');
     }
     return result;
   }
@@ -536,22 +519,7 @@ export default class WebpackCompiler extends Compiler {
     return function({ Plugin, types: t }) {
       return new Plugin("soya-resolve-plugin", {
         visitor: {
-          CallExpression(node, parent) {
-            if (t.isIdentifier(node.callee, { name: "require" })) {
-              var requireValue = node.arguments[0].value;
-              if (self._clientResolve) {
-                var i, resolved;
-                for (i = 0; i < self._clientResolve.length; i++) {
-                  // TODO: Pass also the absolute path of currently parsed file.
-                  resolved = self._clientResolve[i](requireValue);
-                  if (resolved != null) {
-                    node.arguments[0].value = resolved;
-                    return;
-                  }
-                }
-              }
-            }
-          }
+          
         }
       });
     };
@@ -566,33 +534,7 @@ export default class WebpackCompiler extends Compiler {
     return function({ Plugin, types: t }) {
       return new Plugin("soya-hot-module-accept-plugin", {
         visitor: {
-          ClassDeclaration(node, parent) {
-            var curFilePath;
-            if (frameworkConfig.hotReload) {
-              curFilePath = this.scope.hub.file.opts.filename;
-              if (entryPointAbsolutePathMap[curFilePath]) {
-                entryPointAbsolutePathMap[curFilePath] = false;
-                this.insertAfter([
-                  t.ifStatement(
-                    t.memberExpression(t.identifier('module'), t.identifier('hot')),
-                    t.blockStatement([
-                      t.expressionStatement(t.callExpression(
-                        t.memberExpression(t.memberExpression(t.identifier('module'), t.identifier('hot')), t.identifier('accept')),
-                        [
-                          t.functionExpression(null, [], t.blockStatement([
-                            t.expressionStatement(t.callExpression(
-                              t.memberExpression(t.identifier('console'), t.identifier('error')),
-                              [t.literal('Unable to accept hot reload module!'), t.identifier('arguments')]
-                            ))
-                          ]))
-                        ]
-                      ))
-                    ])
-                  )
-                ]);
-              }
-            }
-          }
+
         }
       });
     };

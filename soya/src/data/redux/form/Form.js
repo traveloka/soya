@@ -53,6 +53,18 @@ export default class Form {
   getFormId() {
     return this._formId;
   }
+  
+  lockSubmission() {
+    this._reduxStore.dispatch(this._actionCreator.setFormIsSubmittingState(
+      this._formId, true
+    ));
+  }
+
+  unlockSubmission() {
+    this._reduxStore.dispatch(this._actionCreator.setFormIsSubmittingState(
+      this._formId, false
+    ));
+  }
 
   /**
    * Disables the form by setting isEnabled to false.
@@ -241,8 +253,6 @@ export default class Form {
   }
 
   submit(submitFunc, validationFunc) {
-    this.disable();
-
     // We need to clear all error messages, since form-wide validation doesn't
     // return with arrays to clear all error messages.
     var clearErrorMessages = this._actionCreator.clearErrorMessages(
@@ -254,7 +264,6 @@ export default class Form {
       validateAllPromise.then((result) => {
         if (!result.isValid || validationFunc == null) {
           submitFunc(result);
-          this.enable();
           return;
         }
         // Result is valid and validation function is not null. Do form-wide validation.
@@ -268,19 +277,15 @@ export default class Form {
             result.isValid = false;
           }
           submitFunc(result);
-          this.enable();
         }).catch((error) => {
           result.isValid = false;
           submitFunc(result);
-          this.enable();
           PromiseUtil.throwError(error);
         });
       }).catch((error) => {
-        this.enable();
         PromiseUtil.throwError(error);
       });
     }).catch((error) => {
-      this.enable();
       PromiseUtil.throwError(error);
     });
   }

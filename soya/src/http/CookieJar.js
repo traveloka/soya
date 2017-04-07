@@ -27,9 +27,10 @@ export default class CookieJar {
   /**
    * @param {string} name
    * @param {string} domain
+   * @param {boolean} secure
    * @param {?string} path
    */
-  remove(name, domain, path) {
+  remove(name, domain, secure, path) {
 
   }
 }

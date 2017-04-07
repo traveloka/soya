@@ -1,5 +1,5 @@
-var url = require('url');
-var path = require('path');
+import url from 'url';
+import path from 'path';
 
 import IncomingRequest from '../server/IncomingRequest';
 
@@ -29,7 +29,7 @@ export default class ServerHttpRequest extends IncomingRequest {
   constructor(httpRequest, maxRequestBodyLength) {
     super();
     this._httpRequest = httpRequest;
-    this._parsedUrl = url.parse(httpRequest.url);
+    this._parsedUrl = url.parse(httpRequest.url, true);
     this._maxRequestBodyLength = maxRequestBodyLength;
   }
 
@@ -110,7 +110,18 @@ export default class ServerHttpRequest extends IncomingRequest {
    * @return {string}
    */
   getQuery() {
-    return this._parsedUrl.query;
+    return this._parsedUrl.search;
+  }
+
+  /**
+   * @returns {Object}
+   */
+  getQueryParams() {
+    let result = {}, key;
+    for (key in this._parsedUrl.query) {
+      result[key] = this._parsedUrl.query[key];
+    }
+    return result;
   }
 
   getHash() {

@@ -6,13 +6,13 @@ import ServerWsRequest from './websocket/ServerWSRequest';
 import Provider from './Provider.js';
 import CookieJar from './http/CookieJar.js';
 import ServerCookieJar from './http/ServerCookieJar.js';
-import SocketIO from 'socket.io';
-import fs from 'fs';
-import SocketIORedis from 'socket.io-redis';
 
-var path = require('path');
-var http = require('http');
-var domain = require('domain');
+import SocketIO from 'socket.io';
+import SocketIORedis from 'socket.io-redis';
+import fs from 'fs';
+import path from 'path';
+import http from 'http';
+import domain from 'domain';
 
 /**
  * Orchestrates all the things that makes the application server run:

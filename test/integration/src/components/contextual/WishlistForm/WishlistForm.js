@@ -52,6 +52,7 @@ export default class WishlistForm extends React.Component {
 
   submit(result) {
     console.log('VALIDATION RESULT', result);
+    this.props.form.unlockSubmission();
   }
 
   formWideValidate(data) {
@@ -59,6 +60,7 @@ export default class WishlistForm extends React.Component {
   }
 
   handleSubmit() {
+    this.props.form.lockSubmission();
     this.props.form.submit(
       this.submit.bind(this),
       this.formWideValidate.bind(this)
