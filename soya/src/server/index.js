@@ -18,7 +18,7 @@ import Application from '../Application.js';
 import Precompiler from '../precompile/Precompiler.js';
 
 // These dependencies can all be overwritten by user.
-import defaultRegisterRouterNodes from './registerRouterNodes.js';
+import registerRouterNodes from 'soya/lib/server/registerRouterNodes';
 import defaultCreateLogger from './createLogger.js';
 import defaultCreateErrorHandler from './createErrorHandler.js';
 
@@ -36,7 +36,6 @@ export default function server(config, pages) {
 
   var createLogger = defaultCreateLogger;
   var createErrorHandler = defaultCreateErrorHandler;
-  var registerRouterNodes = defaultRegisterRouterNodes;
 
   // Load custom logger and error handler factory.
   if (typeof frameworkConfig.loggerFactoryFunction == 'function') {
@@ -44,12 +43,6 @@ export default function server(config, pages) {
   }
   if (typeof frameworkConfig.errorHandlerFactoryFunction == 'function') {
     createErrorHandler = frameworkConfig.errorHandlerFactorFunction;
-  }
-  if (typeof frameworkConfig.routerNodeRegistrationFunction == 'function') {
-    if (!frameworkConfig.routerNodeRegistrationAbsolutePath) {
-      throw new Error('You must set both routerNodeRegistrationFunction and routerNodeRegistrationFilePath to register your custom router nodes.');
-    }
-    registerRouterNodes = frameworkConfig.routerNodeRegistrationFunction;
   }
 
   var logger = createLogger(serverConfig);

@@ -10,7 +10,7 @@ import Provider from '../Provider.js';
 // The reason we use full path is to make webpack's resolve.alias work.
 // We need to replace custom node registration with user file so that
 // custom nodes can be loaded in both client and server side.
-import registerRouteNodes from 'soya/lib/server/registerRouterNodes.js';
+import registerRouterNodes from 'soya/lib/server/registerRouterNodes';
 
 /**
  * Responsible for client runtime.
@@ -74,7 +74,7 @@ export default class SoyaClient {
     nodeFactory.registerNodeType(MethodNode);
     nodeFactory.registerNodeType(PathNode);
     // TODO: Make sure swapping for custom nodes also work at client side.
-    registerRouteNodes(nodeFactory);
+    registerRouterNodes(nodeFactory);
 
     this._reverseRouter = new ReverseRouter(nodeFactory);
     this._provider = new Provider(clientConfig, this._reverseRouter, false);
