@@ -232,14 +232,18 @@ export default function connect(ReactComponent) {
       return this.__soyaActions[segmentId];
     }
 
+    connectedProps(props) {
+      const nextProps = update(props, { getActionCreator: {$set: this.__soyaGetActionCreator}});
+      nextProps.context = this.__soyaContext;
+      nextProps.result = this.state;
+      nextProps.getReduxStore = this.__soyaGetReduxStore;
+      nextProps.getConfig = this.__soyaGetConfig;
+      return nextProps;
+    }
+
     render() {
       if (!this.__soyaGetActionCreator) this.__soyaGetActionCreator = this.getActionCreator.bind(this);
-      var props = update(this.props, { getActionCreator: {$set: this.__soyaGetActionCreator}});
-      props.context = this.__soyaContext;
-      props.result = this.state;
-      props.getReduxStore = this.__soyaGetReduxStore;
-      props.getConfig = this.__soyaGetConfig;
-      return <ReactComponent {...props} />;
+      return <ReactComponent {...this.connectedProps(this.props)} />;
     }
 
     /**
@@ -268,8 +272,12 @@ export default function connect(ReactComponent) {
      * @return {boolean}
      */
     shouldComponentUpdate(nextProps, nextState) {
-      if (shouldWrapperComponentUpdate) return shouldWrapperComponentUpdate(this.props, nextProps, this.state, nextState);
-      var shouldUpdate = !isEqualShallow(this.props, nextProps) || !isEqualShallow(this.state, nextState);
+      const connectedProps = this.connectedProps(this.props);
+      const nextConnectedProps = this.connectedProps(nextProps);
+      if (shouldWrapperComponentUpdate) {
+        return shouldWrapperComponentUpdate(connectedProps, nextConnectedProps, this.state, nextState);
+      }
+      var shouldUpdate = !isEqualShallow(connectedProps, nextConnectedProps) || !isEqualShallow(this.state, nextState);
       console.log('[SUB] Should update?', connectId, shouldUpdate);
       return shouldUpdate;
     }
@@ -282,7 +290,9 @@ export default function connect(ReactComponent) {
      * @param {Object} nextProps
      */
     componentWillReceiveProps(nextProps) {
-      var shouldUpdateSubscriptions = shouldSubscriptionsUpdate(this.props, nextProps);
+      const connectedProps = this.connectedProps(this.props);
+      const nextConnectedProps = this.connectedProps(nextProps);
+      var shouldUpdateSubscriptions = shouldSubscriptionsUpdate(connectedProps, nextConnectedProps);
       console.log('[SUB] Should subscriptions update', connectId, shouldUpdateSubscriptions);
       if (shouldUpdateSubscriptions) {
         // If query subscriptions update, we need to remove past subscriptions.
@@ -290,7 +300,7 @@ export default function connect(ReactComponent) {
         // already unrelated segment piece changes. Since this is costly, this
         // is why shouldSubscriptionsUpdate() is important.
         this.getReduxStore().unsubscribe(this);
-        subscribeQueries(nextProps, this.__soyaSubscribe);
+        subscribeQueries(nextConnectedProps, this.__soyaSubscribe);
       }
     }
 
@@ -303,7 +313,7 @@ export default function connect(ReactComponent) {
       for (i = 0; i < segmentClasses.length; i++) {
         this._register(segmentClasses[i]);
       }
-      subscribeQueries(this.props, this.__soyaSubscribe);
+      subscribeQueries(this.connectedProps(this.props), this.__soyaSubscribe);
     }
 
     /**
