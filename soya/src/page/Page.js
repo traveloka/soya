@@ -131,10 +131,12 @@ export default class Page {
    * Context objects should be created per render.
    *
    * @param {Store} store
+   * @param {?Object} otherContext
    * @returns {Object}
    */
-  createContext(store) {
+  createContext(store, otherContext = {}) {
     return {
+      ...otherContext,
       reduxStore: store, // For backwards compatibility, don't use this! Use context.store instead!
       store: store,
       router: this.router,
