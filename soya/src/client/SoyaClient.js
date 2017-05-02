@@ -74,7 +74,7 @@ export default class SoyaClient {
     nodeFactory.registerNodeType(MethodNode);
     nodeFactory.registerNodeType(PathNode);
     // TODO: Make sure swapping for custom nodes also work at client side.
-    registerRouterNodes(nodeFactory);
+    registerRouterNodes(nodeFactory, clientConfig);
 
     this._reverseRouter = new ReverseRouter(nodeFactory);
     this._provider = new Provider(clientConfig, this._reverseRouter, false);

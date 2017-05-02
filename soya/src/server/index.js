@@ -64,7 +64,7 @@ export default function server(config, pages) {
   nodeFactory.registerNodeType(PathNode);
 
   // Load custom router nodes and create router.
-  registerRouterNodes(nodeFactory);
+  registerRouterNodes(nodeFactory, serverConfig);
   var router = new Router(logger, nodeFactory, handlerRegister);
   var reverseRouter = new ReverseRouter(nodeFactory);
 
