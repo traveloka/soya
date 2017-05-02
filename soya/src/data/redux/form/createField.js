@@ -468,7 +468,7 @@ export default function createField(InputComponent) {
      */
     pushErrorMessage(result, errorMessages) {
       if (result === null) return false;
-      if (typeof result == 'string') errorMessages.push(result);
+      if (typeof result === 'string' || typeof result === 'object') errorMessages.push(result);
       return true;
     }
   }
