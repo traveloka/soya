@@ -30,7 +30,7 @@
     "sass-loader": "^4.0.2",
     "socket.io": "^1.5.0",
     "source-map-support": "^0.3.2",
-    "soya": "0.0.75",
+    "soya": "0.0.76",
     "style-loader": "^0.12.4",
     "superagent": "^1.4.0",
     "todomvc-app-css": "^2.1.0",
