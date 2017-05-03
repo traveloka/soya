@@ -34,13 +34,14 @@ export default class Precompiler {
 
   precompile() {
     var pages = this.generatePageList();
-    var components = this.generateComponentList();
+    var components = {};
     var buildDir = Precompiler.getBuildDir(this._frameworkConfig);
     var precompileDir = Precompiler.getPrecompileDir(this._frameworkConfig);
     Precompiler.cleanDir(buildDir);
     Precompiler.cleanDir(precompileDir);
 
     if (this._frameworkConfig.componentBrowser) {
+      components = this.generateComponentList();
       var listFilePath = Precompiler.getCmptBrowserListPagePath(this._frameworkConfig);
       fs.writeFileSync(listFilePath, generateListPage(components));
 

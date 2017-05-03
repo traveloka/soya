@@ -372,7 +372,8 @@ export default class WebpackCompiler extends Compiler {
 
     // Accept env var
     const definePlugin = new this._webpack.DefinePlugin({
-      'process.env.NODE_ENV': this._frameworkConfig.NODE_ENV || '"development"'
+      'process.env.NODE_ENV': this._frameworkConfig.NODE_ENV || '"development"',
+      'process.env.SOYA': '"true"'
     });
     configuration.plugins.push(definePlugin);
 
