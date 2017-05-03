@@ -41,6 +41,10 @@ class Component extends React.Component {
         <li><a href={this.props.context.router.reverseRoute('SIMPLE_FORM')}>Simple Form</a></li>
         <li><a href={this.props.context.router.reverseRoute('REPEATABLE_FORM')}>Repeatable Form</a></li>
       </ul>
+      <h2>Internationalization</h2>
+      <ul>
+        <li><a href={this.props.context.router.reverseRoute('TODO_APP')}>Todo App</a></li>
+      </ul>
     </div>;
   }
 }
@@ -65,7 +69,8 @@ class TestList extends Page {
       'REPEATABLE_FORM',
       'COOKIE_SET',
       'MUTATION_TEST',
-      'RECURSIVE_HANDLE_CHANGE'
+      'RECURSIVE_HANDLE_CHANGE',
+      'TODO_APP',
     ];
   }
 
