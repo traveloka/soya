@@ -2,13 +2,10 @@ import Compiler from './compiler/Compiler';
 import Router from './router/Router';
 import EntryPoint from './EntryPoint';
 import ServerHttpRequest from './http/ServerHttpRequest';
-import ServerWsRequest from './websocket/ServerWSRequest';
 import Provider from './Provider.js';
 import CookieJar from './http/CookieJar.js';
 import ServerCookieJar from './http/ServerCookieJar.js';
 
-import SocketIO from 'socket.io';
-import SocketIORedis from 'socket.io-redis';
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
@@ -120,26 +117,6 @@ export default class Application {
   _serverCreated;
 
   /**
-   * @type {Router}
-   */
-  _wsRouter;
-
-  /**
-   * @type {ReverseRouter}
-   */
-  _wsReverseRouter;
-
-  /**
-   * @type {ComponentRegister}
-   */
-  _wsComponentRegister;
-
-  /**
-   * @type {{[key: string]: Function}}
-   */
-  _wsPageClasses;
-
-  /**
    * @param {Logger} logger
    * @param {ComponentRegister} componentRegister
    * @param {Object} routes
@@ -150,10 +127,9 @@ export default class Application {
    * @param {Object} frameworkConfig
    * @param {Object} serverConfig
    * @param {Object} clientConfig
-   * @param {{componentRegister, routes, router, reverseRouter}} websocketOption
    */
   constructor(logger, componentRegister, routes, router, reverseRouter, errorHandler,
-              compiler, frameworkConfig, serverConfig, clientConfig, websocketOption) {
+              compiler, frameworkConfig, serverConfig, clientConfig) {
     // Change register to real client registration function.
     this._addReplace(frameworkConfig, 'soya/lib/client/Register', 'soya/lib/client/RegisterClient');
 
@@ -222,32 +198,6 @@ export default class Application {
     }
 
     this._middlewares = [];
-
-    if (websocketOption != null) {
-      this._wsPageClasses = { };
-      this._wsRouter = websocketOption.router;
-      this._wsReverseRouter = websocketOption.reverseRouter;
-      this._wsComponentRegister = websocketOption.componentRegister;
-
-      var i, wsPageCmpt, wsPage, wsPageComponents = websocketOption.componentRegister.getPages();
-
-      for (i in wsPageComponents) {
-        if (!wsPageComponents.hasOwnProperty(i)) continue;
-        wsPageCmpt = wsPageComponents[i];
-        this._wsPageClasses[wsPageCmpt.name] = wsPageCmpt.clazz;
-
-        try {
-          // Instantiate websocket page. We try to instantiate page at startup to find
-          // potential problems with each page. This allows us to detect factory
-          // naming clash early on while also allowing the start-up process to
-          // populate Provider with ready to use dependencies.
-          wsPage = new wsPageCmpt.clazz();
-        } catch (e) {
-          throw e;
-        }
-      }
-    }
-
   }
 
   /**
@@ -314,10 +264,6 @@ export default class Application {
       if (process && typeof process.send === 'function') process.send('ready');
       this._logger.info('Server listening at port: ' + this._frameworkConfig.port + '.');
     });
-
-    if (this._frameworkConfig.webSocket.enabled === true) {
-      this._createWebsocketeServer();
-    }
   }
 
   /**
@@ -449,160 +395,5 @@ export default class Application {
     if (error instanceof Error) return error;
     if (typeof error == 'string') return new Error(error);
     return new Error('Error when resolving store promise! Unable to convert reject arg: ' + error);
-  }
-
-  /**
-   * @private
-   */
-  _createWebsocketeServer() {
-    var redis, server, uid, pub, sub, publishCallback;
-    var dispatcherMap = { };
-
-    redis = SocketIORedis({
-      host: this._frameworkConfig.webSocket.redisConf.host,
-      port: this._frameworkConfig.webSocket.redisConf.port,
-      key: this._frameworkConfig.webSocket.redisConf.keyEvent
-    });
-    uid = redis.uid;
-    pub = redis.pubClient;
-    sub = redis.subClient;
-
-    sub.on('subscribe', (channel, count) => {
-      console.log('[Redis 1] subscribe, channel: '+ channel +', subscribers: '+ count);
-    });
-    sub.on('unsubscribe', (channel, count) => {
-      console.log('[Redis 1] unsubscribe, channel: '+ channel +', subscribers: '+ count);
-    });
-    sub.on('message', (channel, message) => {
-      console.log('[Redis 1] message, channel: '+ channel +', message: '+ message);
-
-      var messageObj, pubUID, pubEvent, pubMessage, dispatcher;
-      messageObj = JSON.parse(message);
-      pubUID = messageObj.pubUID;
-      pubEvent = messageObj.pubEvent;
-      pubMessage = messageObj.pubMessage;
-
-      if ((dispatcher = dispatcherMap[channel]) != null && uid != pubUID) {
-        dispatcher(pubEvent, pubMessage);
-      }
-    });
-
-    publishCallback = function(channel, eventName, message) {
-      pub.publish(channel, JSON.stringify({
-        pubUID: uid,
-        pubEvent: eventName,
-        pubMessage: message }));
-    };
-
-    server = new SocketIO(this._frameworkConfig.webSocket.port);
-    server.sockets.on('connect', socket => {
-      var wsRequest, routeResult, pageClass, page, channel, ioNamespace;
-
-      wsRequest = new ServerWsRequest(socket);
-      routeResult = this._wsRouter.route(wsRequest);
-
-      if (routeResult == null) {
-        throw new Error('[WebSocket 1] Unable to route request, router returned null');
-      }
-
-      pageClass = this._wsPageClasses[routeResult.pageName];
-      if (!pageClass) {
-        throw new Error('[WebSocket 1] Unable to route request, page ' + routeResult.pageName + ' doesn\'t exist');
-      }
-
-      ioNamespace = server.of(wsRequest.getPath());
-      if (ioNamespace.listenerCount('connection') == 0) {
-        channel = `${this._frameworkConfig.webSocket.redisConf.keyEvent}.${wsRequest.getPath()}`;
-        sub.subscribe(channel);
-        page = new pageClass();
-
-        ioNamespace.on('connection', socket => {
-          console.log('[WebSocket 1] Namespace.onConnection');
-          page.render(socket, routeResult.routeArgs, channel, publishCallback);
-        });
-        dispatcherMap[channel] = page.eventDispatcher.bind(page);
-      }
-
-      var socketDomain = domain.create();
-      socketDomain.on('error', error => { this._logger.error('[WebSocket 1] Error happened.', error); });
-      socketDomain.add(socket);
-    });
-    server.adapter(redis);
-
-    // # for demo
-    // ---------------------------
-    var redis2, server2, uid2, pub2, sub2, publishCallback2;
-    var dispatcherMap2 = { };
-
-    redis2 = SocketIORedis({
-      host: this._frameworkConfig.webSocket.redisConf.host,
-      port: this._frameworkConfig.webSocket.redisConf.port,
-      key: this._frameworkConfig.webSocket.redisConf.keyEvent
-    });
-    uid2 = redis2.uid;
-    pub2 = redis2.pubClient;
-    sub2 = redis2.subClient;
-
-    sub2.on('subscribe', (channel, count) => {
-      console.log('[Redis 2] subscribe, channel: '+ channel +', subscribers: '+ count);
-    });
-    sub2.on('unsubscribe', (channel, count) => {
-      console.log('[Redis 2] unsubscribe, channel: '+ channel +', subscribers: '+ count);
-    });
-    sub2.on('message', (channel, message) => {
-      console.log('[Redis 2] message, channel: '+ channel +', message: '+ message);
-
-      var messageObj, pubUID, pubEvent, pubMessage, dispatcher;
-      messageObj = JSON.parse(message);
-      pubUID = messageObj.pubUID;
-      pubEvent = messageObj.pubEvent;
-      pubMessage = messageObj.pubMessage;
-
-      if ((dispatcher = dispatcherMap2[channel]) != null && uid2 != pubUID) {
-        dispatcher(pubEvent, pubMessage);
-      }
-    });
-
-    publishCallback2 = function(channel, eventName, message) {
-      pub2.publish(channel, JSON.stringify({
-        pubUID: uid2,
-        pubEvent: eventName,
-        pubMessage: message }));
-    };
-
-    server2 = new SocketIO(29072);
-    server2.sockets.on('connect', socket => {
-      var wsRequest, routeResult, pageClass, page, channel, ioNamespace;
-
-      wsRequest = new ServerWsRequest(socket);
-      routeResult = this._wsRouter.route(wsRequest);
-
-      if (routeResult == null) {
-        throw new Error('[Websocket 2] Unable to route request, router returned null');
-      }
-
-      pageClass = this._wsPageClasses[routeResult.pageName];
-      if (!pageClass) {
-        throw new Error('[Websocket 2] Unable to route request, page ' + routeResult.pageName + ' doesn\'t exist');
-      }
-
-      ioNamespace = server2.of(wsRequest.getPath());
-      if (ioNamespace.listenerCount('connection') == 0) {
-        channel = `${this._frameworkConfig.webSocket.redisConf.keyEvent}.${wsRequest.getPath()}`;
-        sub2.subscribe(channel);
-        page = new pageClass();
-
-        ioNamespace.on('connection', socket => {
-          console.log('[Websocket 2] Namespace.onConnection');
-          page.render(socket, routeResult.routeArgs, channel, publishCallback2);
-        });
-        dispatcherMap2[channel] = page.eventDispatcher.bind(page);
-      }
-
-      var socketDomain = domain.create();
-      socketDomain.on('error', error => { this._logger.error('[WebSocket 2] Error happened.', error); });
-      socketDomain.add(socket);
-    });
-    server2.adapter(redis2);
   }
 }

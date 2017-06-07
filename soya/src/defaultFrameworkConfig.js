@@ -7,13 +7,5 @@ export const DEFAULT_FRAMEWORK_CONFIG = {
   commonFileThreshold: 3,
   clientReplace: {},
   clientResolve: [],
-  absoluteComponentsDir: [],
-  webSocket: {
-    enabled: false,
-    port: 8010,
-    redisConf: {
-      host: 'localhost',
-      port: 6379
-    }
-  }
+  absoluteComponentsDir: []
 };

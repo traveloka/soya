@@ -26,10 +26,9 @@ import defaultCreateErrorHandler from './createErrorHandler.js';
  * @param {Object} config
  * @param {Object} pages
  * @param {Object} components
- * @param {Object} wspages
  * @SERVER
  */
-export default function server(config, pages, components, wspages) {
+export default function server(config, pages, components) {
   var frameworkConfig = config.frameworkConfig;
   var serverConfig = config.serverConfig;
   var clientConfig = config.clientConfig;
@@ -100,44 +99,6 @@ export default function server(config, pages, components, wspages) {
     throw new Error('404 not found page not registered! Please create a 404 not found page.');
   }
 
-  // Load websocket routes.
-  var websocketOption = null;
-
-  if (frameworkConfig.webSocket.enabled === true) {
-    var wsPageName, wsComponentRegister = new ComponentRegister(logger);
-    // Register all websocket pages to handler register.
-    for (wsPageName in wspages) {
-      wsComponentRegister.regPage(
-        wsPageName, path.join(frameworkConfig.absoluteProjectDir, wsPageName),
-        wspages[wsPageName]
-      );
-    }
-
-    // Load custom router nodes and create router.
-    var wsRouter = new Router(logger, nodeFactory, wsComponentRegister);
-    var wsReverseRouter = new ReverseRouter(nodeFactory);
-
-    // Load routes.
-    var wsRouteId, wsRoutes = yaml.safeLoad(fs.readFileSync(path.join(config.frameworkConfig.absoluteProjectDir, 'wsRoutes.yml'), 'utf8'));
-
-    for (wsRouteId in wsRoutes) {
-      wsRouter.reg(wsRouteId, wsRoutes[wsRouteId]);
-      wsReverseRouter.reg(wsRouteId, wsRoutes[wsRouteId]);
-    }
-
-    // If not found page is not set up.
-    if (!wsRouter.getNotFoundRouteResult()) {
-      throw new Error('\'Not found\' page not registered! Please create a \'Not found\' page.');
-    }
-
-    websocketOption = {
-      componentRegister: wsComponentRegister,
-      routes: wsRoutes,
-      router: wsRouter,
-      reverseRouter: wsReverseRouter
-    };
-  }
-
   var webpackDevMiddleware;
   var webpackHotMiddleware;
 
@@ -152,7 +113,7 @@ export default function server(config, pages, components, wspages) {
 
   var application = new Application(
     logger, handlerRegister, routes, router, reverseRouter, errorHandler, compiler,
-    frameworkConfig, serverConfig, clientConfig, websocketOption
+    frameworkConfig, serverConfig, clientConfig
   );
   application.start();
 }

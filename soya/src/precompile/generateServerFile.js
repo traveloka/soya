@@ -1,9 +1,8 @@
 /**
  * @param {Object} pages
  * @param {Object} components
- * @param {Object} wsPages
  */
-export default function generateServerFile(pages, components, wsPages) {
+export default function generateServerFile(pages, components) {
   var result = `import server from 'soya/lib/server';
 import config from '../../config.js';
 
@@ -22,17 +21,8 @@ var components = ${JSON.stringify(components)};`;
 
   result += `
 
-var wsPages = {}`;
-  for (i = 0; i < wsPages.length; i++) {
-    result += `
-import WsPage${i} from '../../${wsPages[i]}';
-wsPages['${wsPages[i]}'] = WsPage${i}`;
-  }
-
-  result += `
-
 // Run server.
-server(config, pages, components, wsPages);`;
+server(config, pages, components);`;
 
   return result;
 };

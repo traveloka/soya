@@ -36,7 +36,6 @@ export default class Precompiler {
   precompile() {
     var pages = this.generatePageList();
     var components = this.generateComponentList();
-    var wsPages = this._frameworkConfig.webSocket.enabled? this.generateWebsocketPageList() : [];
     var buildDir = Precompiler.getBuildDir(this._frameworkConfig);
     var precompileDir = Precompiler.getPrecompileDir(this._frameworkConfig);
     Precompiler.cleanDir(buildDir);
@@ -53,7 +52,7 @@ export default class Precompiler {
     // Generate server.js file, containing references to all pages needed for
     // server side routing, plus all component definition for component browser.
     var serverFilePath = Precompiler.getServerFilePath(this._frameworkConfig);
-    fs.writeFileSync(serverFilePath, generateServerFile(pages, components, wsPages));
+    fs.writeFileSync(serverFilePath, generateServerFile(pages, components));
   }
 
   /**
@@ -70,28 +69,6 @@ export default class Precompiler {
    */
   generatePageList() {
     var routeId, routes = Precompiler.readRoutesFile(this._frameworkConfig);
-    var pageList = [];
-    for (routeId in routes) {
-      // TODO: Check if file exists or not, throw easy to read error when it doesn't exist.
-      pageList.push(routes[routeId].page);
-    }
-    return pageList;
-  }
-
-  /**
-   * Returns an array containing relative page paths:
-   *
-   * <pre>
-   *   [
-   *     'src/../../../WSPage.js',
-   *     ...
-   *   ]
-   * </pre>
-   *
-   * @return {Array}
-   */
-  generateWebsocketPageList() {
-    var routeId, routes = Precompiler.readWebSocketRoutesFile(this._frameworkConfig);
     var pageList = [];
     for (routeId in routes) {
       // TODO: Check if file exists or not, throw easy to read error when it doesn't exist.
@@ -182,15 +159,6 @@ export default class Precompiler {
    */
   static readRoutesFile(frameworkConfig) {
     var routesFilePath = path.join(frameworkConfig.absoluteProjectDir, 'routes.yml');
-    return yaml.safeLoad(fs.readFileSync(routesFilePath, 'utf8'));
-  }
-
-  /**
-   * @param {Object} frameworkConfig
-   * @return {Object}
-   */
-  static readWebSocketRoutesFile(frameworkConfig) {
-    var routesFilePath = path.join(frameworkConfig.absoluteProjectDir, 'wsRoutes.yml');
     return yaml.safeLoad(fs.readFileSync(routesFilePath, 'utf8'));
   }
 }
