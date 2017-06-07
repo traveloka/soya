@@ -2,6 +2,7 @@ import React from 'react';
 import update from 'react-addons-update';
 
 import { isEqualShallow } from './helper.js';
+import { contextShape } from './utils/PropTypes';
 
 /**
  * Wraps a react component inside a component that subscribes to queries to the
@@ -90,6 +91,10 @@ export default function connect(ReactComponent) {
   if (typeof getSegmentDependencies !== 'function') getSegmentDependencies = defaultGetSegmentDependencies;
 
   return class Component extends React.Component {
+    static contextTypes = {
+      context: contextShape,
+    };
+
     /**
      * @type {{[key: string]: Object}}
      */
@@ -138,6 +143,7 @@ export default function connect(ReactComponent) {
       this.__soyaSubscribe = this.subscribe.bind(this);
       this.__soyaGetReduxStore = this.getReduxStore.bind(this);
       this.__soyaGetConfig = this.getConfig.bind(this);
+      this.__soyaContext = props.context || context.context;
 
       var reduxStore = this.getReduxStore();
       var config = this.getConfig();
@@ -156,12 +162,12 @@ export default function connect(ReactComponent) {
      * @returns {ReduxStore}
      */
     getReduxStore() {
-      if (this.props.context && this.props.context.store) {
-        return this.props.context.store;
+      if (this.__soyaContext && this.__soyaContext.store) {
+        return this.__soyaContext.store;
       }
-      if (this.props.context && this.props.context.reduxStore) {
+      if (this.__soyaContext && this.__soyaContext.reduxStore) {
         console.warn('Please use Page.createContext() to create context instead of creating it by yourself!');
-        return this.props.context.reduxStore;
+        return this.__soyaContext.reduxStore;
       }
       throw new Error('Context not properly wired to: ' + connectId + '.');
     }
@@ -173,8 +179,8 @@ export default function connect(ReactComponent) {
      * @returns {Object}
      */
     getConfig() {
-      if (this.props.context && this.props.context.config) {
-        return this.props.context.config;
+      if (this.__soyaContext && this.__soyaContext.config) {
+        return this.__soyaContext.config;
       }
       throw new Error('Context not properly wired to: ' + connectId + '.');
     }
@@ -226,13 +232,18 @@ export default function connect(ReactComponent) {
       return this.__soyaActions[segmentId];
     }
 
+    connectedProps(props) {
+      const nextProps = update(props, { getActionCreator: {$set: this.__soyaGetActionCreator}});
+      nextProps.context = this.__soyaContext;
+      nextProps.result = this.state;
+      nextProps.getReduxStore = this.__soyaGetReduxStore;
+      nextProps.getConfig = this.__soyaGetConfig;
+      return nextProps;
+    }
+
     render() {
       if (!this.__soyaGetActionCreator) this.__soyaGetActionCreator = this.getActionCreator.bind(this);
-      var props = update(this.props, { getActionCreator: {$set: this.__soyaGetActionCreator}});
-      props.result = this.state;
-      props.getReduxStore = this.__soyaGetReduxStore;
-      props.getConfig = this.__soyaGetConfig;
-      return <ReactComponent {...props} />;
+      return <ReactComponent {...this.connectedProps(this.props)} />;
     }
 
     /**
@@ -261,8 +272,12 @@ export default function connect(ReactComponent) {
      * @return {boolean}
      */
     shouldComponentUpdate(nextProps, nextState) {
-      if (shouldWrapperComponentUpdate) return shouldWrapperComponentUpdate(this.props, nextProps, this.state, nextState);
-      var shouldUpdate = !isEqualShallow(this.props, nextProps) || !isEqualShallow(this.state, nextState);
+      const connectedProps = this.connectedProps(this.props);
+      const nextConnectedProps = this.connectedProps(nextProps);
+      if (shouldWrapperComponentUpdate) {
+        return shouldWrapperComponentUpdate(connectedProps, nextConnectedProps, this.state, nextState);
+      }
+      var shouldUpdate = !isEqualShallow(connectedProps, nextConnectedProps) || !isEqualShallow(this.state, nextState);
       console.log('[SUB] Should update?', connectId, shouldUpdate);
       return shouldUpdate;
     }
@@ -275,7 +290,9 @@ export default function connect(ReactComponent) {
      * @param {Object} nextProps
      */
     componentWillReceiveProps(nextProps) {
-      var shouldUpdateSubscriptions = shouldSubscriptionsUpdate(this.props, nextProps);
+      const connectedProps = this.connectedProps(this.props);
+      const nextConnectedProps = this.connectedProps(nextProps);
+      var shouldUpdateSubscriptions = shouldSubscriptionsUpdate(connectedProps, nextConnectedProps);
       console.log('[SUB] Should subscriptions update', connectId, shouldUpdateSubscriptions);
       if (shouldUpdateSubscriptions) {
         // If query subscriptions update, we need to remove past subscriptions.
@@ -283,7 +300,7 @@ export default function connect(ReactComponent) {
         // already unrelated segment piece changes. Since this is costly, this
         // is why shouldSubscriptionsUpdate() is important.
         this.getReduxStore().unsubscribe(this);
-        subscribeQueries(nextProps, this.__soyaSubscribe);
+        subscribeQueries(nextConnectedProps, this.__soyaSubscribe);
       }
     }
 
@@ -296,7 +313,7 @@ export default function connect(ReactComponent) {
       for (i = 0; i < segmentClasses.length; i++) {
         this._register(segmentClasses[i]);
       }
-      subscribeQueries(this.props, this.__soyaSubscribe);
+      subscribeQueries(this.connectedProps(this.props), this.__soyaSubscribe);
     }
 
     /**

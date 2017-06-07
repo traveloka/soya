@@ -182,15 +182,20 @@ export default class WebpackCompiler extends Compiler {
     if (defaultImportBase) {
       defaultImportBase = path.resolve(absoluteProjectDir, defaultImportBase);
     }
-    
+
     // Removes undefined config if any
     const rootResolves = [
       absoluteProjectDir,
       defaultImportBase
     ].filter((config) => !!config);
 
+    const alias = {};
+    if (frameworkConfig.routerNodeRegistrationAbsolutePath) {
+      alias['soya/lib/server/registerRouterNodes'] = frameworkConfig.routerNodeRegistrationAbsolutePath;
+    }
+
     return {
-      alias: {},
+      alias,
       root: rootResolves
     };
   }
@@ -519,7 +524,7 @@ export default class WebpackCompiler extends Compiler {
     return function({ Plugin, types: t }) {
       return new Plugin("soya-resolve-plugin", {
         visitor: {
-          
+
         }
       });
     };

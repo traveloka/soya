@@ -1,5 +1,14 @@
 # Version 0.0.x
 
+## 0.0.76
+- Added `ContextProvider` component and updated `connect()` to enable accessing application context anywhere inside Soya components.
+- `createContext()` now receives second parameter to add additional context.
+- Custom router node registration is now configured only using `routerNodeRegistrationAbsolutePath`.
+- Added server/client config as second parameter of `registerRouterNodes()`.
+- Form validation now receives object type error message as well.
+- Fixed inconsistent props in Soya components lifecycle.
+- Fixed reducer state is not initialized.
+
 ## 0.0.75
 
 - Fix `CookieJar.remove()` and `Cookie.createRemoval()` bug, made `secure` a

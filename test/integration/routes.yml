@@ -4,6 +4,27 @@ TEST_LIST:
     - [method, GET]
     - [path, /]
 
+CONTENT_RESOURCE_API:
+  page: src/i18n/api/ContentResourceAPI
+  nodes:
+   - [method, POST]
+   - [locale, "*"]
+   - [path, /api/resource/content]
+
+TODO_API:
+  page: src/i18n/api/TodoAPI
+  nodes:
+   - [method, GET]
+   - [locale, "*"]
+   - [path, /api/todo]
+
+TODO_APP:
+  page: src/i18n/pages/TodoPage.js
+  nodes:
+    - [method, GET]
+    - [locale, "*"]
+    - [path, /todo]
+
 LOAD_COMPONENT:
   page: src/pages/compile/LoadComponent/LoadComponent.js
   nodes:

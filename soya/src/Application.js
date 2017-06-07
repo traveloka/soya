@@ -141,9 +141,6 @@ export default class Application {
 
     // Replace custom node registration function for client.
     if (frameworkConfig.routerNodeRegistrationAbsolutePath) {
-      if (typeof frameworkConfig.routerNodeRegistrationFunction != 'function') {
-        throw new Error('You must set both routerNodeRegistrationFunction and routerNodeRegistrationFilePath to register your custom router nodes.');
-      }
       this._addReplace(frameworkConfig, 'soya/lib/server/registerRouterNodes', frameworkConfig.routerNodeRegistrationAbsolutePath);
     }
 

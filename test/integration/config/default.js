@@ -1,3 +1,4 @@
+const path = require('path');
 var dirname = process.env.SOYA_PROJECT_DIR;
 
 /**
@@ -14,8 +15,21 @@ var frameworkConfig = {
   clientReplace: {},
   debug: true,
   minifyJs: false,
-  defaultImportBase: 'src'
+  defaultImportBase: 'src',
+  routerNodeRegistrationAbsolutePath: path.resolve(dirname, './src/i18n/router/registerRouterNodes'),
 };
+
+const i18n = {
+  defaultLocale: 'id-id',
+  locales: [
+    'id-id',
+    'en-id',
+    'en-sg',
+  ],
+};
+
+const apiHost = 'localhost:8000';
+const contentApiHost = 'localhost:8000';
 
 /**
  * Please note that clientConfig is exposed to browser, so you shouldn't put
@@ -23,13 +37,17 @@ var frameworkConfig = {
  */
 
 var serverConfig = {
-  apiHost: 'localhost:8000',
-  enableDevTools: true
+  apiHost,
+  contentApiHost,
+  enableDevTools: true,
+  i18n,
 };
 
 var clientConfig = {
-  apiHost: 'localhost:8000',
-  enableDevTools: true
+  apiHost,
+  contentApiHost,
+  enableDevTools: true,
+  i18n,
 };
 
 module.exports = {
