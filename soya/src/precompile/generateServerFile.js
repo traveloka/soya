@@ -17,9 +17,7 @@ pages['${pages[i]}'] = Page${i};`;
 
   result += `
 
-var components = ${JSON.stringify(components)};`;
-
-  result += `
+var components = ${JSON.stringify(components)};
 
 // Run server.
 server(config, pages, components);`;

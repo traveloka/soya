@@ -28,7 +28,7 @@ import defaultCreateErrorHandler from './createErrorHandler.js';
  * @param {Object} components
  * @SERVER
  */
-export default function server(config, pages, components) {
+export default function server(config, pages) {
   var frameworkConfig = config.frameworkConfig;
   var serverConfig = config.serverConfig;
   var clientConfig = config.clientConfig;

@@ -6,7 +6,6 @@ import rimraf from 'rimraf';
 import ComponentFinder from '../ComponentFinder.js';
 import generateServerFile from './generateServerFile.js';
 import generateListPage from './generateListPage.js';
-import { DEFAULT_FRAMEWORK_CONFIG } from '../defaultFrameworkConfig.js';
 
 var BUILD_RELATIVE_DIR = 'build';
 var PRECOMPILE_RELATIVE_DIR = 'build/precompile';
@@ -30,7 +29,7 @@ export default class Precompiler {
   _frameworkConfig;
 
   constructor(frameworkConfig) {
-    this._frameworkConfig = Object.assign({}, DEFAULT_FRAMEWORK_CONFIG, frameworkConfig);
+    this._frameworkConfig = frameworkConfig;
   }
 
   precompile() {
