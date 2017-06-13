@@ -1,5 +1,8 @@
 # Version 0.0.x
 
+## 0.0.77
+- Remove unnecessary socket io code
+
 ## 0.0.76
 - Added `ContextProvider` component and updated `connect()` to enable accessing application context anywhere inside Soya components.
 - `createContext()` now receives second parameter to add additional context.
