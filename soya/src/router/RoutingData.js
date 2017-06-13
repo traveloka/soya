@@ -1,4 +1,4 @@
-import ServerHttpRequest from '../http/ServerHttpRequest';
+import IncomingRequest from '../server/IncomingRequest';
 import RouteResult from './RouteResult';
 import PathNode from './PathNode';
 
@@ -9,9 +9,9 @@ import PathNode from './PathNode';
  */
 export default class RoutingData {
   /**
-   * @type {ServerHttpRequest}
+   * @type {IncomingRequest}
    */
-  serverHttpRequest;
+  incomingRequest;
 
   /**
    * @type {Object}
@@ -39,13 +39,13 @@ export default class RoutingData {
   _currentSegmentIndex;
 
   /**
-   * @param {ServerHttpRequest} serverHttpRequest
+   * @param {IncomingRequest} incomingRequest
    */
-  constructor(serverHttpRequest) {
-    this.serverHttpRequest = serverHttpRequest;
+  constructor(incomingRequest) {
+    this.incomingRequest = incomingRequest;
     this._currentSegmentIndex = 0;
     this.resultRouteArgs = {};
-    this._pathSegments = PathNode.toPathSegments(this.serverHttpRequest.getPath());
+    this._pathSegments = PathNode.toPathSegments(this.incomingRequest.getPath());
   }
 
   /**

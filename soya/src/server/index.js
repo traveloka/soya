@@ -92,45 +92,6 @@ export default function server(config, pages) {
     throw new Error('404 not found page not registered! Please create a 404 not found page.');
   }
 
-  // Load websocket routes.
-  var websocketOption = null;
-
-  if (frameworkConfig.webSocket.enabled === true) {
-    var wsComponentRegister = new ComponentRegister(logger);
-    var wsPageRequireContext = frameworkConfig.webSocketPageRequireContext;
-    var wsPageRequirePath = frameworkConfig.webSocketAbsolutePageRequirePath;
-
-    finder.find(wsPageRequirePath, function(vendor, name, absDir, relativeDir) {
-      wsComponentRegister.regPage(name, absDir, wsPageRequireContext('./' + path.join(relativeDir, name + '.js')));
-    });
-
-    // Load custom router nodes and create router.
-    var wsRouter = new Router(logger, nodeFactory, wsComponentRegister);
-    var wsReverseRouter = new ReverseRouter(nodeFactory);
-
-    // Load routes.
-    var wsRoutes = yaml.safeLoad(fs.readFileSync(frameworkConfig.webSocketRoutesFilePath, 'utf8'));
-    var wsRouteId;
-
-    for (wsRouteId in wsRoutes) {
-      if (!wsRoutes.hasOwnProperty(wsRouteId)) continue;
-      wsRouter.reg(wsRouteId, wsRoutes[wsRouteId]);
-      wsReverseRouter.reg(wsRouteId, wsRoutes[wsRouteId]);
-    }
-
-    // If not found page is not set up.
-    if (!router.getNotFoundRouteResult()) {
-      throw new Error('404 not found page not registered! Please create a 404 not found page.');
-    }
-
-    websocketOption = {
-      componentRegister: wsComponentRegister,
-      routes: wsRoutes,
-      router: wsRouter,
-      reverseRouter: wsReverseRouter
-    };
-  }
-
   var webpackDevMiddleware;
   var webpackHotMiddleware;
 
@@ -145,7 +106,7 @@ export default function server(config, pages) {
 
   var application = new Application(
     logger, handlerRegister, routes, router, reverseRouter, errorHandler, compiler,
-    frameworkConfig, serverConfig, clientConfig, websocketOption
+    frameworkConfig, serverConfig, clientConfig
   );
   application.start();
 }

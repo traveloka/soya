@@ -47,7 +47,7 @@ export default class MethodNode extends Node {
    * @returns {boolean}
    */
   evaluate(routingData) {
-    return routingData.serverHttpRequest.getMethod() == this._method;
+    return routingData.incomingRequest.getMethod() == this._method;
   }
 
   /**

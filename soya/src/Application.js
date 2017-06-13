@@ -6,7 +6,6 @@ import Provider from './Provider.js';
 import CookieJar from './http/CookieJar.js';
 import ServerCookieJar from './http/ServerCookieJar.js';
 
-import SocketIO from 'socket.io';
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
@@ -118,26 +117,6 @@ export default class Application {
   _serverCreated;
 
   /**
-   * @type {Router}
-   */
-  _wsRouter;
-
-  /**
-   * @type {ReverseRouter}
-   */
-  _wsReverseRouter;
-
-  /**
-   * @type {ComponentRegister}
-   */
-  _wsComponentRegister;
-
-  /**
-   * @type {{[key: string]: Function}}
-   */
-  _wsPageClasses;
-
-  /**
    * @param {Logger} logger
    * @param {ComponentRegister} componentRegister
    * @param {Object} routes
@@ -148,10 +127,9 @@ export default class Application {
    * @param {Object} frameworkConfig
    * @param {Object} serverConfig
    * @param {Object} clientConfig
-   * @param {{componentRegister, routes, router, reverseRouter}} websocketOption
    */
   constructor(logger, componentRegister, routes, router, reverseRouter, errorHandler,
-              compiler, frameworkConfig, serverConfig, clientConfig, websocketOption) {
+              compiler, frameworkConfig, serverConfig, clientConfig) {
     // Change register to real client registration function.
     this._addReplace(frameworkConfig, 'soya/lib/client/Register', 'soya/lib/client/RegisterClient');
 
@@ -217,32 +195,6 @@ export default class Application {
     }
 
     this._middlewares = [];
-
-    if (websocketOption != null) {
-      this._wsPageClasses = { };
-      this._wsRouter = websocketOption.router;
-      this._wsReverseRouter = websocketOption.reverseRouter;
-      this._wsComponentRegister = websocketOption.componentRegister;
-
-      var i, wsPageCmpt, wsPage, wsPageComponents = websocketOption.componentRegister.getPages();
-
-      for (i in wsPageComponents) {
-        if (!wsPageComponents.hasOwnProperty(i)) continue;
-        wsPageCmpt = wsPageComponents[i];
-        this._wsPageClasses[wsPageCmpt.name] = wsPageCmpt.clazz;
-
-        try {
-          // Instantiate websocket page. We try to instantiate page at startup to find
-          // potential problems with each page. This allows us to detect factory
-          // naming clash early on while also allowing the start-up process to
-          // populate Provider with ready to use dependencies.
-          wsPage = new wsPageCmpt.clazz();
-        } catch (e) {
-          throw e;
-        }
-      }
-    }
-
   }
 
   /**
@@ -309,51 +261,6 @@ export default class Application {
       if (process && typeof process.send === 'function') process.send('ready');
       this._logger.info('Server listening at port: ' + this._frameworkConfig.port + '.');
     });
-
-    if (this._frameworkConfig.webSocket.enabled === true) {
-      // with socket.io
-      var socketServer = new SocketIO(this._frameworkConfig.webSocket.port);
-      var i, route, pageClass, routes = this._wsRouter.getAllRoutes();
-      var socketDomain = domain.create().on('error', error => {
-        this._logger.error('[WebSocket] Error happened.', error);
-      });
-
-      for (i = 0; i < routes.length; i++) {
-        route = routes[i];
-        pageClass = this._wsPageClasses[route.pageName];
-
-        if (!pageClass) {
-          throw new Error('Invalid socket route data, page '+ route.pageName + ' doesn\'t exist');
-        }
-        var page = new pageClass();
-        var nspSocketIO = socketServer.of(route.path);
-        nspSocketIO.on('connection', socket => {
-          page.render(socket);
-        });
-        socketDomain.add(nspSocketIO);
-      }
-    }
-
-
-    if (this._frameworkConfig.webSocket.enabled === true) {
-      // with socket.io
-      var serverSocket = new SocketIO(this._frameworkConfig.webSocket.port);
-      var i, route, pageClass, routes = this._wsRouter.getAllRoutes();
-
-      for (i = 0; i < routes.length; i++) {
-        route = routes[i];
-        pageClass = this._wsPageClasses[route.pageName];
-
-        if (!pageClass) {
-          throw new Error('Invalid socket route data, page '+ route.pageName + ' doesn\'t exist');
-        }
-        var page = new pageClass();
-        var nsp = serverSocket.of(route.path);
-        nsp.on('connection', socket => {
-          page.render(socket);
-        });
-      }
-    }
   }
 
   /**

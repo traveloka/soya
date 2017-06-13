@@ -1,6 +1,6 @@
 import Page from '../page/Page.js';
 import RouteResult from './RouteResult.js';
-import ServerHttpRequest from '../http/ServerHttpRequest';
+import IncomingRequest from '../server/IncomingRequest';
 import RoutingData from './RoutingData';
 import PathNode from './PathNode';
 import FinalPathNode from './FinalPathNode';
@@ -180,11 +180,11 @@ export default class Router {
   }
 
   /**
-   * @param {ServerHttpRequest} httpRequest
+   * @param {IncomingRequest} incomingRequest
    * @return {?RouteResult}
    */
-  route(httpRequest) {
-    var i, routingData = new RoutingData(httpRequest);
+  route(incomingRequest) {
+    var i, routingData = new RoutingData(incomingRequest);
 
     // Start pre processing. Pre processing may invalidate routes.
     for (i = 0; i < this._preProcessNodes.length; i++) {
@@ -201,7 +201,7 @@ export default class Router {
 
     var routeResult = routingData.createResult();
     if (routeResult == null) {
-      this._logger.notice('404 not found -> ', null, [this._logger.prepRequest(httpRequest._httpRequest)]);
+      this._logger.notice('404 not found -> ', null, [this._logger.prepRequest(incomingRequest.getInnerRequest())]);
       routeResult = this._notFoundRouteResult;
     }
     return routeResult;

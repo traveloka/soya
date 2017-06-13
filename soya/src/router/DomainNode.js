@@ -47,7 +47,7 @@ export default class DomainNode extends Node {
    * @returns {boolean}
    */
   evaluate(routingData) {
-    return routingData.serverHttpRequest.getDomain() == this._domain;
+    return routingData.incomingRequest.getDomain() == this._domain;
   }
 
   /**

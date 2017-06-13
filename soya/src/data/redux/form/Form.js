@@ -224,6 +224,7 @@ export default class Form {
     return finalPromise.then(
       function(validationResults) {
         var i, j, result, values = {}, isValid = true;
+        validationResults = validationResults || [];
         for (i = 0; i < validationResults.length; i++) {
           result = validationResults[i];
           isValid = isValid && result.isValid;

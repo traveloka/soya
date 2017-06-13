@@ -1,10 +1,12 @@
 import url from 'url';
 import path from 'path';
 
+import IncomingRequest from '../server/IncomingRequest';
+
 /**
  * @SERVER
  */
-export default class ServerHttpRequest {
+export default class ServerHttpRequest extends IncomingRequest {
   /**
    * @type {http.incomingMessage}
    */
@@ -25,6 +27,7 @@ export default class ServerHttpRequest {
    * @param {number} maxRequestBodyLength
    */
   constructor(httpRequest, maxRequestBodyLength) {
+    super();
     this._httpRequest = httpRequest;
     this._parsedUrl = url.parse(httpRequest.url, true);
     this._maxRequestBodyLength = maxRequestBodyLength;
@@ -40,7 +43,16 @@ export default class ServerHttpRequest {
   }
 
   /**
+   * @return {Object}
+   * @override
+   */
+  getInnerRequest() {
+    return this._httpRequest;
+  }
+
+  /**
    * @returns {string}
+   * @override
    */
   getMethod() {
     return this._httpRequest.method;
@@ -64,6 +76,7 @@ export default class ServerHttpRequest {
 
   /**
    * @returns {string}
+   * @override
    */
   getDomain() {
     var hostSplit = this.getHost().split(':');
@@ -72,6 +85,7 @@ export default class ServerHttpRequest {
 
   /**
    * @returns {string}
+   * @override
    */
   getHost() {
     return this._httpRequest.headers.host;
@@ -79,6 +93,7 @@ export default class ServerHttpRequest {
 
   /**
    * @returns {string}
+   * @override
    */
   getPath() {
     return this._parsedUrl.pathname;
@@ -107,6 +122,10 @@ export default class ServerHttpRequest {
       result[key] = this._parsedUrl.query[key];
     }
     return result;
+  }
+
+  getHash() {
+    return '';
   }
 
   /**

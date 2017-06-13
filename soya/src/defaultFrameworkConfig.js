@@ -7,10 +7,5 @@ export const DEFAULT_FRAMEWORK_CONFIG = {
   commonFileThreshold: 3,
   clientReplace: {},
   clientResolve: [],
-  absoluteComponentsDir: [],
-  webSocket: {
-    enabled: false,
-    routesFilePath: '',
-    port: 8010
-  }
+  absoluteComponentsDir: []
 };
