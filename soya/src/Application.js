@@ -158,6 +158,7 @@ export default class Application {
     this._entryPoints = [];
     this._pageClasses = {};
     this._provider = new Provider(serverConfig, reverseRouter, true);
+    this._absoluteClientDepFile = path.join(this._frameworkConfig.absoluteProjectDir, 'build/client/dep.json');
 
     var cookieJar = new CookieJar();
     var i, pageCmpt, page, pageComponents = componentRegister.getPages();
@@ -211,16 +212,33 @@ export default class Application {
    * Compiles and then create an http server that handles requests.
    */
   start() {
-    // Runs runtime compilation. This will update compilation result when
-    // compilation is done, while returning array of compiler specific
-    // middlewares for us.
-    this._middlewares = this._compiler.run(this._entryPoints, (compileResult) => {
-      this._compileResult = compileResult;
+    // If precompileClient true, try get page dependency map from previously generated dep.json to
+    // fill this._compileResult
+    if (this._frameworkConfig.precompileClient && fs.existsSync(this._absoluteClientDepFile)) {
+      this._middlewares = this._compiler.run(this._entryPoints, null, false);
+      this._compileResult = JSON.parse(fs.readFileSync(this._absoluteClientDepFile));
       this.createServer();
-    });
+    } else {
+      // Runs runtime compilation. This will update compilation result when
+      // compilation is done, while returning array of compiler specific
+      // middlewares for us.
+      this._middlewares = this._compiler.run(this._entryPoints, compileResult => {
+        this._compileResult = compileResult;
+        this.createServer();
+      });
+    }
 
     // Add soya middleware as the last one.
     this._middlewares.push(this.handle.bind(this));
+  }
+
+  /**
+   * Do mostly the same work as start(), except this doesn't createServer() and write compile result to dep.json
+   */
+  buildClient() {
+    this._compiler.run(this._entryPoints, compileResult => {
+      fs.writeFileSync(this._absoluteClientDepFile, JSON.stringify(compileResult), 'utf8');
+    });
   }
 
   createServer() {

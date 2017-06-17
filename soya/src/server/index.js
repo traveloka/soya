@@ -104,9 +104,12 @@ export default function server(config, pages) {
     logger, frameworkConfig, webpack, React,
     webpackDevMiddleware, webpackHotMiddleware);
 
-  var application = new Application(
-    logger, handlerRegister, routes, router, reverseRouter, errorHandler, compiler,
-    frameworkConfig, serverConfig, clientConfig
-  );
-  application.start();
+  var application = new Application(logger, handlerRegister, routes, router, reverseRouter, errorHandler, compiler, frameworkConfig, serverConfig, clientConfig);
+
+  // trigger client build without have to start the server as well.
+  if (process.env.RUN_MODE && process.env.RUN_MODE === 'buildClient') {
+    application.buildClient();
+  } else {
+    application.start();
+  }
 }
