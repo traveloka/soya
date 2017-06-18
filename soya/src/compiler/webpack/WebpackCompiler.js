@@ -275,6 +275,10 @@ export default class WebpackCompiler extends Compiler {
    * @return {Array<Function>}
    */
   run(entryPoints, updateCompileResultCallback, shouldCompile = true) {
+    var i,
+      j,
+      entryPoint,
+      entryPointList = [];
     var configuration = {
       entry: {},
       output: {
