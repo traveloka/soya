@@ -159,6 +159,7 @@ export default class Application {
     this._pageClasses = {};
     this._provider = new Provider(serverConfig, reverseRouter, true);
     this._absoluteClientDepFile = path.join(this._frameworkConfig.absoluteProjectDir, 'build/client/dep.json');
+    this._absoluteClientDepFile = path.join(this._frameworkConfig.absoluteProjectDir, 'build/dep.json');
 
     var cookieJar = new CookieJar();
     var i, pageCmpt, page, pageComponents = componentRegister.getPages();
