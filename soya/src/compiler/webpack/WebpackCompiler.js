@@ -107,7 +107,10 @@ export default class WebpackCompiler extends Compiler {
       throw new Error('Hot reload flag is true, yet webpack dev/hot middleware is not passed to WebpackCompiler.');
     }
 
-    this._cleanTempDir();
+    // Only clean client build dir when precompileClient is not true
+    if (!this._frameworkConfig.precompileClient) {
+      this._cleanTempDir();
+    }
   }
 
   /**
@@ -271,8 +274,11 @@ export default class WebpackCompiler extends Compiler {
    * @param {Function} updateCompileResultCallback
    * @return {Array<Function>}
    */
-  run(entryPoints, updateCompileResultCallback) {
-    var i, j, entryPoint, entryPointList = [];
+  run(entryPoints, updateCompileResultCallback, shouldCompile = true) {
+    var i,
+      j,
+      entryPoint,
+      entryPointList = [];
     var configuration = {
       entry: {},
       output: {
@@ -481,12 +487,15 @@ export default class WebpackCompiler extends Compiler {
         }
       });
 
-      // We only need to run if we are not hot reloading, since
-      // webpack-dev-middleware already runs watch() for us.
-      compiler.run(function() {
-        // No-op. We'll use the above 'done' and 'failed' hook to notify
-        // application for successes and failures.
-      });
+      // Shouldn't be called on start when client code already precompiled
+      if (shouldCompile) {
+        // We only need to run if we are not hot reloading, since
+        // webpack-dev-middleware already runs watch() for us.
+        compiler.run(function() {
+          // No-op. We'll use the above 'done' and 'failed' hook to notify
+          // application for successes and failures.
+        });
+      }
     }
 
     return middlewares;
