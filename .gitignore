@@ -9,3 +9,4 @@ docs/
 /redux/
 contentfe
 npm-debug.log
+*.DS_Store

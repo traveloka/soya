@@ -217,19 +217,19 @@ export default class Application {
     if (this._frameworkConfig.precompileClient && fs.existsSync(this._absoluteClientDepFile)) {
       this._middlewares = this._compiler.run(this._entryPoints, null, false);
       this._compileResult = JSON.parse(fs.readFileSync(this._absoluteClientDepFile));
-      this.createServer();
     } else {
       // Runs runtime compilation. This will update compilation result when
       // compilation is done, while returning array of compiler specific
       // middlewares for us.
       this._middlewares = this._compiler.run(this._entryPoints, compileResult => {
         this._compileResult = compileResult;
-        this.createServer();
       });
     }
 
     // Add soya middleware as the last one.
     this._middlewares.push(this.handle.bind(this));
+
+    return this._middlewares;
   }
 
   /**
@@ -284,12 +284,21 @@ export default class Application {
   /**
    * @param {http.incomingMessage} request
    * @param {httpServerResponse} response
+   * @param {?void} next
    */
-  handle(request, response) {
+  handle(request, response, next) {
+    // Directly over to next-js when it is next request
+    if (request.url.indexOf("_next") !== -1) {
+      next();
+      return;
+    }
+
     var httpRequest = new ServerHttpRequest(request, this._frameworkConfig.maxRequestBodyLength);
     var routeResult = this._router.route(httpRequest);
+    // Over to next-js when page is not found
     if (routeResult == null) {
-      throw new Error('Unable to route request, router returned null');
+      next();
+      return;
     }
 
     var pageClass = this._pageClasses[routeResult.pageName];

@@ -20,7 +20,7 @@ pages['${pages[i]}'] = Page${i};`;
 var components = ${JSON.stringify(components)};
 
 // Run server.
-server(config, pages, components);`;
+export default server(config, pages, components);`;
 
   return result;
 };

@@ -200,10 +200,7 @@ export default class Router {
     }
 
     var routeResult = routingData.createResult();
-    if (routeResult == null) {
-      this._logger.notice('404 not found -> ', null, [this._logger.prepRequest(incomingRequest.getInnerRequest())]);
-      routeResult = this._notFoundRouteResult;
-    }
+    // Not found result is now handled by next
     return routeResult;
   }
 

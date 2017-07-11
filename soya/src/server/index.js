@@ -110,6 +110,8 @@ export default function server(config, pages) {
   if (process.env.RUN_MODE && process.env.RUN_MODE === 'buildClient') {
     application.buildClient();
   } else {
-    application.start();
+    return application.start();
   }
+
+  return null;
 }

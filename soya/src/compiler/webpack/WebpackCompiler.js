@@ -138,7 +138,9 @@ export default class WebpackCompiler extends Compiler {
       output: {
         path: absBuildTargetDir,
         publicPath: frameworkConfig.assetProtocol + '://' + frameworkConfig.assetHostPath,
-        filename: 'index.js'
+        filename: 'index.js',
+        library: "SoyaV1",
+        libraryTarget: "commonjs2"
       },
       node: {
         __dirname: true,
