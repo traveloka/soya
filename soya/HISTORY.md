@@ -1,6 +1,6 @@
-# Version 0.1.x
+# Version 0.2.x
 
-## 0.1.0
+## 0.2.0
 - Soya is now a middleware web framework which can be used with [soya-next](https://github.com/traveloka/soya-next).
 
 # Version 0.0.x
