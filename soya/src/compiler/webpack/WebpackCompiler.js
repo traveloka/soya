@@ -8,6 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import rimraf from 'rimraf';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
+import FriendlyErrorsWebpackPlugin from 'friendly-errors-webpack-plugin';
 
 var COMMONS_ENTRY_NAME = '__commons';
 
@@ -132,6 +133,10 @@ export default class WebpackCompiler extends Compiler {
         nodeModules[mod] = 'commonjs ' + mod;
       });
 
+    var resolve = WebpackCompiler.generateResolveConfig(frameworkConfig);
+    resolve.modules = resolve.root.concat('node_modules');
+    delete resolve.root;
+
     return {
       entry: absEntryPointFile,
       target: 'node',
@@ -168,12 +173,14 @@ export default class WebpackCompiler extends Compiler {
         ]
       },
       plugins: [
-        new webpack.BannerPlugin('require("source-map-support").install();',
-          { raw: true, entryOnly: false }),
-        new webpack.optimize.OccurenceOrderPlugin(),
-        new webpack.NoErrorsPlugin()
+        new webpack.BannerPlugin({
+          banner: 'require("source-map-support").install();',
+          raw: true,
+          entryOnly: false
+        }),
+        new webpack.NoEmitOnErrorsPlugin()
       ],
-      resolve: WebpackCompiler.generateResolveConfig(frameworkConfig),
+      resolve: resolve,
       externals: nodeModules
     };
   }
@@ -383,6 +390,7 @@ export default class WebpackCompiler extends Compiler {
       'process.env.NODE_ENV': this._frameworkConfig.NODE_ENV || '"development"'
     });
     configuration.plugins.push(definePlugin);
+    configuration.plugins.push(new FriendlyErrorsWebpackPlugin());
 
     var pageToRequire, entryPointAbsolutePathMap = {};
     for (i = 0; i < entryPoints.length; i++) {
@@ -477,9 +485,10 @@ export default class WebpackCompiler extends Compiler {
       // connection from the client.
       middlewares.push(this._webpackDevMiddleware(compiler, {
         noInfo: true,
+        quiet: true,
         publicPath: configuration.output.publicPath
       }));
-      middlewares.push(this._webpackHotMiddleware(compiler));
+      middlewares.push(this._webpackHotMiddleware(compiler, { log: false }));
     } else {
       // Middleware for regular webpack asset server.
       middlewares.push((request, response, next) => {

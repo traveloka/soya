@@ -110,8 +110,15 @@ export default function server(config, pages) {
   if (process.env.RUN_MODE && process.env.RUN_MODE === 'buildClient') {
     application.buildClient();
   } else {
-    return application.start();
+    const middlewares = application.start();
+    return new Promise(resolve => {
+      if (typeof middlewares[0].waitUntilValid !== 'undefined') {
+        middlewares[0].waitUntilValid(() => resolve(middlewares));
+      } else {
+        resolve(middlewares);
+      }
+    });
   }
 
-  return null;
+  return Promise.resolve(null);
 }

@@ -10,3 +10,4 @@ docs/
 contentfe
 npm-debug.log
 *.DS_Store
+.next
