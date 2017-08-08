@@ -13,8 +13,8 @@
 var path = require('path');
 var env = process.env.NODE_ENV || 'dev';
 
-var defaultConfig = require('./config/default.js');
-var config = require('./config/' + env);
+var defaultConfig = require('./legacy-config/default.js');
+var config = require('./legacy-config/' + env);
 
 module.exports = {
   frameworkConfig: Object.assign({}, defaultConfig.frameworkConfig, config.frameworkConfig),
