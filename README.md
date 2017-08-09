@@ -7,7 +7,15 @@ Please migrate to [Soya Next](https://github.com/traveloka/soya-next) and thanks
 
 Soya Next (>=0.2.9) is compatible with Soya (>=0.2.0), so you can run both partially on a single server (less migration efforts).
 
-In your soya root project directory, install the required dependencies:
+First, upgrade soya version to 0.2.0 or later.
+
+```bash
+npm upgrade soya
+# or 
+yarn upgrade soya
+```
+
+Then, install the required dependencies:
 
 ```bash
 npm install --save next react react-cookie react-dom react-redux redux soya-next soya-next-scripts
