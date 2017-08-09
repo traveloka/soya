@@ -56,6 +56,25 @@ module.exports = {
 };
 ```
 
+Framework config for compilation is migrated to Soya Next configuration,
+create a file at `config/default.json` with the following:
+```json
+{
+  "host": "0.0.0.0",
+  "port": 3000,
+  "legacy": {
+    "absoluteComponentsDir": [],
+    "assetProtocol": "http",
+    "assetHostPath": "{host}:{port}/assets/",
+    "clientReplace": {},
+    "clientResolve": [],
+    "commonFileThreshold": 3,
+    "componentBrowser": false,
+    "defaultImportBase": "src"
+  }
+}
+```
+
 Done! You can start your server with the following:
 
 ```bash
