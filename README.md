@@ -1,5 +1,61 @@
 # Soya
 
+There won't be further development of Soya.
+Please migrate to [Soya Next](https://github.com/traveloka/soya-next) and thanks for using it!
+
+## Migrating to Soya Next
+
+Soya Next is compatible with Soya, so you can run both partially on a single server (less migration efforts).
+
+In your soya root project directory, install the required dependencies:
+
+```bash
+npm install --save next react react-cookie react-dom react-redux redux soya-next soya-next-scripts
+# or
+yarn add next react react-cookie react-dom react-redux redux soya-next soya-next-scripts
+```
+
+Then, add the following to `package.json`:
+
+```json
+{
+  "scripts": {
+    "analyze": "ANALYZE=1 soya-next-scripts build",
+    "build": "soya-next-scripts build",
+    "eject": "soya-next-scripts eject",
+    "start": "soya-next-scripts start",
+    "test": "soya-next-scripts test"
+  }
+}
+```
+
+You might need to migrate your configuration files as well because Soya Next uses `config` directory name by default.
+Simply rename your config directory to other name, i.e. `legacy-config`.
+
+Don't forget to update `config.js` as well.
+
+```js
+var path = require('path');
+var env = process.env.NODE_ENV || 'dev';
+
+var defaultConfig = require('./legacy-config/default.js');
+var config = require('./legacy-config/' + env);
+
+module.exports = {
+  frameworkConfig: Object.assign({}, defaultConfig.frameworkConfig, config.frameworkConfig),
+  serverConfig: Object.assign({}, defaultConfig.serverConfig, config.serverConfig),
+  clientConfig: Object.assign({}, defaultConfig.clientConfig, config.clientConfig)
+};
+```
+
+Done! You can start your server with the following:
+
+```bash
+npm start
+# or
+yarn start
+```
+
 ## Hopefully hassle free web front-end framework
 
 Soya uses React, Webpack and Redux to help speed up web front-end engineering efforts. Soya aims to:
