@@ -5,7 +5,7 @@ Please migrate to [Soya Next](https://github.com/traveloka/soya-next) and thanks
 
 ## Migrating to Soya Next
 
-Soya Next is compatible with Soya, so you can run both partially on a single server (less migration efforts).
+Soya Next (>=0.2.9) is compatible with Soya (>=0.2.0), so you can run both partially on a single server (less migration efforts).
 
 In your soya root project directory, install the required dependencies:
 
