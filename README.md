@@ -7,6 +7,8 @@ Please migrate to [Soya Next](https://github.com/traveloka/soya-next) and thanks
 
 Soya Next (>=0.2.9) is compatible with Soya (>=0.2.0), so you can run both partially on a single server (less migration efforts).
 
+### Installation
+
 First, upgrade soya version to 0.2.0 or later.
 
 ```bash
@@ -23,19 +25,9 @@ npm install --save next react react-cookie react-dom react-redux redux soya-next
 yarn add next react react-cookie react-dom react-redux redux soya-next soya-next-scripts
 ```
 
-Then, add the following to `package.json`:
+### Configurations
 
-```json
-{
-  "scripts": {
-    "analyze": "ANALYZE=1 soya-next-scripts build",
-    "build": "soya-next-scripts build",
-    "eject": "soya-next-scripts eject",
-    "start": "soya-next-scripts start",
-    "test": "soya-next-scripts test"
-  }
-}
-```
+#### Framework, server, and client configurations
 
 You might need to migrate your configuration files as well because Soya Next uses `config` directory name by default.
 Simply rename your config directory to other name, i.e. `legacy-config`.
@@ -56,24 +48,85 @@ module.exports = {
 };
 ```
 
-Framework config for compilation is migrated to Soya Next configuration,
-create a file at `config/default.json` with the following:
-```json
+Some of soya's framework configurations is needed for it to work properly in Soya Next.
+Thus, you need to migrate it as well by creating a file at `config/default.json` with the following:
+
+```diff
 {
   "host": "0.0.0.0",
   "port": 3000,
-  "legacy": {
-    "absoluteComponentsDir": [],
-    "assetProtocol": "http",
-    "assetHostPath": "{host}:{port}/assets/",
-    "clientReplace": {},
-    "clientResolve": [],
-    "commonFileThreshold": 3,
-    "componentBrowser": false,
-    "defaultImportBase": "src"
++ "legacy": {
++   "absoluteComponentsDir": [],
++   "assetProtocol": "http",
++   "assetHostPath": "{host}:{port}/assets/",
++   "clientReplace": {},
++   "clientResolve": [],
++   "commonFileThreshold": 3,
++   "componentBrowser": false,
++   "defaultImportBase": "src"
++ }
+}
+```
+
+#### Custom Babelrc
+
+By default most soya projects use the following babel configuration:
+
+```json
+{
+  "presets": [
+    "es2015",
+    "react",
+    "stage-2"
+  ],
+  "plugins": [
+    "transform-export-extensions",
+    "transform-object-assign"
+  ]
+}
+```
+
+In order for it to work with Soya Next, you need to migrate it with the following:
+
+```diff
+  "presets": [
++   "next/babel",
++   "soya-next/babel",
+    "es2015",
+    "react",
+    "stage-2"
+  ],
+  "plugins": [
++   [
++     "styled-modules/babel",
++     {
++       "pattern": "\\.nx(\\.mod(ule)?)?\\.(css|s(a|c)ss)$"
++     }
++   ],
+    "transform-export-extensions",
+    "transform-object-assign"
+  ]
+```
+
+> Notice the pattern option used is suffixed with `nx`, this is to avoid transpiling legacy css files.
+
+### Scripts
+
+Add the following scripts to `package.json`:
+
+```json
+{
+  "scripts": {
+    "analyze": "ANALYZE=1 soya-next-scripts build",
+    "build": "soya-next-scripts build",
+    "eject": "soya-next-scripts eject",
+    "start": "soya-next-scripts start",
+    "test": "soya-next-scripts test"
   }
 }
 ```
+
+### Start the server
 
 Done! You can start your server with the following:
 
