@@ -42,7 +42,10 @@ var defaultConfig = require('./legacy-config/default.js');
 var config = require('./legacy-config/' + env);
 
 module.exports = {
-  frameworkConfig: Object.assign({}, defaultConfig.frameworkConfig, config.frameworkConfig),
+  frameworkConfig: Object.assign({
+    absoluteProjectDir: process.cwd(),
+    componentBrowser: true,
+  }, defaultConfig.frameworkConfig, config.frameworkConfig),
   serverConfig: Object.assign({}, defaultConfig.serverConfig, config.serverConfig),
   clientConfig: Object.assign({}, defaultConfig.clientConfig, config.clientConfig)
 };
