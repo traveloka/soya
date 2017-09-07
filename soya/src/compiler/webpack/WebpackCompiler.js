@@ -351,6 +351,26 @@ export default class WebpackCompiler extends Compiler {
       configuration.plugins.push(
         new ExtractTextPlugin('css/[name]-[chunkhash].css'));
     }
+    if (this._frameworkConfig.useStyledModules) {
+      modulesCssLoader = {
+        test: /\.mod\.css$/,
+        loader: 'styled-modules/loader!css-loader?' + cssModuleArgs
+      };
+      normalCssLoader = {
+        test: /\.css$/,
+        loader: 'styled-modules/loader!css-loader',
+        exclude: /\.mod\.css$/
+      };
+      modulesScssLoader = {
+        test: /\.mod\.scss$/,
+        loader: 'styled-modules/loader!css-loader?' + cssModuleArgs + '!sass-loader'
+      };
+      normalSassLoader = {
+        test: /\.scss$/,
+        loader: 'styled-modules/loader!css-loader!sass-loader',
+        exclude: /\.mod\.scss$/
+      };
+    }
     configuration.module.loaders.push(modulesCssLoader);
     configuration.module.loaders.push(normalCssLoader);
     configuration.module.loaders.push(modulesScssLoader);
