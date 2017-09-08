@@ -350,8 +350,7 @@ export default class WebpackCompiler extends Compiler {
       );
       configuration.plugins.push(
         new ExtractTextPlugin('css/[name]-[chunkhash].css'));
-    }
-    if (this._frameworkConfig.useStyledModules) {
+    } else if (this._frameworkConfig.useStyledModules) {
       modulesCssLoader = {
         test: /\.mod\.css$/,
         loader: 'styled-modules/loader!css-loader?' + cssModuleArgs
