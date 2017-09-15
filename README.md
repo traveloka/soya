@@ -20,9 +20,9 @@ yarn upgrade soya
 Then, install the required dependencies:
 
 ```bash
-npm install --save next react react-cookie react-dom react-redux redux soya-next soya-next-scripts
+npm install --save next react react-cookie react-dom react-redux redux soya-next soya-next-scripts styled-modules
 # or
-yarn add next react react-cookie react-dom react-redux redux soya-next soya-next-scripts
+yarn add next react react-cookie react-dom react-redux redux soya-next soya-next-scripts styled-modules
 ```
 
 ### Configurations
