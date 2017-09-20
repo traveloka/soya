@@ -8,9 +8,8 @@ import Hydration from './Hydration.js';
 
 import QueryResult from './QueryResult.js';
 import { compose, createStore, applyMiddleware } from 'redux';
-import { ActionTypes } from 'redux/lib/createStore';
 import thunk from 'redux-thunk';
-import scope from 'soya/lib/scope';
+import scope from '../../scope';
 
 /*
 
@@ -578,7 +577,7 @@ export default class ReduxStore extends Store {
       service = this.getService(serviceClass);
       this._serviceDependencies[id][serviceId] = service;
     }
-    this._store.dispatch({ type: ActionTypes.INIT });
+    this._store.dispatch({ type: '@@soya/INIT' });
   }
 
   /**

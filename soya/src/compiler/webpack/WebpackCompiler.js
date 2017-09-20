@@ -15,6 +15,8 @@ var COMMONS_ENTRY_NAME = '__commons';
 const SOURCE_MAP_FILE_REGEX = /\.[a-zA-Z0-9]{1,4}\.map/;
 const CSS_FILE_REGEX = /\.css[\?#]?/;
 const JS_FILE_REGEX = /\.js[\?#]?/;
+const soyaNodeModulesDir = path.join(__dirname, '..', '..', '..', 'node_modules');
+const routerNodeRegistrationAbsolutePath = path.join(__dirname, '..', '..', 'server', 'registerRouterNodes.js');
 
 /**
  * @SERVER
@@ -134,8 +136,6 @@ export default class WebpackCompiler extends Compiler {
       });
 
     var resolve = WebpackCompiler.generateResolveConfig(frameworkConfig);
-    resolve.modules = resolve.root.concat('node_modules');
-    delete resolve.root;
 
     return {
       entry: absEntryPointFile,
@@ -153,23 +153,57 @@ export default class WebpackCompiler extends Compiler {
       },
       devtool: 'source-map',
       module: {
-        loaders: [
+        rules: [
           WebpackCompiler.getBabelLoaderConfig(),
           WebpackCompiler.getFileLoaderConfig(frameworkConfig),
-          { test: /\.css$/, loader: 'css-loader/locals', exclude: /\.mod\.css/ },
-          { test: /\.mod\.css$/,
-            loader: 'css-loader/locals?' + JSON.stringify({
+          {
+            test: /\.css$/,
+            loader: 'css-loader',
+            options: {
+              locals: true,
+            },
+            exclude: /\.mod\.css$/,
+          },
+          {
+            test: /\.mod\.css$/,
+            loader: 'css-loader',
+            options: {
+              locals: true,
               sourceMap: true,
               modules: true,
               localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
-            })
+            },
           },
-          { test: /\.scss$/, loader: 'css-loader/locals!sass-loader', exclude: /\.mod\.scss/ },
-          { test: /\.mod\.scss$/, loader: 'css-loader/locals?' + JSON.stringify({
-            sourceMap: true,
-            modules: true,
-            localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
-          }) + '!sass-loader' }
+          {
+            test: /\.scss$/,
+            use: [
+              {
+                loader: 'css-loader',
+                options: {
+                  locals: true,
+                  importLoaders: 1,
+                },
+              },
+              'sass-loader',
+            ],
+            exclude: /\.mod\.scss$/,
+          },
+          {
+            test: /\.mod\.scss$/,
+            use: [
+              {
+                loader: 'css-loader',
+                options: {
+                  locals: true,
+                  sourceMap: true,
+                  modules: true,
+                  localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
+                  importLoaders: 1,
+                },
+              },
+              'sass-loader',
+            ],
+          }
         ]
       },
       plugins: [
@@ -181,6 +215,12 @@ export default class WebpackCompiler extends Compiler {
         new webpack.NoEmitOnErrorsPlugin()
       ],
       resolve: resolve,
+      resolveLoader: {
+        modules: [
+          soyaNodeModulesDir,
+          'node_modules',
+        ],
+      },
       externals: nodeModules
     };
   }
@@ -201,14 +241,20 @@ export default class WebpackCompiler extends Compiler {
       defaultImportBase
     ].filter((config) => !!config);
 
-    const alias = {};
+    const alias = {
+      'soya/lib/server/registerRouterNodes': routerNodeRegistrationAbsolutePath,
+    };
     if (frameworkConfig.routerNodeRegistrationAbsolutePath) {
       alias['soya/lib/server/registerRouterNodes'] = frameworkConfig.routerNodeRegistrationAbsolutePath;
     }
 
     return {
       alias,
-      root: rootResolves
+      modules: [
+        soyaNodeModulesDir,
+        'node_modules',
+        ...rootResolves,
+      ],
     };
   }
 
@@ -265,7 +311,10 @@ export default class WebpackCompiler extends Compiler {
     }
     return {
       test: test,
-      loader: "file-loader?name=[name]-[hash].[ext]"
+      loader: 'file-loader',
+      options: {
+        name: '[name]-[hash].[ext]',
+      },
     };
   }
 
@@ -296,7 +345,7 @@ export default class WebpackCompiler extends Compiler {
         publicPath: this._frameworkConfig.assetProtocol + '://' + this._assetHostPath
       },
       module: {
-        loaders: [
+        rules: [
           WebpackCompiler.getBabelLoaderConfig(),
           WebpackCompiler.getFileLoaderConfig(this._frameworkConfig)
         ],
@@ -304,16 +353,22 @@ export default class WebpackCompiler extends Compiler {
       },
       devtool: "source-map",
       resolve: WebpackCompiler.generateResolveConfig(this._frameworkConfig),
+      resolveLoader: {
+        modules: [
+          soyaNodeModulesDir,
+          'node_modules',
+        ],
+      },
       plugins: [
-        new this._webpack.optimize.OccurenceOrderPlugin()
+        new this._webpack.optimize.OccurrenceOrderPlugin()
       ]
     };
 
-    var cssModuleArgs = JSON.stringify({
+    var cssModuleArgs = {
       sourceMap: true,
       modules: true,
       localIdentName: this._frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
-    });
+    };
 
     // Links you need to read to understand this CSS section:
     // - https://webpack.github.io/docs/stylesheets.html
@@ -323,69 +378,144 @@ export default class WebpackCompiler extends Compiler {
     // - https://github.com/webpack/style-loader
     var modulesCssLoader = {
       test: /\.mod\.css$/,
-      loader: 'style-loader!css-loader?' + cssModuleArgs
+      use: [
+        'style-loader',
+        {
+          loader: 'css-loader',
+          options: cssModuleArgs,
+        },
+      ],
     };
     var normalCssLoader = {
       test: /\.css$/,
-      loader: 'style-loader!css-loader',
+      use: [
+        'style-loader',
+        'css-loader',
+      ],
       exclude: /\.mod\.css$/
     };
     var modulesScssLoader = {
       test: /\.mod\.scss$/,
-      loader: 'style-loader!css-loader?' + cssModuleArgs + '!sass-loader'
+      use: [
+        'style-loader',
+        {
+          loader: 'css-loader',
+          options: {
+            ...cssModuleArgs,
+            importLoaders: 1,
+          },
+        },
+        'sass-loader',
+      ],
     };
     var normalSassLoader = {
       test: /\.scss$/,
-      loader: 'style-loader!css-loader!sass-loader',
+      use: [
+        'style-loader',
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 1,
+          },
+        },
+        'sass-loader',
+      ],
       exclude: /\.mod\.scss$/
     };
     if (!this._frameworkConfig.hotReload) {
       // Enable loading CSS as files.
-      modulesCssLoader.loader = ExtractTextPlugin.extract(
-        "style-loader",
-        "css-loader?" + cssModuleArgs
-      );
-      normalCssLoader.loader = ExtractTextPlugin.extract(
+      modulesCssLoader.use = ExtractTextPlugin.extract({
+        fallback: 'style-loader',
+        use: {
+          loader: 'css-loader',
+          options: cssModuleArgs,
+        },
+      });
+      normalCssLoader.use = ExtractTextPlugin.extract([
         "style-loader",
         "css-loader"
-      );
-      modulesScssLoader.loader = ExtractTextPlugin.extract(
-        "style-loader",
-        "css-loader?" + cssModuleArgs + "!sass-loader"
-      );
-      normalSassLoader.loader = ExtractTextPlugin.extract(
-        "style-loader",
-        "css-loader!sass-loader"
-      );
+      ]);
+      modulesScssLoader.use = ExtractTextPlugin.extract({
+        fallback: 'style-loader',
+        use: [
+          {
+            loader: 'css-loader',
+            options: {
+              ...cssModuleArgs,
+              importLoaders: 1,
+            },
+          },
+          'sass-loader',
+        ],
+      });
+      normalSassLoader.use = ExtractTextPlugin.extract({
+        fallback: 'style-loader',
+        use: [
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+            },
+          },
+          'sass-loader',
+        ],
+      });
       configuration.plugins.push(
         new ExtractTextPlugin('css/[name]-[chunkhash].css'));
     } else if (this._frameworkConfig.useStyledModules) {
       modulesCssLoader = {
         test: /\.mod\.css$/,
-        loader: 'styled-modules/loader!css-loader?' + cssModuleArgs
+        use: [
+          'styled-modules/loader',
+          {
+            loader: 'css-loader',
+            options: cssModuleArgs,
+          },
+        ],
       };
       normalCssLoader = {
         test: /\.css$/,
-        loader: 'styled-modules/loader!css-loader',
+        use: [
+          'styled-modules/loader',
+          'css-loader',
+        ],
         exclude: /\.mod\.css$/
       };
       modulesScssLoader = {
         test: /\.mod\.scss$/,
-        loader: 'styled-modules/loader!css-loader?' + cssModuleArgs + '!sass-loader'
+        use: [
+          'styled-modules/loader',
+          {
+            loader: 'css-loader',
+            options: {
+              ...cssModuleArgs,
+              importLoaders: 1,
+            },
+          },
+          'sass-loader',
+        ],
       };
       normalSassLoader = {
         test: /\.scss$/,
-        loader: 'styled-modules/loader!css-loader!sass-loader',
+        use: [
+          'styled-modules/loader',
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+            },
+          },
+          'sass-loader',
+        ],
         exclude: /\.mod\.scss$/
       };
     }
-    configuration.module.loaders.push(modulesCssLoader);
-    configuration.module.loaders.push(normalCssLoader);
-    configuration.module.loaders.push(modulesScssLoader);
-    configuration.module.loaders.push(normalSassLoader);
+    configuration.module.rules.push(modulesCssLoader);
+    configuration.module.rules.push(normalCssLoader);
+    configuration.module.rules.push(modulesScssLoader);
+    configuration.module.rules.push(normalSassLoader);
 
     for (i in this._clientReplace) {
-      if (!this._clientReplace.hasOwnProperty(i)) continue;
       configuration.resolve.alias[i] = this._clientReplace[i];
     }
 
@@ -393,7 +523,7 @@ export default class WebpackCompiler extends Compiler {
       configuration.plugins.push(new this._webpack.HotModuleReplacementPlugin());
     }
 
-    configuration.plugins.push(new this._webpack.NoErrorsPlugin());
+    configuration.plugins.push(new this._webpack.NoEmitOnErrorsPlugin());
     configuration.plugins.push(new this._webpack.optimize.CommonsChunkPlugin({
       name: COMMONS_ENTRY_NAME,
       filename: 'common-[hash].js',
@@ -419,9 +549,6 @@ export default class WebpackCompiler extends Compiler {
       configuration.entry[entryPoint.name] = pageToRequire;
       entryPointList.push(entryPoint.name);
     }
-
-    // Add babel plugins.
-    configuration.babel = this.getBabelLoaderExtras(entryPointAbsolutePathMap);
 
     var compiler = this._webpack(configuration);
     var self = this;
