@@ -57,6 +57,7 @@ Thus, you need to migrate it as well by creating a file at `config/default.json`
 {
   "host": "0.0.0.0",
   "port": 3000,
+  "dev": false,
 + "legacy": {
 +   "absoluteComponentsDir": [],
 +   "assetProtocol": "http",
@@ -65,10 +66,14 @@ Thus, you need to migrate it as well by creating a file at `config/default.json`
 +   "clientResolve": [],
 +   "commonFileThreshold": 3,
 +   "componentBrowser": false,
-+   "defaultImportBase": "src"
++   "defaultImportBase": "src",
++   "precompileClient": false
 + }
 }
 ```
+
+- Set `dev` to `true` for development
+- Set `precompileClient` to `true` for staging and production.
 
 #### Custom Babelrc
 
@@ -94,8 +99,8 @@ In order for it to work with Soya Next, you need to migrate it with the followin
   "presets": [
 +   "next/babel",
 +   "soya-next/babel",
-    "es2015",
-    "react",
+-   "es2015",
+-   "react",
     "stage-2"
   ],
   "plugins": [
@@ -120,7 +125,7 @@ Add the following scripts to `package.json`:
 {
   "scripts": {
     "analyze": "ANALYZE=1 soya-next-scripts build",
-    "build": "soya-next-scripts build",
+    "build": "RUN_MODE=buildClient soya-next-scripts build",
     "eject": "soya-next-scripts eject",
     "start": "soya-next-scripts start",
     "test": "soya-next-scripts test"
