@@ -75,6 +75,18 @@ Thus, you need to migrate it as well by creating a file at `config/default.json`
 - Set `dev` to `true` for development
 - Set `precompileClient` to `true` for staging and production.
 
+In `legacy-config/production.js` set `precompileClient` to `true`:
+
+```js
+const frameworkConfig = {
+  "precompileClient": true
+};
+
+export default {
+  frameworkConfig
+};
+```
+
 #### Custom Babelrc
 
 By default most soya projects use the following babel configuration:
