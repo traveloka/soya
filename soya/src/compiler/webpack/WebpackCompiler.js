@@ -431,10 +431,12 @@ export default class WebpackCompiler extends Compiler {
           options: cssModuleArgs,
         },
       });
-      normalCssLoader.use = ExtractTextPlugin.extract([
-        "style-loader",
-        "css-loader"
-      ]);
+      normalCssLoader.use = ExtractTextPlugin.extract({
+        fallback: 'style-loader',
+        use: {
+          loader: 'css-loader',
+        },
+      });
       modulesScssLoader.use = ExtractTextPlugin.extract({
         fallback: 'style-loader',
         use: [
