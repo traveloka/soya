@@ -4,6 +4,7 @@ import EntryPoint from '../../EntryPoint';
 import WebpackAssetServer from './WebpackAssetServer';
 import { DEFAULT_FRAMEWORK_CONFIG } from '../../defaultFrameworkConfig.js';
 
+import config from 'config';
 import path from 'path';
 import fs from 'fs';
 import rimraf from 'rimraf';
@@ -17,6 +18,7 @@ const CSS_FILE_REGEX = /\.css[\?#]?/;
 const JS_FILE_REGEX = /\.js[\?#]?/;
 const soyaNodeModulesDir = path.join(__dirname, '..', '..', '..', 'node_modules');
 const routerNodeRegistrationAbsolutePath = path.join(__dirname, '..', '..', 'server', 'registerRouterNodes.js');
+const configAbsolutePath = path.join(__dirname, '..', '..', 'config', 'config.js');
 
 /**
  * @SERVER
@@ -242,6 +244,7 @@ export default class WebpackCompiler extends Compiler {
     ].filter((config) => !!config);
 
     const alias = {
+      'config': configAbsolutePath,
       'soya/lib/server/registerRouterNodes': routerNodeRegistrationAbsolutePath,
     };
     if (frameworkConfig.routerNodeRegistrationAbsolutePath) {
@@ -667,6 +670,10 @@ export default class WebpackCompiler extends Compiler {
     // Ensure directory exists.
     try {
       fs.mkdirSync(this._absoluteClientBuildDir);
+
+      // This will take the config based on the current NODE_ENV and save it to 'build/client/node-config.js'
+      // Note: If '/build/client' does not exist, this command will error; alternatively, write to '/config'.
+      fs.writeFileSync(path.resolve(__dirname, '../../config/node-config.js'), JSON.stringify(config))
     } catch(e) {
       if (e.code != 'EEXIST') throw e;
     }
