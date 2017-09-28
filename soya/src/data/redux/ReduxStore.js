@@ -9,7 +9,7 @@ import Hydration from './Hydration.js';
 import QueryResult from './QueryResult.js';
 import { compose, createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
-import scope from '../../scope';
+import scope from 'soya/lib/scope';
 
 /*
 
