@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "babel-loader": "^7.1.2",
+    "config": "^1.26.2",
     "css-loader": "^0.28.7",
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.2",
