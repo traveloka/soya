@@ -116,6 +116,9 @@ export default class WebpackCompiler extends Compiler {
     if (!this._frameworkConfig.precompileClient) {
       this._cleanTempDir();
     }
+
+    // This will take the config based on the current NODE_ENV and save it to 'node_modules/lib/config/browser-config.json'
+    fs.writeFileSync(path.resolve(__dirname, '../../config/browser-config.json'), JSON.stringify(config))
   }
 
   /**
@@ -670,10 +673,6 @@ export default class WebpackCompiler extends Compiler {
     // Ensure directory exists.
     try {
       fs.mkdirSync(this._absoluteClientBuildDir);
-
-      // This will take the config based on the current NODE_ENV and save it to 'build/client/browser-config.json'
-      // Note: If '/config/browser-config' does not exist.
-      fs.writeFileSync(path.resolve(__dirname, '../../config/browser-config.json'), JSON.stringify(config))
     } catch(e) {
       if (e.code != 'EEXIST') throw e;
     }
