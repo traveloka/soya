@@ -24,6 +24,7 @@
     "watch-test-integration": "./node_modules/.bin/babel src/ --out-dir \"../test/integration/node_modules/soya/lib\" --source-maps --copy-files --watch"
   },
   "peerDependencies": {
+    "extract-text-webpack-plugin": "^3.0.0",
     "react": "^15.6.1",
     "react-addons-update": "^15.6.0",
     "react-dom": "^15.6.1"
@@ -41,7 +42,6 @@
     "babel-loader": "^7.1.2",
     "config": "^1.26.2",
     "css-loader": "^0.28.7",
-    "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.2",
     "friendly-errors-webpack-plugin": "^1.6.1",
     "html-entities": "^1.2.0",
