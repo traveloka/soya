@@ -163,17 +163,13 @@ export default class WebpackCompiler extends Compiler {
           WebpackCompiler.getFileLoaderConfig(frameworkConfig),
           {
             test: /\.css$/,
-            loader: 'css-loader',
-            options: {
-              locals: true,
-            },
+            loader: 'css-loader/locals',
             exclude: /\.mod\.css$/,
           },
           {
             test: /\.mod\.css$/,
-            loader: 'css-loader',
+            loader: 'css-loader/locals',
             options: {
-              locals: true,
               sourceMap: true,
               modules: true,
               localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
@@ -183,9 +179,8 @@ export default class WebpackCompiler extends Compiler {
             test: /\.scss$/,
             use: [
               {
-                loader: 'css-loader',
+                loader: 'css-loader/locals',
                 options: {
-                  locals: true,
                   importLoaders: 1,
                 },
               },
@@ -197,9 +192,8 @@ export default class WebpackCompiler extends Compiler {
             test: /\.mod\.scss$/,
             use: [
               {
-                loader: 'css-loader',
+                loader: 'css-loader/locals',
                 options: {
-                  locals: true,
                   sourceMap: true,
                   modules: true,
                   localIdentName: frameworkConfig.debug ? '[name]_[local]_[hash:base64:3]' : '[hash:base64]',
