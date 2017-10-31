@@ -4,7 +4,7 @@
  */
 export default function generateServerFile(pages, components) {
   var result = `import server from 'soya/lib/server';
-import config from '../../config.js';
+import config from '../../${process.env.SOYA_CONFIG_FILE || 'config.js'}';
 
 var pages = {}`;
 
