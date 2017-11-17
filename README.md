@@ -20,9 +20,9 @@ yarn upgrade soya
 Then, install the required dependencies:
 
 ```bash
-npm install --save next react react-cookie react-dom react-redux redux soya-next soya-next-scripts styled-modules
+npm install --save config next react react-cookie react-dom react-redux redux soya-next soya-next-scripts styled-modules
 # or
-yarn add next react react-cookie react-dom react-redux redux soya-next soya-next-scripts styled-modules
+yarn add config next react react-cookie react-dom react-redux redux soya-next soya-next-scripts styled-modules
 ```
 
 ### Configurations
@@ -110,7 +110,6 @@ In order for it to work with Soya Next, you need to migrate it with the followin
 ```diff
   "presets": [
 +   "next/babel",
-+   "soya-next/babel",
 -   "es2015",
 -   "react",
     "stage-2"
