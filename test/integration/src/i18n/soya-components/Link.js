@@ -1,20 +1,21 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import connect from 'soya/lib/data/redux/connect';
 
 class Link extends React.Component {
   static propTypes = {
-    children: React.PropTypes.node,
-    context: React.PropTypes.shape({
-      locale: React.PropTypes.shape({
-        country: React.PropTypes.string,
-        language: React.PropTypes.string,
-        locale: React.PropTypes.string,
+    children: PropTypes.node,
+    context: PropTypes.shape({
+      locale: PropTypes.shape({
+        country: PropTypes.string,
+        language: PropTypes.string,
+        locale: PropTypes.string,
       }).isRequired,
-      router: React.PropTypes.object.isRequired,
+      router: PropTypes.object.isRequired,
     }).isRequired,
-    hash: React.PropTypes.string,
-    id: React.PropTypes.string,
-    param: React.PropTypes.object,
+    hash: PropTypes.string,
+    id: PropTypes.string,
+    param: PropTypes.object,
   };
 
   render() {

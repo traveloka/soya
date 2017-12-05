@@ -1,5 +1,6 @@
-import React, { Component, PropTypes } from 'react'
-import classnames from 'classnames'
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import classnames from 'classnames';
 import ContentResource from '../soya-components/ContentResource';
 
 export default class TodoTextInput extends Component {
@@ -8,19 +9,21 @@ export default class TodoTextInput extends Component {
     text: PropTypes.string,
     placeholder: PropTypes.string,
     editing: PropTypes.bool,
-    newTodo: PropTypes.bool
+    newTodo: PropTypes.bool,
+    handleChange: PropTypes.func,
+    errorMessages: PropTypes.array,
   }
 
   state = {
-    text: this.props.text || ''
+    text: this.props.text || '',
   }
 
   handleSubmit = e => {
-    const text = e.target.value.trim()
+    const text = e.target.value.trim();
     if (e.which === 13) {
-      this.props.onSave(text)
+      this.props.onSave(text);
       if (this.props.newTodo) {
-        this.setState({ text: '' })
+        this.setState({ text: '' });
       }
     }
   }
@@ -31,12 +34,12 @@ export default class TodoTextInput extends Component {
       if (this.props.handleChange) {
         this.props.handleChange(text);
       }
-    })
+    });
   }
 
   handleBlur = e => {
     if (!this.props.newTodo) {
-      this.props.onSave(e.target.value)
+      this.props.onSave(e.target.value);
     }
   }
 
@@ -48,13 +51,13 @@ export default class TodoTextInput extends Component {
       <div>
         <input className={
           classnames({
-            edit: this.props.editing,
+            'edit': this.props.editing,
             'new-todo': this.props.newTodo,
-            error: hasErrors,
+            'error': hasErrors,
           })}
-          type="text"
+          type='text'
           placeholder={this.props.placeholder}
-          autoFocus="true"
+          autoFocus='true'
           value={this.state.text}
           onBlur={this.handleBlur}
           onChange={this.handleChange}
@@ -70,6 +73,6 @@ export default class TodoTextInput extends Component {
           </ul>
         )}
       </div>
-    )
+    );
   }
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { contextShape } from '../utils/PropTypes';
 
 class ContextProvider extends React.Component {
@@ -13,7 +14,7 @@ class ContextProvider extends React.Component {
   }
 
   static propTypes = {
-    children: React.PropTypes.element.isRequired,
+    children: PropTypes.element.isRequired,
     context: contextShape.isRequired,
   };
 
