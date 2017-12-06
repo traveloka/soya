@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import at from 'soya/lib/scope';
 
 import style from './style.mod.css';
@@ -6,7 +7,7 @@ import style from './style.mod.css';
 export default class AutocompleteDisplay extends React.Component {
   static get propTypes() {
     return {
-      placeholder: React.PropTypes.string
+      placeholder: PropTypes.string
     };
   }
 

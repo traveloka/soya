@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 import IntlMessageFormat from 'intl-messageformat';
 import connect from 'soya/lib/data/redux/connect';
 import ContentResourceSegment from '../segments/ContentResourceSegment';
@@ -25,13 +26,13 @@ class ContentResource extends React.Component {
   }
 
   static propTypes = {
-    component: React.PropTypes.any,
-    renderProp: React.PropTypes.string,
-    crName: React.PropTypes.string.isRequired,
-    entryKey: React.PropTypes.string.isRequired,
-    param: React.PropTypes.object,
-    result: React.PropTypes.shape({
-      cr: React.PropTypes.string,
+    component: PropTypes.any,
+    renderProp: PropTypes.string,
+    crName: PropTypes.string.isRequired,
+    entryKey: PropTypes.string.isRequired,
+    param: PropTypes.object,
+    result: PropTypes.shape({
+      cr: PropTypes.string,
     }),
   };
 

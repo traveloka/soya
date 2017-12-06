@@ -1,28 +1,32 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 export default class Autocomplete extends React.Component {
   static get propTypes() {
     return {
-      data: React.PropTypes.array.isRequired
+      data: PropTypes.array.isRequired,
+      children: PropTypes.node,
     };
   }
 
   render() {
-    var preppedChildren = React.Children.map(
-      this.props.children, (child) => {
+    const preppedChildren = React.Children.map(
+      this.props.children, child => {
         return React.cloneElement(child, {
-          search: this.search.bind(this)
+          search: this.search.bind(this),
         });
       }
     );
-    return <div>
-      {preppedChildren}
-    </div>;
+    return (
+      <div>
+        {preppedChildren}
+      </div>
+    );
   }
 
   search(val) {
-    var regex = new RegExp(`${val}`, 'i');
-    return this.props.data.filter(function(item) {
+    const regex = new RegExp(`${val}`, 'i');
+    return this.props.data.filter(item => {
       return regex.test(item.searchStr);
     });
   }

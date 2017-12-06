@@ -1,9 +1,9 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 
-export const contextShape = React.PropTypes.shape({
-  config: React.PropTypes.object.isRequired,
-  store: React.PropTypes.object.isRequired,
-  router: React.PropTypes.object.isRequired,
-  cookieJar: React.PropTypes.object.isRequired,
-  emitter: React.PropTypes.object.isRequired,
+export const contextShape = PropTypes.shape({
+  config: PropTypes.object.isRequired,
+  store: PropTypes.object.isRequired,
+  router: PropTypes.object.isRequired,
+  cookieJar: PropTypes.object.isRequired,
+  emitter: PropTypes.object.isRequired,
 });

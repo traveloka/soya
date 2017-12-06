@@ -47,6 +47,7 @@
     "html-entities": "^1.2.0",
     "js-yaml": "^3.4.3",
     "node-sass": "^4.5.3",
+    "prop-types": "^15.6.0",
     "redux": "^3.7.2",
     "redux-thunk": "^2.2.0",
     "sass-loader": "^6.0.6",
